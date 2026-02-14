@@ -1332,41 +1332,43 @@
     }
 
     async function verifyAdmin() {
-        const adminUsername = document.getElementById('admin-username').value;
-        const adminPassword = document.getElementById('admin-password').value;
-        const errorMsg = document.getElementById('admin-error-msg');
         
-        // Ocultar mensajes previos
-        errorMsg.style.display = 'none';
-        
-        // Verificar credenciales de administrador (Miguel Silverio)
-        const foundUser = findUser(adminUsername);
-        const hashedPassword = await hashPassword(adminPassword);
-        
-        if (foundUser === "Miguel Silverio" && usuarios[foundUser].password === hashedPassword) {
-            showAdminPanel();
-        } else {
-            errorMsg.textContent = 'Credenciales de administrador incorrectas';
-            errorMsg.style.display = 'block';
-            
-            // Efecto de sacudida para indicar error
-            document.querySelector('.login-container').animate([
-                { transform: 'translateX(0)' },
-                { transform: 'translateX(-10px)' },
-                { transform: 'translateX(10px)' },
-                { transform: 'translateX(0)' }
-            ], {
-                duration: 300,
-                iterations: 1
-            });
-        }
-    }
+    const email = document.getElementById('admin-username').value;
+    const password = document.getElementById('admin-password').value;
+    const errorMsg = document.getElementById('admin-error-msg');
 
-    async function validarLogin() {
-        if (isBlocked) {
-            updateBlockedMessage();
-            return;
+    errorMsg.style.display = 'none';
+
+    try {
+
+        const userCredential = await signInWithEmailAndPassword(auth, email, password);
+        const user = userCredential.user;
+
+        const docRef = doc(db, "usuarios", user.uid);
+        const docSnap = await getDoc(docRef);
+
+        if (docSnap.exists()) {
+
+            const userData = docSnap.data();
+
+            if (userData.role === "admin" && userData.activo === true) {
+                showAdminPanel();
+            } else {
+                errorMsg.textContent = "No tienes permisos de administrador";
+                errorMsg.style.display = "block";
+            }
+
+        } else {
+            errorMsg.textContent = "Usuario no registrado en base de datos";
+            errorMsg.style.display = "block";
         }
+
+    } catch (error) {
+        errorMsg.textContent = "Credenciales incorrectas";
+        errorMsg.style.display = "block";
+    }
+}
+
         
         const usuario = document.getElementById('usuario').value;
         const password = document.getElementById('password').value;
@@ -4647,9 +4649,19 @@ $(document).ready(function() {
 </html>
 </div>
 <script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-  import { getAuth } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-  import { getFirestore } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+
+  import { 
+    getAuth,
+    createUserWithEmailAndPassword,
+    sendPasswordResetEmail,
+    sendEmailVerification
+  } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+  import { 
+    getFirestore 
+  } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
 
   const firebaseConfig = {
     apiKey: "AIzaSyCY14LkfciAkiQK8tqFedBR1oNsSJYy_NM",
@@ -4667,4 +4679,22 @@ $(document).ready(function() {
   console.log("🔥 Firebase conectado correctamente");
 </script>
 </body>
+// CREAR USUARIO DESDE PANEL ADMIN
+window.crearUsuarioAdmin = async function(email) {
+  try {
+
+    const passwordTemporal = Math.random().toString(36).slice(-8);
+
+    const userCredential = await createUserWithEmailAndPassword(auth, email, passwordTemporal);
+
+    await sendPasswordResetEmail(auth, email);
+
+    alert("✅ Usuario creado y correo enviado para crear contraseña.");
+
+    console.log("Usuario creado:", userCredential.user.uid);
+
+  } catch (error) {
+    alert("❌ Error: " + error.message);
+  }
+};
 </html>
