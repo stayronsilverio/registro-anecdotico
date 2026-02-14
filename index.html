@@ -572,7 +572,7 @@
             </span>
         </div>
         
-        <button onclick="verifyAdminConFirebase()">Verificar identidad (Cloud)</button>
+        <button onclick="verifyAdmin()">Verificar identidad</button>
         <button class="secondary-btn" onclick="hideAdminAuth()">Cancelar</button>
         
         <p class="error-msg" id="admin-error-msg"></p>
@@ -4648,46 +4648,23 @@ $(document).ready(function() {
 </div>
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-  import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-  import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+  import { getAuth } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+  import { getFirestore } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyCY14LkfciAkiQK8tqFedBR1oNsSJYy_NM",
     authDomain: "registro-anecdotico-4e9f9.firebaseapp.com",
     projectId: "registro-anecdotico-4e9f9",
-    storageBucket: "registro-anecdotico-4e9f9.appspot.com",
-    messagingSenderId: "367343445025",
-    appId: "1:367343445025:web:78622c4a93f77366367303"
+    storageBucket: "registro-anecdotico-4e9f9.firebasestorage.app",
+    messagingSenderId: "452165916569",
+    appId: "1:452165916569:web:38eba932b3a9b13cdd6508"
   };
 
   const app = initializeApp(firebaseConfig);
   const auth = getAuth(app);
   const db = getFirestore(app);
 
-  // Función para conectar el botón de Admin con Firebase
-  window.verifyAdminConFirebase = async function() {
-    const adminEmail = "msilverioq@gmail.com"; // Tu correo de administrador
-    const adminPassword = document.getElementById('admin-password').value;
-    const errorMsg = document.getElementById('admin-error-msg');
-
-    try {
-      // Intentar entrar con Firebase
-      const userCredential = await signInWithEmailAndPassword(auth, adminEmail, adminPassword);
-      const user = userCredential.user;
-
-      // Verificar si en tu base de datos tienes el rol de admin
-      const docRef = doc(db, "usuarios", user.uid);
-      const docSnap = await getDoc(docRef);
-
-      if (docSnap.exists() && docSnap.data().role === "admin") {
-        showAlert("¡Acceso Nube Correcto!", "success");
-        showAdminPanel(); // Esta es tu función original que abre el panel
-      } else {
-        throw new Error("No tienes permisos de administrador en la nube.");
-      }
-    } catch (error) {
-      errorMsg.textContent = "Error en Nube: " + error.message;
-      errorMsg.style.display = 'block';
-    }
-  };
+  console.log("🔥 Firebase conectado correctamente");
 </script>
+</body>
+</html>
