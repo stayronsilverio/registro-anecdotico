@@ -1438,95 +1438,9 @@
         }
     }
 
-    async function registerUser() {
-        const username = document.getElementById('new-username').value;
-        const password = document.getElementById('new-password').value;
-        const confirmPassword = document.getElementById('confirm-password').value;
-        const role = document.getElementById('user-role').value;
-        const phone = document.getElementById('user-phone').value;
-        const expiryDate = document.getElementById('expiry-date').value;
-        const avatarFile = document.getElementById('avatar-upload').files[0];
-        const errorMsg = document.getElementById('register-error-msg');
-        const successMsg = document.getElementById('register-success-msg');
+   
         
-        // Ocultar mensajes previos
-        errorMsg.style.display = 'none';
-        successMsg.style.display = 'none';
         
-        // Validaciones
-        if (!username || !password || !confirmPassword || !role) {
-            showAlert('Todos los campos marcados con * son obligatorios', 'error');
-            return;
-        }
-        
-        if (password.length < 4) {
-            showAlert('La contraseña debe tener al menos 4 caracteres', 'error');
-            return;
-        }
-        
-        if (password !== confirmPassword) {
-            showAlert('Las contraseñas no coinciden', 'error');
-            return;
-        }
-        
-        // Verificar si el usuario ya existe (sin importar mayúsculas/minúsculas)
-        if (findUser(username)) {
-            showAlert('El usuario ya existe', 'error');
-            return;
-        }
-        
-        // Procesar avatar si se subió uno
-        let avatarData = null;
-        if (avatarFile) {
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                avatarData = e.target.result;
-                completeUserRegistration(username, password, role, phone, expiryDate, avatarData);
-            };
-            reader.readAsDataURL(avatarFile);
-        } else {
-            await completeUserRegistration(username, password, role, phone, expiryDate, null);
-        }
-    }
-
-    async function completeUserRegistration(username, password, role, phone, expiryDate, avatarData) {
-        // Encriptar la contraseña
-        const hashedPassword = await hashPassword(password);
-        
-        // Registrar el nuevo usuario
-        usuarios[username] = {
-            password: hashedPassword,
-            expiryDate: expiryDate || null,
-            isDefault: false,
-            avatar: avatarData,
-            role: role,
-            phone: phone,
-            sessionId: null
-        };
-        saveUsers();
-        
-        // Notificar por correo (simulado)
-        notifyNewUser(username, password, role, phone, expiryDate);
-        
-        // Mostrar mensaje de éxito
-        showAlert(`Usuario "${username}" registrado correctamente`, 'success');
-        
-        // Limpiar formulario
-        document.getElementById('new-username').value = '';
-        document.getElementById('new-password').value = '';
-        document.getElementById('confirm-password').value = '';
-        document.getElementById('user-role').value = '';
-        document.getElementById('user-phone').value = '';
-        document.getElementById('expiry-date').value = '';
-        document.getElementById('avatar-upload').value = '';
-        
-        // Recargar lista de usuarios
-        updateUserDropdown(); // 🔥 Actualizar desplegable de login
-        loadUserList();
-        
-        // Cambiar a la pestaña de gestión para ver el nuevo usuario
-        switchAdminTab('delete');
-    }
 </script>
 
 
@@ -4645,27 +4559,26 @@ $(document).ready(function() {
 });
 </script>
 
-</body>
-</html>
-</div>
 <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 
-import { 
-  getAuth,
-  createUserWithEmailAndPassword,
-  sendPasswordResetEmail,
-  signInWithEmailAndPassword
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 
-import { 
-  getFirestore,
-  doc,
-  getDoc,
-  setDoc
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+  import { 
+    getAuth,
+    createUserWithEmailAndPassword,
+    sendPasswordResetEmail,
+    signInWithEmailAndPassword
+  } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+  import { 
+    getFirestore,
+    doc,
+    getDoc,
+    setDoc
+  } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 
+  // CONFIGURACIÓN FIREBASE
   const firebaseConfig = {
     apiKey: "AIzaSyCY14LkfciAkiQK8tqFedBR1oNsSJYy_NM",
     authDomain: "registro-anecdotico-4e9f9.firebaseapp.com",
@@ -4675,29 +4588,102 @@ import {
     appId: "1:452165916569:web:38eba932b3a9b13cdd6508"
   };
 
+
+  // INICIALIZAR FIREBASE
   const app = initializeApp(firebaseConfig);
   const auth = getAuth(app);
   const db = getFirestore(app);
 
   console.log("🔥 Firebase conectado correctamente");
+
+
+  // ==========================
+  // LOGIN ADMIN CON FIREBASE
+  // ==========================
+  window.verifyAdmin = async function() {
+
+      const email = document.getElementById('admin-username').value;
+      const password = document.getElementById('admin-password').value;
+      const errorMsg = document.getElementById('admin-error-msg');
+
+      errorMsg.style.display = 'none';
+
+      try {
+
+          const userCredential = await signInWithEmailAndPassword(auth, email, password);
+          const user = userCredential.user;
+
+          const docRef = doc(db, "usuarios", user.uid);
+          const docSnap = await getDoc(docRef);
+
+          if (docSnap.exists()) {
+
+              const userData = docSnap.data();
+
+              if (userData.role === "admin" && userData.activo === true) {
+                  showAdminPanel();
+              } else {
+                  errorMsg.textContent = "No tienes permisos de administrador";
+                  errorMsg.style.display = "block";
+              }
+
+          } else {
+              errorMsg.textContent = "Usuario no registrado en base de datos";
+              errorMsg.style.display = "block";
+          }
+
+      } catch (error) {
+          errorMsg.textContent = "Credenciales incorrectas";
+          errorMsg.style.display = "block";
+      }
+  };
+
+
+  // =====================================
+  // CREAR USUARIO DESDE PANEL ADMIN
+  // =====================================
+  window.registerUser = async function() {
+
+      const email = document.getElementById('new-email').value;
+      const role = document.getElementById('user-role').value;
+      const phone = document.getElementById('user-phone').value;
+      const expiryDate = document.getElementById('expiry-date').value;
+
+      if (!email || !role) {
+          showAlert('Correo y Rol son obligatorios', 'error');
+          return;
+      }
+
+      try {
+
+          const passwordTemporal = Math.random().toString(36).slice(-8);
+
+          const userCredential = await createUserWithEmailAndPassword(auth, email, passwordTemporal);
+          const uid = userCredential.user.uid;
+
+          await sendPasswordResetEmail(auth, email);
+
+          await setDoc(doc(db, "usuarios", uid), {
+              email: email,
+              role: role,
+              phone: phone || null,
+              expiryDate: expiryDate || null,
+              activo: true,
+              createdAt: new Date()
+          });
+
+          showAlert(`Usuario ${email} creado correctamente. Se envió correo para crear contraseña.`, 'success');
+
+          document.getElementById('new-email').value = '';
+          document.getElementById('user-role').value = '';
+          document.getElementById('user-phone').value = '';
+          document.getElementById('expiry-date').value = '';
+
+      } catch (error) {
+          showAlert(error.message, 'error');
+      }
+  };
+
 </script>
 </body>
-// CREAR USUARIO DESDE PANEL ADMIN
-window.crearUsuarioAdmin = async function(email) {
-  try {
-
-    const passwordTemporal = Math.random().toString(36).slice(-8);
-
-    const userCredential = await createUserWithEmailAndPassword(auth, email, passwordTemporal);
-
-    await sendPasswordResetEmail(auth, email);
-
-    alert("✅ Usuario creado y correo enviado para crear contraseña.");
-
-    console.log("Usuario creado:", userCredential.user.uid);
-
-  } catch (error) {
-    alert("❌ Error: " + error.message);
-  }
-};
 </html>
