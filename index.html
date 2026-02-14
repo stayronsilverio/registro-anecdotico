@@ -1332,44 +1332,35 @@
     }
 
     async function verifyAdmin() {
-
-    const adminEmail = document.getElementById('admin-username').value;
-    const adminPassword = document.getElementById('admin-password').value;
-    const errorMsg = document.getElementById('admin-error-msg');
-
-    errorMsg.style.display = 'none';
-
-    try {
-
-        // Iniciar sesión con Firebase
-        const userCredential = await firebase.auth().signInWithEmailAndPassword(adminEmail, adminPassword);
-        const user = userCredential.user;
-
-        // Buscar datos del usuario en Firestore
-        const docRef = firebase.firestore().collection("usuarios").doc(user.uid);
-        const docSnap = await docRef.get();
-
-        if (docSnap.exists) {
-
-            const userData = docSnap.data();
-
-            if (userData.role === "admin" && userData.activo === true) {
-                showAdminPanel();
-            } else {
-                errorMsg.textContent = "No tienes permisos de administrador";
-                errorMsg.style.display = "block";
-            }
-
+        const adminUsername = document.getElementById('admin-username').value;
+        const adminPassword = document.getElementById('admin-password').value;
+        const errorMsg = document.getElementById('admin-error-msg');
+        
+        // Ocultar mensajes previos
+        errorMsg.style.display = 'none';
+        
+        // Verificar credenciales de administrador (Miguel Silverio)
+        const foundUser = findUser(adminUsername);
+        const hashedPassword = await hashPassword(adminPassword);
+        
+        if (foundUser === "Miguel Silverio" && usuarios[foundUser].password === hashedPassword) {
+            showAdminPanel();
         } else {
-            errorMsg.textContent = "Usuario no registrado en base de datos";
-            errorMsg.style.display = "block";
+            errorMsg.textContent = 'Credenciales de administrador incorrectas';
+            errorMsg.style.display = 'block';
+            
+            // Efecto de sacudida para indicar error
+            document.querySelector('.login-container').animate([
+                { transform: 'translateX(0)' },
+                { transform: 'translateX(-10px)' },
+                { transform: 'translateX(10px)' },
+                { transform: 'translateX(0)' }
+            ], {
+                duration: 300,
+                iterations: 1
+            });
         }
-
-    } catch (error) {
-        errorMsg.textContent = "Credenciales incorrectas";
-        errorMsg.style.display = "block";
     }
-}
 
     async function validarLogin() {
         if (isBlocked) {
