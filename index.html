@@ -4646,5 +4646,25 @@ $(document).ready(function() {
 </body>
 </html>
 </div>
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import { getAuth } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+  import { getFirestore } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyCY14LkfciAkiQK8tqFedBR1oNsSJYy_NM",
+    authDomain: "registro-anecdotico-4e9f9.firebaseapp.com",
+    projectId: "registro-anecdotico-4e9f9",
+    storageBucket: "registro-anecdotico-4e9f9.firebasestorage.app",
+    messagingSenderId: "452165916569",
+    appId: "1:452165916569:web:38eba932b3a9b13cdd6508"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  console.log("🔥 Firebase conectado correctamente");
+</script>
 </body>
 </html>
