@@ -3,19 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema de Registro Anecdótico v4.0</title>
-    
+    <title>Login - Registro Anecdótico v4.0</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-
-    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-
     <style>
-        /* ================= VARIABLES Y DISEÑO BASE ================= */
         :root {
             --primary-color: #6a11cb;
             --secondary-color: #2575fc;
@@ -27,7 +17,7 @@
             --card-bg: #ffffff;
             --input-bg: #ffffff;
             --border-color: #ddd;
-            --shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            --shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
         }
 
         .dark-mode {
@@ -41,478 +31,527 @@
             --card-bg: #1e1e1e;
             --input-bg: #2d2d2d;
             --border-color: #444;
-            --shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            --shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
         }
 
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; transition: background 0.3s, color 0.3s; }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            transition: background-color 0.3s, color 0.3s;
+        }
 
         body {
-            min-height: 100vh;
-            background: var(--bg-color);
-            color: var(--text-color);
-            display: flex;
-            flex-direction: column;
-        }
-
-        /* ================= LOGIN ================= */
-        #login-wrapper {
-            flex: 1;
             display: flex;
             justify-content: center;
             align-items: center;
-            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            min-height: 100vh;
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
             padding: 20px;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            flex-direction: column;
         }
 
-        .login-card {
+        .login-container {
             background: var(--card-bg);
             padding: 40px;
             border-radius: 20px;
             box-shadow: var(--shadow);
             width: 100%;
-            max-width: 420px;
+            max-width: 500px;
             text-align: center;
+            position: relative;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+
+        .login-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 5px;
+            background: linear-gradient(to right, var(--primary-color), var(--secondary-color));
+        }
+
+        .theme-switch {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            cursor: pointer;
+            font-size: 24px;
+            color: var(--primary-color);
+        }
+
+        .avatar-container {
+            width: 130px;
+            height: 130px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            margin: 0 auto 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 40px;
+            font-weight: bold;
+            border: 4px solid var(--card-bg);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+        }
+
+        .avatar-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .login-container h2 {
+            font-size: 24px;
+            margin-bottom: 5px;
+            color: var(--text-color);
+            font-weight: 600;
+        }
+
+        .user-role {
+            font-size: 16px;
+            color: var(--primary-color);
+            font-weight: 500;
+            margin-bottom: 5px;
+        }
+
+        .contact-info {
+            font-size: 14px;
+            color: var(--text-color);
+            opacity: 0.8;
+            margin-bottom: 25px;
+        }
+
+        .input-group {
+            margin-bottom: 15px;
+            text-align: left;
             position: relative;
         }
 
-        .avatar-circle {
-            width: 90px; height: 90px;
-            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-            border-radius: 50%;
-            margin: 0 auto 20px;
-            display: flex; align-items: center; justify-content: center;
-            color: white; font-size: 30px; font-weight: bold;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        .input-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 14px;
+            color: var(--text-color);
+            font-weight: 500;
         }
 
-        .input-box { margin-bottom: 15px; text-align: left; position: relative; }
-        .input-box label { font-size: 0.9rem; font-weight: 600; margin-bottom: 5px; display: block; }
-        
-        .input-box input {
-            width: 100%; padding: 12px; border-radius: 8px;
+        .login-container select,
+        .login-container input {
+            width: 100%;
+            padding: 12px 15px;
+            border-radius: 10px;
             border: 2px solid var(--border-color);
-            background: var(--input-bg); color: var(--text-color);
-            font-size: 1rem;
+            font-size: 15px;
+            transition: all 0.3s;
+            background-color: var(--input-bg);
+            color: var(--text-color);
         }
 
-        .input-box input:focus { border-color: var(--primary-color); outline: none; }
+        .login-container select:focus,
+        .login-container input:focus {
+            border-color: var(--primary-color);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(106, 17, 203, 0.2);
+        }
 
-        .btn-main {
-            width: 100%; padding: 14px; border: none; border-radius: 8px;
-            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
-            color: white; font-size: 1rem; font-weight: bold; cursor: pointer;
+        .password-toggle {
+            position: absolute;
+            right: 15px;
+            top: 38px;
+            cursor: pointer;
+            color: var(--text-color);
+            opacity: 0.7;
+        }
+
+        .login-container button {
+            width: 100%;
+            padding: 14px;
             margin-top: 10px;
-            box-shadow: 0 4px 15px rgba(106, 17, 203, 0.3);
-        }
-        .btn-main:hover { transform: translateY(-2px); }
-        .btn-main:disabled { opacity: 0.7; cursor: not-allowed; }
-
-        .footer-credit {
-            margin-top: 25px; font-size: 0.8rem; opacity: 0.7; line-height: 1.4;
-        }
-
-        /* Mensajes de Estado */
-        .msg-box { padding: 10px; border-radius: 5px; margin-top: 15px; font-size: 0.9rem; display: none; }
-        .msg-error { background: rgba(231, 76, 60, 0.1); color: var(--danger-color); border-left: 3px solid var(--danger-color); }
-        .msg-success { background: rgba(46, 204, 113, 0.1); color: var(--accent-color); border-left: 3px solid var(--accent-color); }
-
-        /* ================= DASHBOARD ================= */
-        #dashboard-wrapper { display: none; width: 100%; }
-
-        header.dash-header {
-            background: var(--card-bg); padding: 15px 20px;
-            display: flex; justify-content: space-between; align-items: center;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-            border-bottom: 1px solid var(--border-color);
+            border: none;
+            border-radius: 10px;
+            background: linear-gradient(to right, var(--primary-color), var(--secondary-color));
+            color: white;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 10px rgba(106, 17, 203, 0.3);
         }
 
-        .user-badge {
-            display: flex; align-items: center; gap: 10px;
-            font-weight: 600; font-size: 0.9rem;
-        }
-        .role-tag {
-            background: var(--primary-color); color: white;
-            padding: 2px 8px; border-radius: 12px; font-size: 0.7rem;
+        .login-container button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(106, 17, 203, 0.4);
         }
 
-        .container { max-width: 1100px; margin: 20px auto; padding: 0 15px; padding-bottom: 80px; }
-
-        .card {
-            background: var(--card-bg); border-radius: 12px; padding: 20px;
-            margin-bottom: 20px; box-shadow: var(--shadow); border: 1px solid var(--border-color);
+        .secondary-btn {
+            background: linear-gradient(to right, #fd746c, #ff9068) !important;
+            box-shadow: 0 4px 10px rgba(253, 116, 108, 0.3) !important;
         }
 
-        h2.card-title {
-            font-size: 1.2rem; color: var(--primary-color); margin-bottom: 15px;
-            display: flex; align-items: center; gap: 10px;
-            border-bottom: 2px solid var(--bg-color); padding-bottom: 10px;
+        .error-msg, .blocked-msg {
+            color: var(--danger-color);
+            font-size: 14px;
+            margin-top: 15px;
+            display: none;
+            background: rgba(231, 76, 60, 0.1);
+            padding: 10px;
+            border-radius: 8px;
+            border-left: 4px solid var(--danger-color);
         }
 
-        /* Tabs */
-        .tabs-nav { display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 2px solid var(--border-color); }
-        .tab-btn {
-            padding: 10px 20px; background: transparent; border: none;
-            color: var(--text-color); cursor: pointer; font-weight: 600;
-            border-bottom: 3px solid transparent;
+        .success-msg {
+            color: var(--accent-color);
+            font-size: 14px;
+            margin-top: 15px;
+            display: none;
+            background: rgba(46, 204, 113, 0.1);
+            padding: 10px;
+            border-radius: 8px;
+            border-left: 4px solid var(--accent-color);
         }
-        .tab-btn.active { border-bottom-color: var(--primary-color); color: var(--primary-color); }
-        .tab-content { display: none; }
-        .tab-content.active { display: block; }
 
-        /* Grid de Emojis mejorado */
-        .emoji-grid {
-            display: grid; grid-template-columns: repeat(auto-fill, minmax(60px, 1fr)); gap: 8px;
-            max-height: 200px; overflow-y: auto; padding: 5px; border: 1px solid var(--border-color); border-radius: 8px;
+        /* Paneles ocultos */
+        .admin-auth, .register-form { display: none; text-align: left; margin-top: 20px; padding-top: 20px; border-top: 1px dashed var(--border-color); }
+
+        .user-list { max-height: 200px; overflow-y: auto; border: 1px solid var(--border-color); border-radius: 8px; padding: 10px; margin-bottom: 15px; }
+
+        .user-item { display: flex; justify-content: space-between; align-items: center; padding: 8px; border-bottom: 1px solid var(--border-color); }
+
+        .footer {
+            margin-top: auto;
+            padding: 20px;
+            font-size: 12px;
+            color: white;
+            text-align: center;
+            width: 100%;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
         }
-        .emoji-item {
-            background: var(--bg-color); border: 1px solid var(--border-color);
-            border-radius: 8px; padding: 8px; cursor: pointer; font-size: 1.5rem;
-            text-align: center; transition: transform 0.2s;
+
+        .custom-alert {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            border-radius: 8px;
+            background: var(--card-bg);
+            box-shadow: var(--shadow);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transform: translateX(120%);
+            transition: transform 0.3s ease;
         }
-        .emoji-item:hover { transform: scale(1.1); background: var(--input-bg); border-color: var(--primary-color); }
-        
-        .emoji-cat-title { font-size: 0.8rem; color: var(--text-color); opacity: 0.7; margin: 10px 0 5px; }
-
-        /* Botones Dashboard */
-        .btn-action { padding: 8px 15px; border-radius: 6px; border: none; cursor: pointer; font-weight: 600; color: white; display: inline-flex; align-items: center; gap: 5px; }
-        .btn-blue { background: var(--secondary-color); }
-        .btn-red { background: var(--danger-color); }
-        .btn-green { background: var(--accent-color); }
-
-        /* Tabla */
-        table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 0.9rem; }
-        th, td { padding: 10px; border: 1px solid var(--border-color); text-align: left; }
-        th { background: var(--primary-color); color: white; }
-
-        .hidden { display: none; }
-
-        /* Media Queries para Footer y Layout */
-        @media (max-width: 600px) {
-            .emoji-grid { grid-template-columns: repeat(5, 1fr); }
-            .login-card { padding: 25px; }
-        }
+        .custom-alert.show { transform: translateX(0); }
     </style>
 </head>
 <body>
 
-    <section id="login-wrapper">
-        <div class="login-card">
-            <div style="position: absolute; top: 15px; right: 15px; cursor: pointer;" onclick="toggleTheme()">
-                <i class="fas fa-adjust"></i>
+<div class="login-container" id="login-page">
+    <div class="theme-switch" id="theme-switch" onclick="toggleTheme()">
+        <i class="fas fa-moon"></i>
+    </div>
+
+    <div class="avatar-container" id="user-avatar">MS</div>
+    
+    <h2 id="profile-name">Miguel Silverio</h2>
+    <p class="user-role" id="profile-role">Docente de Inglés</p>
+    <p class="contact-info" id="profile-contact">Tel: 829-801-8462</p>
+
+    <div id="login-form">
+        <div class="input-group">
+            <label for="usuario">Correo electrónico</label>
+            <input type="email" id="usuario" placeholder="ejemplo@correo.com" oninput="updateProfileRealTime()">
+        </div>
+
+        <div class="input-group">
+            <label for="password">Contraseña</label>
+            <input type="password" id="password" placeholder="Ingresa tu contraseña">
+            <span class="password-toggle" onclick="togglePassword('password', this)">
+                <i class="far fa-eye"></i>
+            </span>
+        </div>
+
+        <div style="text-align: right; margin-bottom: 15px;">
+            <a href="#" onclick="forgotPassword()" style="color: var(--primary-color); font-size: 14px; text-decoration: none;">¿Olvidaste tu contraseña?</a>
+        </div>
+
+        <button onclick="validarLogin()">Ingresar al Sistema</button>
+        
+        <p class="error-msg" id="error-msg"><i class="fas fa-exclamation-circle"></i> <span id="error-text"></span></p>
+        <p class="blocked-msg" id="blocked-msg"><i class="fas fa-lock"></i> <span id="blocked-text"></span></p>
+        <p class="success-msg" id="success-msg"><i class="fas fa-check-circle"></i> Redirigiendo...</p>
+
+        <button class="secondary-btn" onclick="showAdminAuth()" style="margin-top: 15px;">
+            <i class="fas fa-user-cog"></i> Administrar usuarios
+        </button>
+    </div>
+
+    <div id="admin-auth" class="admin-auth">
+        <h3 style="text-align: center; margin-bottom: 10px;">Acceso Administrativo</h3>
+        <div class="input-group">
+            <label>Usuario Admin</label>
+            <input type="text" id="admin-username">
+        </div>
+        <div class="input-group">
+            <label>Contraseña</label>
+            <input type="password" id="admin-password">
+        </div>
+        <button onclick="verifyAdmin()">Verificar</button>
+        <button class="secondary-btn" onclick="hideAdminAuth()">Cancelar</button>
+    </div>
+
+    <div id="admin-panel" class="register-form">
+        <h3 style="text-align: center;">Gestión de Usuarios</h3>
+        <div id="create-user-section">
+            <div class="input-group">
+                <label>Nombre Completo</label>
+                <input type="text" id="new-username">
             </div>
-
-            <div class="avatar-circle">RA</div>
-            <h2 style="margin-bottom: 5px;">Bienvenido</h2>
-            <p style="font-size: 0.9rem; opacity: 0.7; margin-bottom: 25px;">Ingresa tus credenciales</p>
-
-            <div class="input-box">
-                <label>Correo Electrónico</label>
-                <input type="email" id="email" placeholder="tucorreo@ejemplo.com">
+            <div class="input-group">
+                <label>Correo/Usuario</label>
+                <input type="email" id="new-email">
             </div>
-
-            <div class="input-box">
+            <div class="input-group">
+                <label>Rol</label>
+                <input type="text" id="new-role" placeholder="Ej. Docente de Matemáticas">
+            </div>
+            <div class="input-group">
                 <label>Contraseña</label>
-                <input type="password" id="password" placeholder="••••••••">
-                <i class="far fa-eye" onclick="togglePass()" style="position: absolute; right: 12px; top: 38px; cursor: pointer; opacity: 0.6;"></i>
+                <input type="password" id="new-password">
             </div>
-
-            <button class="btn-main" id="btn-login" onclick="handleLogin()">
-                <i class="fas fa-sign-in-alt"></i> Iniciar Sesión
-            </button>
-
-            <div id="error-msg" class="msg-box msg-error"></div>
-            <div id="success-msg" class="msg-box msg-success"></div>
-
-            <div class="footer-credit">
-                Sistema de Registro Anecdótico | v4.0<br>
-                <strong>Desarrollado por Miguel Silverio</strong>
-            </div>
+            <button onclick="registerUser()">Crear Usuario</button>
         </div>
-    </section>
+        <div class="user-list" id="user-list" style="margin-top: 20px;"></div>
+        <button class="secondary-btn" onclick="hideAdminPanel()">Cerrar Panel</button>
+    </div>
+</div>
 
-    <section id="dashboard-wrapper">
-        <header class="dash-header">
-            <div class="user-badge">
-                <div class="avatar-circle" style="width: 35px; height: 35px; font-size: 14px; margin: 0;">MS</div>
-                <div>
-                    <div id="user-email-display">Cargando...</div>
-                    <span id="user-role-display" class="role-tag">Docente</span>
-                </div>
-            </div>
-            <button class="btn-action btn-red" onclick="handleLogout()" style="font-size: 0.8rem;">
-                <i class="fas fa-power-off"></i> Salir
-            </button>
-        </header>
+<div class="footer">
+    Sistema de Registro Anecdótico | v4.0<br>
+    Desarrollado por <strong>Miguel Silverio</strong>
+</div>
 
-        <div class="container">
-            <div id="admin-tools" class="card hidden" style="border-left: 4px solid var(--warning-color);">
-                <h2 class="card-title"><i class="fas fa-user-shield"></i> Panel de Administrador</h2>
-                <p>Opciones exclusivas para la gestión del sistema.</p>
-                <button class="btn-action btn-blue" onclick="alert('Función de admin: Ver logs globales')">Ver Logs</button>
-                <button class="btn-action btn-blue" onclick="alert('Función de admin: Gestionar usuarios')">Gestionar Usuarios</button>
-            </div>
+<div class="custom-alert" id="custom-alert">
+    <i class="fas fa-info-circle"></i>
+    <span id="alert-message"></span>
+</div>
 
-            <div class="tabs-nav">
-                <button class="tab-btn active" onclick="switchTab('registro')">Registro</button>
-                <button class="tab-btn" onclick="switchTab('reportes')">Reportes</button>
-            </div>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 
-            <div id="tab-registro" class="tab-content active">
-                <div class="card">
-                    <h2 class="card-title"><i class="fas fa-edit"></i> Nuevo Registro</h2>
-                    
-                    <div class="input-box">
-                        <label>Estudiante:</label>
-                        <input type="text" id="student-name" placeholder="Nombre del estudiante...">
-                    </div>
+<script>
+    // 1. CONFIGURACIÓN
+    const firebaseConfig = {
+        apiKey: "AIzaSyCY14LkfciAkiQK8tqFedBR1oNsSJYy_NM",
+        authDomain: "registro-anecdotico-4e9f9.firebaseapp.com",
+        projectId: "registro-anecdotico-4e9f9",
+        storageBucket: "registro-anecdotico-4e9f9.appspot.com",
+        messagingSenderId: "1090150651792",
+        appId: "1:1090150651792:web:7235a82869df91969a5840"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
 
-                    <label style="font-size: 0.9rem; font-weight: 600;">Seleccionar Reacción:</label>
-                    <div class="emoji-cat-title">Académico</div>
-                    <div class="emoji-grid" id="emojis-academic"></div>
-                    
-                    <div class="emoji-cat-title">Conducta</div>
-                    <div class="emoji-grid" id="emojis-behavior"></div>
+    let failedAttempts = 0;
+    let isBlocked = false;
 
-                    <div class="input-box" style="margin-top: 15px;">
-                        <label>Comentario:</label>
-                        <input type="text" id="comment-box" placeholder="Detalles de la observación...">
-                    </div>
+    // 2. FUNCIONES DE INTERFAZ
+    function toggleTheme() {
+        document.body.classList.toggle('dark-mode');
+        const icon = document.querySelector('#theme-switch i');
+        icon.className = document.body.classList.contains('dark-mode') ? 'fas fa-sun' : 'fas fa-moon';
+    }
 
-                    <button class="btn-main" onclick="addEntry()">Guardar Registro</button>
-                </div>
+    function togglePassword(id, el) {
+        const input = document.getElementById(id);
+        const icon = el.querySelector('i');
+        if (input.type === 'password') {
+            input.type = 'text';
+            icon.className = 'far fa-eye-slash';
+        } else {
+            input.type = 'password';
+            icon.className = 'far fa-eye';
+        }
+    }
 
-                <div class="card">
-                    <h2 class="card-title"><i class="fas fa-list"></i> Historial de Hoy</h2>
-                    <table id="entries-table">
-                        <thead>
-                            <tr>
-                                <th>Estudiante</th>
-                                <th>Reacción</th>
-                                <th>Comentario</th>
-                                <th>Hora</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            </tbody>
-                    </table>
-                </div>
-            </div>
+    function showAlert(msg, type = 'success') {
+        const alert = document.getElementById('custom-alert');
+        document.getElementById('alert-message').innerText = msg;
+        alert.style.borderLeft = type === 'error' ? '5px solid red' : '5px solid green';
+        alert.classList.add('show');
+        setTimeout(() => alert.classList.remove('show'), 4000);
+    }
 
-            <div id="tab-reportes" class="tab-content">
-                <div class="card">
-                    <h2 class="card-title"><i class="fas fa-file-pdf"></i> Exportar Datos</h2>
-                    <p>Genera un reporte PDF con todos los registros de la sesión actual.</p>
-                    <br>
-                    <button class="btn-action btn-green" onclick="alert('Generando PDF... (Simulado)')">
-                        <i class="fas fa-download"></i> Descargar PDF
-                    </button>
-                </div>
-            </div>
-        </div>
-    </section>
+    // 3. LÓGICA DE PERFIL
+    function updateProfileRealTime() {
+        const email = document.getElementById('usuario').value.toLowerCase();
+        const avatar = document.getElementById('user-avatar');
+        const nameDisplay = document.getElementById('profile-name');
+        
+        if(email.includes("silverio")) {
+            nameDisplay.innerText = "Miguel Silverio";
+            avatar.innerText = "MS";
+            document.getElementById('profile-role').innerText = "Docente de Inglés";
+        } else if (email !== "") {
+            nameDisplay.innerText = email.split('@')[0];
+            avatar.innerText = email.charAt(0).toUpperCase();
+        }
+    }
 
-    <script>
-        // 1. CONFIGURACIÓN FIREBASE (Tus credenciales)
-        const firebaseConfig = {
-            apiKey: "AIzaSyCY14LkfciAkiQK8tqFedBR1oNsSJYy_NM",
-            authDomain: "registro-anecdotico-4e9f9.firebaseapp.com",
-            projectId: "registro-anecdotico-4e9f9",
-            storageBucket: "registro-anecdotico-4e9f9.appspot.com",
-            messagingSenderId: "1090150651792",
-            appId: "1:1090150651792:web:7235a82869df91969a5840"
-        };
+    // 4. AUTENTICACIÓN Y BLOQUEO
+    async function validarLogin() {
+        if (isBlocked) return;
 
-        firebase.initializeApp(firebaseConfig);
-        const auth = firebase.auth();
-        const db = firebase.firestore();
+        const email = document.getElementById('usuario').value;
+        const pass = document.getElementById('password').value;
+        const errorBox = document.getElementById('error-msg');
+        const successBox = document.getElementById('success-msg');
 
-        // 2. CONFIGURACIÓN ADMINS
-        const ADMIN_EMAILS = [
-            "silveriomiguel09@gmail.com", 
-            "admin2@ejemplo.com" // Cambia esto por el segundo correo real
-        ];
-
-        // 3. EMOJIS (Lista ampliada)
-        const emojisAcademic = ["📚", "🧠", "📝", "💡", "🎨", "🔬", "🧮", "🗣️", "🥇", "🚀", "📈", "🧩"];
-        const emojisBehavior = ["👍", "👎", "⚠️", "🤝", "🤐", "😡", "😴", "🌟", "😇", "🤔", "👀", "👂"];
-
-        // VARIABLES GLOBALES
-        let heartbeatInterval;
-        let currentUserEmail = "";
-
-        // --- INICIALIZACIÓN ---
-        window.onload = () => {
-            renderEmojis();
-            // Limpiar cualquier sesión vieja al cargar
-            localStorage.clear(); 
-        };
-
-        // --- LÓGICA DE LOGIN Y BLOQUEO ---
-        async function handleLogin() {
-            const email = document.getElementById('email').value.trim();
-            const password = document.getElementById('password').value;
-            const btn = document.getElementById('btn-login');
-            
-            if(!email || !password) return showMsg("Completa todos los campos", "error");
-
-            btn.disabled = true;
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Verificando...';
-
-            try {
-                // 1. Verificar si ya hay sesión activa en Firestore
-                const sessionRef = db.collection('active_sessions').doc(email);
-                const doc = await sessionRef.get();
-                const now = Date.now();
-
-                if (doc.exists) {
-                    const lastSeen = doc.data().timestamp;
-                    // Si hubo actividad hace menos de 60 segundos, BLOQUEAR
-                    if (now - lastSeen < 60000) {
-                        throw new Error("SESSION_LOCKED");
-                    }
-                }
-
-                // 2. Si no está bloqueado, intentar login en Firebase Auth
-                await auth.signInWithEmailAndPassword(email, password);
-                
-                // 3. Registrar nueva sesión
-                await sessionRef.set({
-                    timestamp: now,
-                    device: navigator.userAgent
-                });
-
-                showMsg("¡Bienvenido! Cargando sistema...", "success");
-                
-                setTimeout(() => {
-                    initDashboard(email);
-                }, 1000);
-
-            } catch (error) {
-                console.error(error);
-                btn.disabled = false;
-                btn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Iniciar Sesión';
-                
-                if (error.message === "SESSION_LOCKED") {
-                    showMsg("⛔ ACCESO DENEGADO: Tu cuenta está activa en otro dispositivo. Cierra sesión allí o espera 1 minuto.", "error");
-                } else if (error.code === 'auth/wrong-password' || error.code === 'auth/user-not-found') {
-                    showMsg("Credenciales incorrectas.", "error");
-                } else {
-                    showMsg("Error de conexión: " + error.message, "error");
+        try {
+            // Control de Doble Sesión
+            const sessionDoc = await db.collection('active_sessions').doc(email.replace(/\./g, '_')).get();
+            if (sessionDoc.exists) {
+                const data = sessionDoc.data();
+                if (Date.now() - data.lastActive < 45000) {
+                    throw new Error("Este usuario ya tiene una sesión abierta en otro dispositivo.");
                 }
             }
-        }
 
-        // --- FUNCIONES DASHBOARD ---
-        function initDashboard(email) {
-            currentUserEmail = email;
+            await auth.signInWithEmailAndPassword(email, pass);
             
-            // Ocultar login, mostrar dash
-            document.getElementById('login-wrapper').style.display = 'none';
-            document.getElementById('dashboard-wrapper').style.display = 'block';
-
-            // Datos de usuario
-            document.getElementById('user-email-display').innerText = email;
-            
-            // Verificar Rol
-            if (ADMIN_EMAILS.includes(email)) {
-                document.getElementById('user-role-display').innerText = "Administrador";
-                document.getElementById('user-role-display').style.background = "var(--danger-color)";
-                document.getElementById('admin-tools').classList.remove('hidden');
-            } else {
-                document.getElementById('user-role-display').innerText = "Docente";
-            }
-
-            // Iniciar Heartbeat (Actualiza sesión cada 30s)
-            startHeartbeat(email);
-        }
-
-        function startHeartbeat(email) {
-            if(heartbeatInterval) clearInterval(heartbeatInterval);
-            
-            // Actualizar inmediatamente y luego cada 30s
-            const update = () => {
-                db.collection('active_sessions').doc(email).update({
-                    timestamp: Date.now()
-                }).catch(err => console.log("Sesión finalizada"));
-            };
-            
-            update();
-            heartbeatInterval = setInterval(update, 30000);
-        }
-
-        async function handleLogout() {
-            if(currentUserEmail) {
-                // Eliminar sesión de Firestore
-                await db.collection('active_sessions').doc(currentUserEmail).delete();
-            }
-            await auth.signOut();
-            location.reload();
-        }
-
-        // --- INTERFAZ ---
-        function renderEmojis() {
-            const acadContainer = document.getElementById('emojis-academic');
-            const behContainer = document.getElementById('emojis-behavior');
-            
-            emojisAcademic.forEach(e => {
-                acadContainer.innerHTML += `<div class="emoji-item" onclick="addEmoji('${e}')">${e}</div>`;
+            // Registrar Sesión
+            await db.collection('active_sessions').doc(email.replace(/\./g, '_')).set({
+                lastActive: Date.now(),
+                email: email
             });
-            emojisBehavior.forEach(e => {
-                behContainer.innerHTML += `<div class="emoji-item" onclick="addEmoji('${e}')">${e}</div>`;
+
+            errorBox.style.display = 'none';
+            successBox.style.display = 'block';
+            showAlert("¡Bienvenido al sistema!");
+            
+            setTimeout(() => { 
+                window.location.href = "dashboard.html"; // Cambia a tu URL real
+            }, 2000);
+
+        } catch (error) {
+            failedAttempts++;
+            document.getElementById('error-text').innerText = error.message;
+            errorBox.style.display = 'block';
+
+            if (failedAttempts >= 3) {
+                activarBloqueo();
+            }
+        }
+    }
+
+    function activarBloqueo() {
+        isBlocked = true;
+        let timer = 45;
+        const blockedBox = document.getElementById('blocked-msg');
+        blockedBox.style.display = 'block';
+        
+        const int = setInterval(() => {
+            document.getElementById('blocked-text').innerText = `Demasiados intentos. Bloqueado por ${timer}s`;
+            timer--;
+            if (timer < 0) {
+                clearInterval(int);
+                isBlocked = false;
+                failedAttempts = 0;
+                blockedBox.style.display = 'none';
+            }
+        }, 1000);
+    }
+
+    // 5. ADMINISTRACIÓN
+    function showAdminAuth() { 
+        document.getElementById('login-form').style.display = 'none'; 
+        document.getElementById('admin-auth').style.display = 'block'; 
+    }
+    
+    function hideAdminAuth() { 
+        document.getElementById('login-form').style.display = 'block'; 
+        document.getElementById('admin-auth').style.display = 'none'; 
+    }
+
+    async function verifyAdmin() {
+        const user = document.getElementById('admin-username').value;
+        const pass = document.getElementById('admin-password').value;
+
+        // Validación simple de admin (puedes conectarlo a Firebase también)
+        if(user === "admin" && pass === "2201") {
+            document.getElementById('admin-auth').style.display = 'none';
+            document.getElementById('admin-panel').style.display = 'block';
+            loadUserList();
+        } else {
+            showAlert("Credenciales de administrador incorrectas", "error");
+        }
+    }
+
+    async function registerUser() {
+        const email = document.getElementById('new-email').value;
+        const pass = document.getElementById('new-password').value;
+        const role = document.getElementById('new-role').value;
+
+        try {
+            // Esto crea el usuario en Firebase Auth
+            await auth.createUserWithEmailAndPassword(email, pass);
+            // Guardar datos extra en Firestore
+            await db.collection('users').doc(email).set({
+                role: role,
+                createdAt: new Date()
             });
+            showAlert("Usuario creado exitosamente");
+            loadUserList();
+        } catch (e) {
+            showAlert(e.message, "error");
         }
+    }
 
-        function addEmoji(emoji) {
-            const box = document.getElementById('comment-box');
-            box.value = emoji + " " + box.value;
-            box.focus();
-        }
+    async function loadUserList() {
+        const list = document.getElementById('user-list');
+        list.innerHTML = "Cargando usuarios...";
+        const snapshot = await db.collection('active_sessions').get();
+        list.innerHTML = "<h4>Sesiones Activas:</h4>";
+        snapshot.forEach(doc => {
+            list.innerHTML += `<div class="user-item">
+                <span>${doc.data().email}</span>
+                <button class="danger-btn" onclick="kickUser('${doc.id}')" style="padding:2px 5px; font-size:10px;">Cerrar Sesión</button>
+            </div>`;
+        });
+    }
 
-        function addEntry() {
-            const name = document.getElementById('student-name').value;
-            const comment = document.getElementById('comment-box').value;
-            const tbody = document.querySelector('#entries-table tbody');
+    async function kickUser(id) {
+        await db.collection('active_sessions').doc(id).delete();
+        loadUserList();
+        showAlert("Sesión terminada");
+    }
 
-            if (!name) return alert("Escribe el nombre del estudiante");
+    function hideAdminPanel() {
+        document.getElementById('admin-panel').style.display = 'none';
+        document.getElementById('login-form').style.display = 'block';
+    }
 
-            const row = `
-                <tr>
-                    <td>${name}</td>
-                    <td>${comment.substring(0, 2)}</td>
-                    <td>${comment.substring(2)}</td>
-                    <td>${new Date().toLocaleTimeString()}</td>
-                </tr>
-            `;
-            tbody.innerHTML += row;
-            
-            // Limpiar
-            document.getElementById('student-name').value = "";
-            document.getElementById('comment-box').value = "";
-        }
+    function forgotPassword() {
+        const email = document.getElementById('usuario').value;
+        if(!email) return showAlert("Ingresa tu correo primero", "error");
+        
+        auth.sendPasswordResetEmail(email)
+            .then(() => showAlert("Correo de recuperación enviado"))
+            .catch(e => showAlert(e.message, "error"));
+    }
+</script>
 
-        function switchTab(tabId) {
-            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
-            
-            document.getElementById(`tab-${tabId}`).classList.add('active');
-            event.target.classList.add('active');
-        }
-
-        function toggleTheme() {
-            document.body.classList.toggle('dark-mode');
-        }
-
-        function togglePass() {
-            const p = document.getElementById('password');
-            p.type = p.type === 'password' ? 'text' : 'password';
-        }
-
-        function showMsg(msg, type) {
-            const el = document.getElementById(type === 'error' ? 'error-msg' : 'success-msg');
-            el.innerText = msg;
-            el.style.display = 'block';
-            setTimeout(() => el.style.display = 'none', 5000);
-        }
-    </script>
 </body>
 </html>
