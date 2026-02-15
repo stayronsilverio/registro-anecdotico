@@ -122,4 +122,5 @@
         display: flex; align-items: center; gap: 10px; transform: translateX(150%); transition: 0.3s;
     }
     .custom-alert.show { transform: translateX(0); }
-    .custom-alert.success { border-left: 4px solid var(--accent-color); }
+    .custom-alert.success { border-left: 4px solid var(--accent-color); 
+}
