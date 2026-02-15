@@ -513,11 +513,11 @@
     <div id="login-form">
         <div class="input-group">
             <label for="usuario">Selecciona usuario</label>
-            <select id="usuario" onchange="updateProfile()">
-                <option value="">Selecciona una opción</option>
-                <option value="Miguel Silverio">Miguel Silverio</option>
-                <!-- Los usuarios registrados se cargarán aquí dinámicamente -->
-            </select>
+            <div class="input-group">
+    <label for="usuario">Correo electrónico</label>
+    <input type="email" id="usuario" placeholder="ejemplo@correo.com" required>
+</div>
+
         </div>
 
         <div class="input-group">
