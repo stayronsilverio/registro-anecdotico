@@ -764,8 +764,7 @@
             saveUsers();
         }
         
-        // updateUserDropdown();
-
+        updateUserDropdown();
         
         // Cargar preferencia de tema
         const savedTheme = localStorage.getItem('theme');
@@ -791,8 +790,7 @@
             usersToSave[user] = usuarios[user];
         }
         localStorage.setItem('registeredUsers', JSON.stringify(usersToSave));
-        // updateUserDropdown();
-
+        updateUserDropdown();
     }
 
     // Actualizar el dropdown de usuarios
@@ -1010,8 +1008,7 @@
     }
 
     // Cargar usuarios al iniciar
-// loadUsers();
-
+    loadUsers();
 
     // Configurar event listeners para los toggles de contraseña
     document.getElementById('password-toggle').addEventListener('click', function() {
@@ -1261,8 +1258,7 @@
         showAlert(`Usuario "${usuarioParaReactivar}" reactivado correctamente. Nueva fecha de expiración: ${formatDate(newExpiryDate)}`, 'success');
         
         // Recargar lista de usuarios
-        // updateUserDropdown();
- // 🔥 Actualizar desplegable de login y ocultar formulario de reactivación
+        updateUserDropdown(); // 🔥 Actualizar desplegable de login y ocultar formulario de reactivación
         loadUserList();
         hideReactivateForm();
     }
@@ -1306,13 +1302,11 @@
         showAlert(`Usuario "${usuarioParaEditar}" actualizado correctamente`, 'success');
         
         // Recargar lista de usuarios
-        // updateUserDropdown();
- // 🔥 Actualizar desplegable de login y ocultar formulario de edición
+        updateUserDropdown(); // 🔥 Actualizar desplegable de login y ocultar formulario de edición
         loadUserList();
         hideEditForm();
         
-        // updateUserDropdown();
- // 🔥 Actualizar desplegable de login
+        updateUserDropdown(); // 🔥 Actualizar desplegable de login
         // Actualizar perfil si el usuario editado es el seleccionado
         const currentUser = document.getElementById('usuario').value;
         if (currentUser === usuarioParaEditar) {
@@ -1329,8 +1323,7 @@
             delete usuarios[username];
             saveUsers();
             loadUserList(); // Recargar la lista
-            // updateUserDropdown();
- // 🔥 Refrescar el desplegable del login
+            updateUserDropdown(); // 🔥 Refrescar el desplegable del login
             
             // Mostrar mensaje de éxito
             showAlert(`Usuario "${username}" eliminado correctamente`, 'success');
@@ -1528,8 +1521,7 @@
         document.getElementById('avatar-upload').value = '';
         
         // Recargar lista de usuarios
-        // updateUserDropdown();
- // 🔥 Actualizar desplegable de login
+        updateUserDropdown(); // 🔥 Actualizar desplegable de login
         loadUserList();
         
         // Cambiar a la pestaña de gestión para ver el nuevo usuario
