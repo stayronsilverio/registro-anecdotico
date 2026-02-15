@@ -3,123 +3,59 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - Registro Anecdótico</title>
+    <title>Sistema de Registro Anecdótico</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
 <div class="login-container" id="login-page">
-    <div class="theme-switch" id="theme-switch" onclick="toggleTheme()">
-        <i class="fas fa-moon"></i>
-    </div>
-
-    <div class="avatar-container" id="user-avatar">MS</div>
-    
-    <h2 id="profile-name">Miguel Silverio</h2>
-    <p class="user-role" id="profile-role">Docente de Inglés</p>
-    <p class="contact-info" id="profile-contact">Tel: 829-801-8462</p>
-
+    <div class="theme-switch" onclick="toggleTheme()"><i class="fas fa-moon"></i></div>
+    <div class="avatar-container">MS</div>
+    <h2>Miguel Silverio</h2>
+    <p>Docente de Inglés</p>
     <div id="login-form">
         <div class="input-group">
-            <label for="usuario">Correo electrónico</label>
-            <input type="email" id="usuario" placeholder="ejemplo@correo.com" required oninput="updateProfileRealTime()">
+            <label>Correo electrónico</label>
+            <input type="email" id="usuario" placeholder="ejemplo@correo.com">
         </div>
-
         <div class="input-group">
-            <label for="password">Contraseña</label>
-            <input type="password" id="password" placeholder="Ingresa tu contraseña">
-            <span class="password-toggle" id="password-toggle" onclick="togglePassword('password', 'password-toggle')">
-                <i class="far fa-eye"></i>
-            </span>
+            <label>Contraseña</label>
+            <input type="password" id="password">
         </div>
-
         <button onclick="validarLogin()">Ingresar al Sistema</button>
-        
-        <p class="error-msg" id="error-msg">
-            <i class="fas fa-exclamation-circle"></i> <span id="error-text"></span>
-        </p>
-
-        <p class="blocked-msg" id="blocked-msg" style="display: none;">
-            <i class="fas fa-lock"></i> <span id="blocked-text"></span>
-        </p>
-        
-        <p class="success-msg" id="success-msg">
-            <i class="fas fa-check-circle"></i> Credenciales correctas, redirigiendo...
-        </p>
-
-        <button class="secondary-btn" onclick="showAdminAuth()">
-            <i class="fas fa-user-cog"></i> Administrar usuarios
-        </button>
-    </div>
-
-    <div id="admin-auth" class="admin-auth">
-        <h3><i class="fas fa-lock"></i> Autenticación Requerida</h3>
-        <div class="input-group">
-            <label for="admin-username">Usuario administrador</label>
-            <input type="text" id="admin-username">
-        </div>
-        <div class="input-group">
-            <label for="admin-password">Contraseña</label>
-            <input type="password" id="admin-password">
-        </div>
-        <button onclick="verifyAdmin()">Verificar</button>
-        <button class="secondary-btn" onclick="hideAdminAuth()">Cancelar</button>
-    </div>
-
-    <div id="admin-panel" class="register-form">
-        <h3><i class="fas fa-users-cog"></i> Panel de Administración</h3>
-        <div class="form-tabs">
-            <div class="form-tab active" id="tab-create" onclick="switchAdminTab('create')">Crear</div>
-            <div class="form-tab" id="tab-delete" onclick="switchAdminTab('delete')">Gestionar</div>
-        </div>
-        <div id="create-user-form">
-            <div class="input-group">
-                <label for="new-username">Nombre completo *</label>
-                <input type="text" id="new-username" placeholder="Nombre y Apellido">
-            </div>
-            <div class="input-group">
-                <label for="new-email">Correo electrónico *</label>
-                <input type="email" id="new-email" placeholder="ejemplo@correo.com">
-            </div>
-            <div class="input-group">
-                <label for="new-password">Contraseña *</label>
-                <input type="password" id="new-password">
-                <span class="password-toggle" id="new-password-toggle" onclick="togglePassword('new-password', 'new-password-toggle')">
-                    <i class="far fa-eye"></i>
-                </span>
-            </div>
-            <div class="input-group">
-                <label for="user-role">Especialidad/Rol *</label>
-                <input type="text" id="user-role" placeholder="Ej: Docente de Inglés">
-            </div>
-            <div class="input-group">
-                <label for="user-phone">Teléfono de contacto</label>
-                <input type="text" id="user-phone" placeholder="Ej: 829-801-8462">
-            </div>
-            <button onclick="registerUser()">Crear usuario</button>
-        </div>
-        <div id="delete-user-form" style="display: none;">
-            <div class="user-list" id="user-list"></div>
-        </div>
-        <button class="secondary-btn" onclick="hideAdminPanel()" style="margin-top: 20px;">Volver al login</button>
-    </div>
-
-    <div class="footer">
-        Sistema de Registro Anecdótico | v4.0<br>
-        Desarrollado por Miguel Silverio
+        <p id="error-msg" class="error-msg">Error en credenciales</p>
+        <p id="success-msg" class="success-msg">Bienvenido, entrando...</p>
     </div>
 </div>
 
-<div class="custom-alert" id="custom-alert">
-    <i class="fas fa-check-circle"></i>
-    <span id="alert-message"></span>
+<div id="main-content" style="display:none;">
+    <div class="container mt-5">
+        <header class="text-center mb-5" style="color: white;">
+            <h1><i class="fas fa-clipboard-list"></i> Registro de Estudiantes</h1>
+            <p>Gestión de Pases y Anécdotas</p>
+        </header>
+
+        <div class="row mb-4">
+            <div class="col-md-8 mx-auto">
+                <div class="input-group shadow-sm">
+                    <span class="input-group-text bg-white border-end-0"><i class="fas fa-search text-muted"></i></span>
+                    <input type="text" id="studentSearch" class="form-control border-start-0 ps-0" placeholder="Buscar estudiante por nombre o número...">
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-4" id="studentsGrid">
+            </div>
+    </div>
 </div>
 
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-
 <script src="script.js"></script>
 
 </body>
