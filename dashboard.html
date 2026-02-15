@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login - Registro Anecdótico</title>
+    <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
@@ -33,20 +34,11 @@
             </span>
         </div>
 
-        <div class="forgot-password">
-            <a class="forgot-link" onclick="forgotPassword()">¿Olvidaste tu contraseña?</a>
-        </div>
-
         <button onclick="validarLogin()">Ingresar al Sistema</button>
         
         <p class="error-msg" id="error-msg">
             <i class="fas fa-exclamation-circle"></i> <span id="error-text"></span>
         </p>
-
-        <p class="blocked-msg" id="blocked-msg" style="display: none;">
-            <i class="fas fa-lock"></i> <span id="blocked-text"></span>
-        </p>
-        
         <p class="success-msg" id="success-msg">
             <i class="fas fa-check-circle"></i> Credenciales correctas, redirigiendo...
         </p>
@@ -56,89 +48,13 @@
         </button>
     </div>
 
-    <div id="admin-auth" class="admin-auth">
-        <h3 style="text-align: center; margin-bottom: 15px; color: var(--primary-color);">
-            <i class="fas fa-lock"></i> Autenticación Requerida
-        </h3>
-        <p style="text-align: center; margin-bottom: 15px; color: var(--text-color); opacity: 0.8; font-size: 14px;">
-            Para administrar usuarios, debe autenticarse como administrador.
-        </p>
-        
-        <div class="input-group">
-            <label for="admin-username">Usuario administrador</label>
-            <input type="text" id="admin-username" placeholder="Usuario de administrador">
-        </div>
-        
-        <div class="input-group">
-            <label for="admin-password">Contraseña de administrador</label>
-            <input type="password" id="admin-password" placeholder="Contraseña de administrador">
-            <span class="password-toggle" id="admin-password-toggle" onclick="togglePassword('admin-password', 'admin-password-toggle')">
-                <i class="far fa-eye"></i>
-            </span>
-        </div>
-        
-        <button onclick="verifyAdmin()">Verificar identidad</button>
-        <button class="secondary-btn" onclick="hideAdminAuth()">Cancelar</button>
-        <p class="error-msg" id="admin-error-msg"></p>
     </div>
-
-    <div id="admin-panel" class="register-form">
-        <h3 style="text-align: center; margin-bottom: 15px; color: var(--primary-color);">
-            <i class="fas fa-users-cog"></i> Panel de Administración
-        </h3>
-
-        <div class="form-tabs">
-            <div class="form-tab active" id="tab-create" onclick="switchAdminTab('create')">Crear Usuario</div>
-            <div class="form-tab" id="tab-delete" onclick="switchAdminTab('delete')">Gestionar Usuarios</div>
-        </div>
-
-        <div id="create-user-form">
-            <div class="input-group">
-                <label for="new-username">Nombre de usuario *</label>
-                <input type="text" id="new-username" placeholder="Nombre completo">
-            </div>
-            <div class="input-group">
-                <label for="new-email">Correo Electrónico (Firebase) *</label>
-                <input type="email" id="new-email" placeholder="correo@ejemplo.com">
-            </div>
-            <div class="input-group">
-                <label for="new-password">Contraseña *</label>
-                <input type="password" id="new-password" placeholder="Mínimo 6 caracteres">
-                <span class="password-toggle" id="new-password-toggle" onclick="togglePassword('new-password', 'new-password-toggle')">
-                    <i class="far fa-eye"></i>
-                </span>
-            </div>
-            <div class="input-group">
-                <label for="user-role">Especialidad/Rol *</label>
-                <input type="text" id="user-role" placeholder="Ej: Docente de Inglés">
-            </div>
-            <div class="input-group">
-                <label for="user-phone">Teléfono de contacto</label>
-                <input type="text" id="user-phone" placeholder="Ej: 829-801-8462">
-            </div>
-            <button onclick="registerUser()">Crear usuario</button>
-        </div>
-
-        <div id="delete-user-form" style="display: none;">
-            <div class="user-list" id="user-list">
-                </div>
-        </div>
-
-        <button class="secondary-btn" onclick="hideAdminPanel()" style="margin-top: 20px;">Volver al login</button>
-    </div>
-
-    <div class="footer">
-        Sistema de Registro Anecdótico | v4.0<br>
-        Desarrollado por Miguel Silverio
-    </div>
-</div>
-
-<div class="custom-alert" id="custom-alert">
-    <i class="fas fa-check-circle"></i>
-    <span id="alert-message"></span>
-</div>
 
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+
 <script src="script.js"></script>
+
+</body>
+</html>
