@@ -3,19 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema de Registro Anecdótico - Cloud</title>
-    
+    <title>Login - Registro Anecdótico</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    
+    <!-- Firebase Compat SDK -->
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-
+    
+    <!-- PDF & Canvas -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    
     <style>
-        /* ================= ESTILOS CSS COMPLETOS ================= */
         :root {
             --primary-color: #6a11cb;
             --secondary-color: #2575fc;
@@ -28,685 +28,1583 @@
             --input-bg: #ffffff;
             --border-color: #ddd;
             --shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
-            
-            /* Variables Sistema Interno */
-            --sys-primary: #2c3e50;
-            --sys-secondary: #3498db;
-            --light-gray: #f5f5f5;
         }
 
         .dark-mode {
             --primary-color: #8c68cd;
             --secondary-color: #5e97fc;
+            --accent-color: #35de7d;
+            --danger-color: #ff6b6b;
+            --warning-color: #ffd166;
             --text-color: #f0f0f0;
             --bg-color: #121212;
             --card-bg: #1e1e1e;
             --input-bg: #2d2d2d;
             --border-color: #444;
+            --shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
         }
 
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; transition: all 0.3s; }
-        body { background-color: var(--bg-color); color: var(--text-color); min-height: 100vh; }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            transition: background-color 0.3s, color 0.3s;
+        }
 
-        /* --- PANTALLA LOGIN --- */
-        #login-wrapper {
-            display: flex; justify-content: center; align-items: center; min-height: 100vh;
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
             background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
             padding: 20px;
+            background-color: var(--bg-color);
+            color: var(--text-color);
         }
 
-        .login-card {
-            background: var(--card-bg); padding: 40px; border-radius: 20px;
-            box-shadow: var(--shadow); width: 100%; max-width: 450px; text-align: center;
-            position: relative; overflow: hidden;
+        .login-container {
+            background: var(--card-bg);
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: var(--shadow);
+            width: 100%;
+            max-width: 500px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
         }
 
-        .login-card::before {
-            content: ''; position: absolute; top: 0; left: 0; right: 0; height: 5px;
+        .login-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 5px;
             background: linear-gradient(to right, var(--primary-color), var(--secondary-color));
         }
 
-        .avatar-circle {
-            width: 100px; height: 100px; border-radius: 50%; margin: 0 auto 20px;
-            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-            display: flex; align-items: center; justify-content: center;
-            font-size: 35px; color: white; font-weight: bold;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        .theme-switch {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            cursor: pointer;
+            font-size: 24px;
+            color: var(--primary-color);
         }
 
-        .input-group { margin-bottom: 15px; text-align: left; position: relative; }
-        .input-group label { display: block; margin-bottom: 5px; font-size: 14px; font-weight: 500; }
-        
-        input, select, textarea {
-            width: 100%; padding: 12px; border-radius: 8px; border: 2px solid var(--border-color);
-            background: var(--input-bg); color: var(--text-color); font-size: 15px;
+        .avatar-container {
+            width: 130px;
+            height: 130px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            margin: 0 auto 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 40px;
+            font-weight: bold;
+            border: 4px solid var(--card-bg);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
         }
-        
-        input:focus { border-color: var(--primary-color); outline: none; }
 
-        .btn {
-            width: 100%; padding: 12px; border: none; border-radius: 8px;
+        .avatar-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .login-container h2 {
+            font-size: 24px;
+            margin-bottom: 5px;
+            color: var(--text-color);
+            font-weight: 600;
+        }
+
+        .user-role {
+            font-size: 16px;
+            color: var(--primary-color);
+            font-weight: 500;
+            margin-bottom: 5px;
+        }
+
+        .contact-info {
+            font-size: 14px;
+            color: var(--text-color);
+            opacity: 0.8;
+            margin-bottom: 25px;
+        }
+
+        .input-group {
+            margin-bottom: 15px;
+            text-align: left;
+            position: relative;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 14px;
+            color: var(--text-color);
+            font-weight: 500;
+        }
+
+        .login-container input,
+        .login-container select {
+            width: 100%;
+            padding: 12px 15px;
+            border-radius: 10px;
+            border: 2px solid var(--border-color);
+            font-size: 15px;
+            transition: all 0.3s;
+            background-color: var(--input-bg);
+            color: var(--text-color);
+        }
+
+        .login-container input:focus,
+        .login-container select:focus {
+            border-color: var(--primary-color);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(106, 17, 203, 0.2);
+        }
+
+        .password-toggle {
+            position: absolute;
+            right: 15px;
+            top: 38px;
+            cursor: pointer;
+            color: var(--text-color);
+            opacity: 0.7;
+        }
+
+        .login-container button {
+            width: 100%;
+            padding: 14px;
+            margin-top: 10px;
+            border: none;
+            border-radius: 10px;
             background: linear-gradient(to right, var(--primary-color), var(--secondary-color));
-            color: white; font-weight: 600; cursor: pointer; margin-top: 10px;
-        }
-        .btn:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
-        
-        .btn-secondary { background: linear-gradient(to right, #7f8c8d, #95a5a6); }
-        .btn-danger { background: linear-gradient(to right, #e74c3c, #c0392b); }
-        .btn-success { background: linear-gradient(to right, #2ecc71, #27ae60); }
-        .btn-warning { background: linear-gradient(to right, #f39c12, #e67e22); }
-
-        .msg-box { padding: 10px; border-radius: 5px; margin-top: 15px; font-size: 14px; display: none; }
-        .error-msg { background: rgba(231, 76, 60, 0.1); color: var(--danger-color); border-left: 3px solid var(--danger-color); }
-        .success-msg { background: rgba(46, 204, 113, 0.1); color: var(--accent-color); border-left: 3px solid var(--accent-color); }
-
-        /* --- SISTEMA PRINCIPAL --- */
-        #app-wrapper { display: none; padding-bottom: 80px; }
-        
-        header {
-            background: linear-gradient(135deg, var(--sys-primary) 0%, var(--sys-secondary) 100%);
-            color: white; padding: 1.5rem 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-            display: flex; justify-content: space-between; align-items: center;
+            color: white;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 10px rgba(106, 17, 203, 0.3);
         }
 
-        .container { max-width: 1200px; margin: 20px auto; padding: 0 20px; }
-        
-        .card {
-            background: white; border-radius: 10px; padding: 20px; margin-bottom: 20px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-        }
-        
-        .card-header { 
-            border-bottom: 2px solid #f0f0f0; padding-bottom: 10px; margin-bottom: 15px;
-            color: var(--sys-primary); font-size: 1.2rem; display: flex; align-items: center; gap: 10px;
+        .login-container button:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(106, 17, 203, 0.4);
         }
 
-        .tabs { display: flex; border-bottom: 1px solid #ddd; margin-bottom: 20px; }
-        .tab { padding: 12px 20px; cursor: pointer; background: #eee; margin-right: 5px; border-radius: 5px 5px 0 0; }
-        .tab.active { background: white; border: 1px solid #ddd; border-bottom: none; font-weight: bold; color: var(--sys-primary); }
-        .tab-content { display: none; }
-        .tab-content.active { display: block; }
-
-        /* Grid System */
-        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-        .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; }
-
-        /* Estudiantes */
-        .student-box {
-            border-left: 4px solid var(--sys-secondary); background: #f9f9f9;
-            padding: 15px; margin-bottom: 10px; border-radius: 4px;
+        .login-container button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
         }
-        .student-box.out { border-left-color: var(--danger-color); background: #fff5f5; }
-        
-        .timer-display { font-size: 1.5rem; font-weight: bold; text-align: center; margin: 10px 0; color: #555; }
-        
-        /* Indicador Flotante */
-        #outside-indicator {
-            position: fixed; top: 100px; right: 20px; width: 250px;
-            background: white; padding: 15px; border-radius: 8px;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.2); z-index: 999; display: none;
-            border: 1px solid #ffcccc;
-        }
-        .blink-dot { height: 12px; width: 12px; background: red; border-radius: 50%; display: inline-block; animation: blink 1s infinite; }
-        @keyframes blink { 50% { opacity: 0; } }
 
-        /* Footer Nav */
-        .footer-nav {
-            position: fixed; bottom: 0; left: 0; width: 100%; background: var(--sys-primary);
-            display: flex; justify-content: space-around; padding: 10px; z-index: 1000;
+        .secondary-btn {
+            background: linear-gradient(to right, #fd746c, #ff9068) !important;
+            box-shadow: 0 4px 10px rgba(253, 116, 108, 0.3) !important;
         }
-        .nav-item { color: white; text-align: center; font-size: 0.8rem; cursor: pointer; opacity: 0.7; }
-        .nav-item.active { opacity: 1; font-weight: bold; }
-        .nav-item i { font-size: 1.2rem; display: block; margin-bottom: 3px; }
 
-        /* Utilidades */
-        .hidden { display: none; }
-        @media (max-width: 768px) { .grid-2, .grid-3 { grid-template-columns: 1fr; } }
-        
-        /* Modal Cámara */
-        .modal { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:2000; align-items:center; justify-content:center; }
-        .modal-content { background:white; padding:20px; border-radius:10px; max-width:90%; text-align:center; }
-        video { width: 100%; max-width: 500px; border-radius: 8px; background: black; }
+        .secondary-btn:hover:not(:disabled) {
+            box-shadow: 0 6px 15px rgba(253, 116, 108, 0.4) !important;
+        }
+
+        .danger-btn {
+            background: linear-gradient(to right, var(--danger-color), #c0392b) !important;
+            box-shadow: 0 4px 10px rgba(231, 76, 60, 0.3) !important;
+        }
+
+        .danger-btn:hover:not(:disabled) {
+            box-shadow: 0 6px 15px rgba(231, 76, 60, 0.4) !important;
+        }
+
+        .success-btn {
+            background: linear-gradient(to right, var(--accent-color), #27ae60) !important;
+            box-shadow: 0 4px 10px rgba(46, 204, 113, 0.3) !important;
+        }
+
+        .success-btn:hover:not(:disabled) {
+            box-shadow: 0 6px 15px rgba(46, 204, 113, 0.4) !important;
+        }
+
+        .error-msg, .blocked-msg, .success-msg, .info-msg {
+            font-size: 14px;
+            margin-top: 15px;
+            display: none;
+            padding: 10px;
+            border-radius: 8px;
+            border-left: 4px solid;
+        }
+
+        .error-msg {
+            color: var(--danger-color);
+            background: rgba(231, 76, 60, 0.1);
+            border-left-color: var(--danger-color);
+        }
+
+        .success-msg {
+            color: var(--accent-color);
+            background: rgba(46, 204, 113, 0.1);
+            border-left-color: var(--accent-color);
+        }
+
+        .info-msg {
+            color: var(--primary-color);
+            background: rgba(106, 17, 203, 0.1);
+            border-left-color: var(--primary-color);
+        }
+
+        .blocked-msg {
+            color: var(--danger-color);
+            background: rgba(231, 76, 60, 0.1);
+            border-left-color: var(--danger-color);
+        }
+
+        .admin-auth {
+            display: none;
+            text-align: left;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px dashed var(--border-color);
+        }
+
+        .register-form {
+            display: none;
+            text-align: left;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px dashed var(--border-color);
+        }
+
+        .user-list {
+            max-height: 200px;
+            overflow-y: auto;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 10px;
+            margin-bottom: 15px;
+        }
+
+        .user-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .user-item:last-child {
+            border-bottom: none;
+        }
+
+        .user-actions {
+            display: flex;
+            gap: 5px;
+        }
+
+        .action-btn {
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 5px 10px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .delete-btn {
+            background: var(--danger-color);
+        }
+
+        .reactivate-btn {
+            background: var(--accent-color);
+        }
+
+        .edit-btn {
+            background: var(--primary-color);
+        }
+
+        .user-info {
+            flex-grow: 1;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .user-icon {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+
+        .user-details {
+            flex-grow: 1;
+        }
+
+        .form-tabs {
+            display: flex;
+            margin-bottom: 15px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .form-tab {
+            flex: 1;
+            text-align: center;
+            padding: 10px;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            color: var(--text-color);
+        }
+
+        .form-tab.active {
+            border-bottom: 3px solid var(--primary-color);
+            color: var(--primary-color);
+            font-weight: bold;
+        }
+
+        .reactivate-form, .edit-form {
+            display: none;
+            background: var(--input-bg);
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 15px;
+            border-left: 4px solid var(--accent-color);
+        }
+
+        .edit-form {
+            border-left: 4px solid var(--primary-color);
+        }
+
+        .forgot-password {
+            text-align: right;
+            margin-bottom: 15px;
+        }
+
+        .forgot-link {
+            color: var(--primary-color);
+            text-decoration: none;
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        .forgot-link:hover {
+            text-decoration: underline;
+        }
+
+        .footer {
+            margin-top: 25px;
+            font-size: 12px;
+            color: var(--text-color);
+            opacity: 0.7;
+            text-align: center;
+        }
+
+        .custom-alert {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            border-radius: 8px;
+            background: var(--card-bg);
+            color: var(--text-color);
+            box-shadow: var(--shadow);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transform: translateX(100%);
+            transition: transform 0.3s ease;
+        }
+
+        .custom-alert.show {
+            transform: translateX(0);
+        }
+
+        .custom-alert.success {
+            border-left: 4px solid var(--accent-color);
+        }
+
+        .custom-alert.error {
+            border-left: 4px solid var(--danger-color);
+        }
+
+        .custom-alert.info {
+            border-left: 4px solid var(--primary-color);
+        }
+
+        .custom-alert i {
+            font-size: 20px;
+        }
+
+        .custom-alert.success i {
+            color: var(--accent-color);
+        }
+
+        .custom-alert.error i {
+            color: var(--danger-color);
+        }
+
+        .custom-alert.info i {
+            color: var(--primary-color);
+        }
+
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-right: 10px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .hidden {
+            display: none !important;
+        }
     </style>
 </head>
 <body>
 
+<!-- 🔐 PÁGINA DE LOGIN -->
+<div class="login-container" id="login-page">
+    <div class="theme-switch" id="theme-switch">
+        <i class="fas fa-moon"></i>
+    </div>
+
+    <div class="avatar-container" id="user-avatar">
+        MS
+    </div>
+    
+    <h2 id="profile-name">Sistema Anecdótico</h2>
+    <p class="user-role" id="profile-role">Inicia sesión para continuar</p>
+    <p class="contact-info" id="profile-contact">© 2025 Prof. Miguel Silverio</p>
+
+    <div id="login-form">
+        <div class="input-group">
+            <label for="loginEmail">Correo electrónico</label>
+            <input type="email" id="loginEmail" placeholder="tu@correo.com" required>
+        </div>
+
+        <div class="input-group">
+            <label for="loginPassword">Contraseña</label>
+            <input type="password" id="loginPassword" placeholder="Ingresa tu contraseña">
+            <span class="password-toggle" id="loginPasswordToggle">
+                <i class="far fa-eye"></i>
+            </span>
+        </div>
+
+        <div class="forgot-password">
+            <a class="forgot-link" onclick="handleForgotPassword()">¿Olvidaste tu contraseña?</a>
+        </div>
+
+        <button id="loginBtn" onclick="handleLogin()">
+            <span id="loginBtnText">Ingresar al Sistema</span>
+        </button>
+        
+        <p class="error-msg" id="loginErrorMsg">
+            <i class="fas fa-exclamation-circle"></i> <span id="loginErrorText"></span>
+        </p>
+
+        <p class="success-msg" id="loginSuccessMsg">
+            <i class="fas fa-check-circle"></i> Credenciales correctas, redirigiendo...
+        </p>
+
+        <button class="secondary-btn" onclick="toggleRegisterForm()" style="margin-top: 15px;">
+            <i class="fas fa-user-plus"></i> ¿No tienes cuenta? Regístrate
+        </button>
+    </div>
+
+    <!-- FORMULARIO DE REGISTRO -->
+    <div id="register-form-container" style="display: none; text-align: left; margin-top: 20px; padding-top: 20px; border-top: 1px dashed var(--border-color);">
+        <h3 style="text-align: center; margin-bottom: 15px; color: var(--primary-color);">
+            <i class="fas fa-user-plus"></i> Crear Nueva Cuenta
+        </h3>
+
+        <div class="input-group">
+            <label for="registerName">Nombre completo</label>
+            <input type="text" id="registerName" placeholder="Tu nombre completo">
+        </div>
+
+        <div class="input-group">
+            <label for="registerEmail">Correo electrónico</label>
+            <input type="email" id="registerEmail" placeholder="tu@correo.com">
+        </div>
+
+        <div class="input-group">
+            <label for="registerPassword">Contraseña</label>
+            <input type="password" id="registerPassword" placeholder="Mínimo 6 caracteres">
+            <span class="password-toggle" id="registerPasswordToggle">
+                <i class="far fa-eye"></i>
+            </span>
+        </div>
+
+        <div class="input-group">
+            <label for="registerRole">Especialidad/Rol</label>
+            <input type="text" id="registerRole" placeholder="Ej: Docente de Inglés">
+        </div>
+
+        <div class="input-group">
+            <label for="registerPhone">Teléfono de contacto</label>
+            <input type="text" id="registerPhone" placeholder="Ej: 829-801-8462">
+        </div>
+
+        <button id="registerBtn" onclick="handleRegister()" class="success-btn">
+            <span id="registerBtnText">Crear Cuenta</span>
+        </button>
+
+        <button class="secondary-btn" onclick="toggleRegisterForm()" style="margin-top: 10px;">
+            <i class="fas fa-arrow-left"></i> Volver al login
+        </button>
+
+        <p class="error-msg" id="registerErrorMsg">
+            <i class="fas fa-exclamation-circle"></i> <span id="registerErrorText"></span>
+        </p>
+
+        <p class="success-msg" id="registerSuccessMsg">
+            <i class="fas fa-check-circle"></i> Cuenta creada exitosamente
+        </p>
+    </div>
+
+    <div class="footer">
+        Sistema de Registro Anecdótico | v5.0 (Firebase)<br>
+        Desarrollado por Miguel Silverio
+    </div>
+</div>
+
+<!-- 🎓 PÁGINA PRINCIPAL DE LA APP -->
+<div id="main-page" style="display: none;">
+    <!-- Botón de Cerrar Sesión -->
+    <button id="logoutBtn" 
+            style="position:fixed; top:15px; right:15px; padding:10px 15px; 
+                   background:linear-gradient(to right,#e74c3c,#c0392b); 
+                   color:#fff; border:none; border-radius:8px; 
+                   cursor:pointer; font-weight:bold; z-index:9999;">
+        <i class="fas fa-sign-out-alt"></i> Cerrar sesión
+    </button>
+
+    <!-- 🔄 CONTENEDOR DE LA APP PRINCIPAL -->
+    <!DOCTYPE html>
+    <html lang="es">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Sistema de Registro Anecdótico</title>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+        <style>
+            :root {
+                --primary: #2c3e50;
+                --secondary: #3498db;
+                --accent: #e74c3c;
+                --light: #ecf0f1;
+                --dark: #2c3e50;
+                --success: #2ecc71;
+                --warning: #f39c12;
+                --danger: #e74c3c;
+                --gray: #95a5a6;
+                --light-gray: #f5f5f5;
+            }
+            
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            }
+            
+            body.app-body {
+                background-color: #f8f9fa;
+                color: #333;
+                line-height: 1.6;
+                padding-bottom: 120px;
+            }
+            
+            .container {
+                max-width: 1200px;
+                margin: 0 auto;
+                padding: 0 20px;
+            }
+            
+            header {
+                background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+                color: white;
+                padding: 1.5rem 0;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+                position: relative;
+                margin-bottom: 2rem;
+            }
+            
+            .header-content {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }
+            
+            .app-title {
+                font-size: 1.8rem;
+                font-weight: 600;
+            }
+
+            .user-info-header {
+                display: flex;
+                align-items: center;
+                gap: 15px;
+            }
+
+            .user-badge {
+                background: rgba(255, 255, 255, 0.2);
+                padding: 8px 12px;
+                border-radius: 20px;
+                font-size: 0.9rem;
+            }
+            
+            .copyright {
+                font-size: 0.9rem;
+                opacity: 0.8;
+            }
+            
+            .card {
+                background: white;
+                border-radius: 10px;
+                box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+                padding: 1.5rem;
+                margin-bottom: 1.5rem;
+                transition: transform 0.3s ease, box-shadow 0.3s ease;
+            }
+            
+            .card:hover {
+                transform: translateY(-5px);
+                box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+            }
+            
+            .card-title {
+                font-size: 1.3rem;
+                color: var(--primary);
+                margin-bottom: 1.2rem;
+                padding-bottom: 0.5rem;
+                border-bottom: 2px solid var(--light);
+                display: flex;
+                align-items: center;
+            }
+            
+            .card-title i {
+                margin-right: 10px;
+                color: var(--secondary);
+            }
+            
+            .form-group {
+                margin-bottom: 1.2rem;
+            }
+            
+            label {
+                display: block;
+                margin-bottom: 0.5rem;
+                font-weight: 500;
+                color: var(--dark);
+            }
+            
+            input[type="text"], 
+            input[type="date"], 
+            textarea, 
+            select {
+                width: 100%;
+                padding: 12px 15px;
+                border: 1px solid #ddd;
+                border-radius: 6px;
+                font-size: 1rem;
+                transition: border 0.3s ease, box-shadow 0.3s ease;
+            }
+            
+            input[type="text"]:focus, 
+            input[type="date"]:focus, 
+            textarea:focus, 
+            select:focus {
+                border-color: var(--secondary);
+                box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+                outline: none;
+            }
+            
+            textarea {
+                min-height: 100px;
+                resize: vertical;
+            }
+            
+            .btn {
+                display: inline-block;
+                padding: 12px 20px;
+                background-color: var(--secondary);
+                color: white;
+                border: none;
+                border-radius: 6px;
+                cursor: pointer;
+                font-size: 1rem;
+                font-weight: 500;
+                transition: all 0.3s ease;
+                margin-right: 10px;
+                margin-bottom: 10px;
+            }
+            
+            .btn:hover {
+                opacity: 0.9;
+                transform: translateY(-2px);
+            }
+            
+            .btn-primary {
+                background-color: var(--primary);
+            }
+            
+            .btn-success {
+                background-color: var(--success);
+            }
+            
+            .btn-danger {
+                background-color: var(--danger);
+            }
+            
+            .btn-warning {
+                background-color: var(--warning);
+            }
+            
+            .btn-info {
+                background-color: #17a2b8;
+            }
+            
+            .btn-sm {
+                padding: 8px 15px;
+                font-size: 0.9rem;
+            }
+            
+            .timeline {
+                display: flex;
+                justify-content: space-between;
+                margin: 1.5rem 0;
+            }
+            
+            .timeline-item {
+                text-align: center;
+                flex: 1;
+                padding: 1rem;
+                background: var(--light);
+                border-radius: 8px;
+                margin: 0 5px;
+            }
+            
+            .timeline-item strong {
+                display: block;
+                font-size: 1.1rem;
+                margin-bottom: 5px;
+                color: var(--primary);
+            }
+            
+            .student-box {
+                border: 1px solid #ddd;
+                border-radius: 8px;
+                padding: 1rem;
+                margin-bottom: 1rem;
+                background: var(--light-gray);
+            }
+            
+            .student-box h3 {
+                margin-bottom: 0.8rem;
+                color: var(--primary);
+            }
+            
+            .timer-display {
+                font-size: 1.5rem;
+                font-weight: bold;
+                text-align: center;
+                margin: 10px 0;
+                color: var(--secondary);
+            }
+            
+            .event-list, .interpretation-list {
+                list-style-type: none;
+            }
+            
+            .event-item, .interpretation-item {
+                padding: 1rem;
+                background: var(--light-gray);
+                border-left: 4px solid var(--secondary);
+                margin-bottom: 0.8rem;
+                border-radius: 0 4px 4px 0;
+            }
+            
+            .event-time, .interpretation-time {
+                font-size: 0.85rem;
+                color: var(--gray);
+                margin-top: 5px;
+            }
+            
+            .report-preview {
+                padding: 2rem;
+                background: white;
+                border-radius: 10px;
+                box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+                margin-top: 2rem;
+            }
+            
+            .report-header {
+                text-align: center;
+                margin-bottom: 2rem;
+                padding-bottom: 1rem;
+                border-bottom: 2px solid var(--light);
+            }
+            
+            .report-section {
+                margin-bottom: 1.5rem;
+            }
+            
+            .report-section h3 {
+                color: var(--primary);
+                margin-bottom: 0.8rem;
+                padding-bottom: 0.3rem;
+                border-bottom: 1px solid var(--light);
+            }
+            
+            .tabs {
+                display: flex;
+                margin-bottom: 1.5rem;
+                border-bottom: 1px solid #ddd;
+            }
+            
+            .tab {
+                padding: 12px 20px;
+                cursor: pointer;
+                background: #f1f1f1;
+                border-radius: 5px 5px 0 0;
+                margin-right: 5px;
+            }
+            
+            .tab.active {
+                background: white;
+                border: 1px solid #ddd;
+                border-bottom: none;
+                font-weight: 500;
+            }
+            
+            .tab-content {
+                display: none;
+            }
+            
+            .tab-content.active {
+                display: block;
+            }
+
+            .grid-2 {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 1.5rem;
+            }
+
+            .grid-3 {
+                display: grid;
+                grid-template-columns: 1fr 1fr 1fr;
+                gap: 1.5rem;
+            }
+
+            @media (max-width: 992px) {
+                .grid-2, .grid-3 {
+                    grid-template-columns: 1fr;
+                }
+                
+                .timeline {
+                    flex-direction: column;
+                }
+                
+                .timeline-item {
+                    margin: 5px 0;
+                }
+            }
+
+            .modal {
+                display: none;
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background-color: rgba(0, 0, 0, 0.8);
+                z-index: 1000;
+                justify-content: center;
+                align-items: center;
+            }
+
+            .modal-content {
+                background: white;
+                padding: 2rem;
+                border-radius: 10px;
+                max-width: 90%;
+                max-height: 90%;
+                overflow: auto;
+                text-align: center;
+            }
+
+            .camera-feed {
+                width: 100%;
+                max-width: 500px;
+                background: #333;
+                margin: 1rem 0;
+                border-radius: 5px;
+            }
+
+            .photo-preview {
+                max-width: 100%;
+                margin-top: 1rem;
+                border-radius: 5px;
+                border: 2px solid var(--secondary);
+            }
+
+            .evidence-container {
+                margin: 1.5rem 0;
+                padding: 1rem;
+                background: var(--light-gray);
+                border-radius: 8px;
+            }
+
+            .evidence-image {
+                max-width: 100%;
+                border-radius: 5px;
+                margin-top: 1rem;
+            }
+
+            .participation-table {
+                width: 100%;
+                border-collapse: collapse;
+                margin-top: 1rem;
+            }
+
+            .participation-table th, 
+            .participation-table td {
+                border: 1px solid #ddd;
+                padding: 10px;
+                text-align: left;
+            }
+
+            .participation-table th {
+                background-color: var(--primary);
+                color: white;
+            }
+
+            .participation-table tr:nth-child(even) {
+                background-color: #f2f2f2;
+            }
+
+            .emoji-selector {
+                display: flex;
+                gap: 10px;
+                margin: 10px 0;
+                flex-wrap: wrap;
+                max-height: 300px;
+                overflow-y: auto;
+                border: 1px solid #ddd;
+                padding: 10px;
+                border-radius: 5px;
+            }
+
+            .emoji-btn {
+                font-size: 1.5rem;
+                background: none;
+                border: none;
+                cursor: pointer;
+                transition: transform 0.2s;
+                position: relative;
+                padding: 5px;
+            }
+
+            .emoji-btn:hover {
+                transform: scale(1.2);
+            }
+
+            .emoji-tooltip {
+                position: absolute;
+                bottom: 100%;
+                left: 50%;
+                transform: translateX(-50%);
+                background-color: #333;
+                color: white;
+                padding: 5px 10px;
+                border-radius: 4px;
+                font-size: 0.8rem;
+                white-space: nowrap;
+                opacity: 0;
+                visibility: hidden;
+                transition: opacity 0.3s;
+                z-index: 1000;
+            }
+
+            .emoji-btn:hover .emoji-tooltip {
+                opacity: 1;
+                visibility: visible;
+            }
+
+            .participation-badge {
+                display: inline-block;
+                padding: 3px 8px;
+                border-radius: 20px;
+                font-size: 0.8rem;
+                margin-right: 5px;
+            }
+
+            .badge-positive {
+                background-color: var(--success);
+                color: white;
+            }
+
+            .badge-negative {
+                background-color: var(--danger);
+                color: white;
+            }
+
+            .badge-neutral {
+                background-color: var(--warning);
+                color: white;
+            }
+
+            .footer-nav {
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                background: var(--primary);
+                display: flex;
+                justify-content: space-around;
+                padding: 10px 0;
+                z-index: 99;
+            }
+
+            .footer-nav-btn {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                color: white;
+                text-decoration: none;
+                font-size: 0.8rem;
+                padding: 5px 10px;
+                border-radius: 5px;
+                transition: background 0.3s;
+                cursor: pointer;
+                border: none;
+                background: none;
+            }
+
+            .footer-nav-btn:hover {
+                background: rgba(255,255,255,0.1);
+            }
+
+            .footer-nav-btn i {
+                font-size: 1.2rem;
+                margin-bottom: 5px;
+            }
+
+            #studentOutsideIndicator {
+                position: fixed;
+                top: 100px;
+                right: 10px;
+                background: white;
+                border: 1px solid #ddd;
+                border-radius: 8px;
+                padding: 15px;
+                z-index: 1000;
+                box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+                max-width: 300px;
+            }
+
+            #studentOutsideIndicator h3 {
+                color: var(--danger);
+                margin-bottom: 10px;
+                display: flex;
+                align-items: center;
+                gap: 10px;
+            }
+
+            .outside-student {
+                padding: 10px;
+                margin: 8px 0;
+                background: #fff4f4;
+                border-radius: 5px;
+                border-left: 4px solid var(--danger);
+            }
+
+            .blinking-light {
+                width: 15px;
+                height: 15px;
+                border-radius: 50%;
+                display: inline-block;
+                margin-right: 8px;
+                animation: blink 1s infinite;
+            }
+
+            .red-light {
+                background-color: var(--danger);
+            }
+
+            .yellow-light {
+                background-color: var(--warning);
+            }
+
+            @keyframes blink {
+                0% { opacity: 1; }
+                50% { opacity: 0.5; }
+                100% { opacity: 1; }
+            }
+        </style>
+    </head>
+    <body class="app-body">
+        <header>
+            <div class="container header-content">
+                <h1 class="app-title"><i class="fas fa-clipboard-list"></i> Sistema de Registro Anecdótico</h1>
+                <div class="user-info-header">
+                    <div class="user-badge">
+                        <i class="fas fa-user"></i> <span id="headerUserName">Cargando...</span>
+                    </div>
+                </div>
+                <div class="copyright">© 2025 Prof. Miguel Silverio</div>
+            </div>
+        </header>
+
+        <!-- Indicador de estudiantes fuera del aula -->
+        <div id="studentOutsideIndicator" style="display: none;">
+            <h3><span class="blinking-light red-light"></span><span class="blinking-light yellow-light"></span> Estudiante(s) Fuera</h3>
+            <div id="outsideStudentsList"></div>
+        </div>
+
+        <div class="container">
+            <div class="tabs">
+                <div class="tab active" onclick="switchTab('class-register')">Registro de Clase</div>
+                <div class="tab" onclick="switchTab('reports')">Reportes</div>
+                <div class="tab" onclick="switchTab('evidence')">Evidencias</div>
+            </div>
+
+            <!-- 📋 TAB 1: REGISTRO DE CLASE -->
+            <div id="class-register" class="tab-content active">
+                <div class="card">
+                    <h2 class="card-title"><i class="fas fa-school"></i> Datos de la Clase</h2>
+                    <button class="btn btn-primary" onclick="fillDefaultData()">
+                        <i class="fas fa-magic"></i> Autocompletar datos
+                    </button>
+                    <div class="grid-3">
+                        <div class="form-group">
+                            <label for="schoolName">Nombre del Centro:</label>
+                            <input type="text" id="schoolName" placeholder="Nombre del Centro Educativo">
+                        </div>
+                        <div class="form-group">
+                            <label for="teacherName">Profesor:</label>
+                            <input type="text" id="teacherName" placeholder="Nombre del Profesor">
+                        </div>
+                        <div class="form-group">
+                            <label for="grade">Grado:</label>
+                            <input type="text" id="grade" placeholder="Ej: 4to Contabilidad">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="subject">Materia:</label>
+                        <select id="subject" onchange="toggleOtherSubject()">
+                            <option value="">Seleccione una materia</option>
+                            <option value="Ofimática">Ofimática</option>
+                            <option value="Inglés Técnico">Inglés Técnico</option>
+                            <option value="Inglés Turístico">Inglés Turístico</option>
+                            <option value="Tecnologías Digitales">Tecnologías Digitales</option>
+                            <option value="Lengua Española">Lengua Española</option>
+                            <option value="Otra">Otra</option>
+                        </select>
+                        <input type="text" id="otherSubject" class="hidden" placeholder="Especifique la materia">
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h2 class="card-title"><i class="fas fa-clock"></i> Control de Tiempo</h2>
+                    <div class="timeline">
+                        <div class="timeline-item">
+                            <strong>Inicio de Clase</strong>
+                            <span id="startTime">No iniciado</span><br><input type="time" id="manualStartTime" onchange="updateManualTime('start')">
+                        </div>
+                        <div class="timeline-item">
+                            <strong>Fin de Clase</strong>
+                            <span id="endTime">No finalizado</span><br><input type="time" id="manualEndTime" onchange="updateManualTime('end')">
+                        </div>
+                        <div class="timeline-item">
+                            <strong>Duración</strong>
+                            <span id="classDuration">--:--</span>
+                        </div>
+                    </div>
+                    <button class="btn btn-success" onclick="startClass()"><i class="fas fa-play"></i> Iniciar Clase</button>
+                    <button class="btn btn-danger" onclick="endClass()"><i class="fas fa-stop"></i> Finalizar Clase</button>
+                </div>
+
+                <div class="card" id="studentManagementSection">
+                    <h2 class="card-title"><i class="fas fa-user-graduate"></i> Gestión de Estudiantes</h2>
+                    <button class="btn btn-primary add-student-btn" onclick="addStudentFormFields()"><i class="fas fa-plus"></i> Agregar Estudiante</button>
+                    <div id="studentInputs"></div>
+                </div>
+
+                <div class="card">
+                    <h2 class="card-title"><i class="fas fa-calendar-check"></i> Situaciones del Aula</h2>
+                    <div class="form-group">
+                        <label for="classEvents">Descripción del evento:</label>
+                        <textarea id="classEvents" placeholder="Describe el evento ocurrido en clase..."></textarea>
+                    </div>
+                    <button class="btn btn-primary" onclick="addEvent()"><i class="fas fa-plus"></i> Agregar Evento</button>
+                    
+                    <h3 style="margin-top: 20px;">Eventos Registrados</h3>
+                    <ul class="event-list" id="eventsList"></ul>
+                </div>
+
+                <div class="card">
+                    <h2 class="card-title"><i class="fas fa-analytics"></i> Interpretación de lo Observado</h2>
+                    <div class="form-group">
+                        <textarea id="interpretation" placeholder="Escribe tu interpretación de lo observado..."></textarea>
+                    </div>
+                    <button class="btn btn-primary" onclick="addInterpretation()"><i class="fas fa-plus"></i> Agregar Interpretación</button>
+                    
+                    <h3 style="margin-top: 20px;">Interpretaciones Registradas</h3>
+                    <ul class="interpretation-list" id="interpretationsList"></ul>
+                </div>
+
+                <div class="card">
+                    <h2 class="card-title"><i class="fas fa-chart-line"></i> Registro de Participación y Conducta</h2>
+                    
+                    <div class="form-group">
+                        <label for="studentNameInput">Nombre del Estudiante:</label>
+                        <input type="text" id="studentNameInput" placeholder="Escribe el nombre del estudiante">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Seleccionar Emoji:</label>
+                        <div class="emoji-selector">
+                            <button class="emoji-btn" onclick="addParticipation('👍', 'positiva')">
+                                👍
+                                <span class="emoji-tooltip">Positiva - Buen trabajo</span>
+                            </button>
+                            <button class="emoji-btn" onclick="addParticipation('👎', 'negativa')">
+                                👎
+                                <span class="emoji-tooltip">Negativa - Necesita mejorar</span>
+                            </button>
+                            <button class="emoji-btn" onclick="addParticipation('👏', 'participación')">
+                                👏
+                                <span class="emoji-tooltip">Participación - Buena participación</span>
+                            </button>
+                            <button class="emoji-btn" onclick="addParticipation('😊', 'buena conducta')">
+                                😊
+                                <span class="emoji-tooltip">Buena conducta - Comportamiento ejemplar</span>
+                            </button>
+                            <button class="emoji-btn" onclick="addParticipation('😞', 'mala conducta')">
+                                😞
+                                <span class="emoji-tooltip">Mala conducta - Comportamiento inadecuado</span>
+                            </button>
+                            <button class="emoji-btn" onclick="addParticipation('❤️', 'ayuda a otros')">
+                                ❤️
+                                <span class="emoji-tooltip">Ayuda a otros - Apoyo a compañeros</span>
+                            </button>
+                            <button class="emoji-btn" onclick="addParticipation('💡', 'buena idea')">
+                                💡
+                                <span class="emoji-tooltip">Buena idea - Contribución creativa</span>
+                            </button>
+                            <button class="emoji-btn" onclick="addParticipation('⚠️', 'llamar la atención')">
+                                ⚠️
+                                <span class="emoji-tooltip">Llamar la atención - Requiere supervisión</span>
+                            </button>
+                            <button class="emoji-btn" onclick="addParticipation('🚀', 'excelente trabajo')">
+                                🚀
+                                <span class="emoji-tooltip">Excelente trabajo - Desempeño sobresaliente</span>
+                            </button>
+                            <button class="emoji-btn" onclick="addParticipation('🎯', 'objetivo cumplido')">
+                                🎯
+                                <span class="emoji-tooltip">Objetivo cumplido - Meta alcanzada</span>
+                            </button>
+                            <button class="emoji-btn" onclick="addParticipation('🤔', 'necesita mejorar')">
+                                🤔
+                                <span class="emoji-tooltip">Necesita mejorar - Requiere refuerzo</span>
+                            </button>
+                            <button class="emoji-btn" onclick="addParticipation('😴', 'falta de atención')">
+                                😴
+                                <span class="emoji-tooltip">Falta de atención - Desinterés</span>
+                            </button>
+                            <button class="emoji-btn" onclick="addParticipation('⭐', 'destacado')">
+                                ⭐
+                                <span class="emoji-tooltip">Destacado - Rendimiento excepcional</span>
+                            </button>
+                            <button class="emoji-btn" onclick="addParticipation('🙌', 'colaboración')">
+                                🙌
+                                <span class="emoji-tooltip">Colaboración - Trabajo en equipo</span>
+                            </button>
+                            <button class="emoji-btn" onclick="addParticipation('🤝', 'acuerdo cumplido')">
+                                🤝
+                                <span class="emoji-tooltip">Acuerdo cumplido - Compromiso realizado</span>
+                            </button>
+                            <button class="emoji-btn" onclick="addParticipation('📚', 'estudio')">
+                                📚
+                                <span class="emoji-tooltip">Estudio - Dedicación al aprendizaje</span>
+                            </button>
+                            <button class="emoji-btn" onclick="addParticipation('🎉', 'celebración')">
+                                🎉
+                                <span class="emoji-tooltip">Celebración - Logro destacado</span>
+                            </button>
+                            <button class="emoji-btn" onclick="addParticipation('💪', 'esfuerzo')">
+                                💪
+                                <span class="emoji-tooltip">Esfuerzo - Dedicación y perseverancia</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="participationComment">Comentario (opcional):</label>
+                        <textarea id="participationComment" placeholder="Agrega un comentario sobre la participación/conducta (opcional)..."></textarea>
+                    </div>
+
+                    <button class="btn btn-primary" onclick="registerParticipation()"><i class="fas fa-plus"></i> Registrar Participación/Conducta</button>
+
+                    <h3 style="margin-top: 20px;">Participación y Conducta Registrada</h3>
+                    <table class="participation-table">
+                        <thead>
+                            <tr>
+                                <th>Estudiante</th>
+                                <th>Tipo</th>
+                                <th>Emoji</th>
+                                <th>Comentario</th>
+                                <th>Hora</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="participationList">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- 📊 TAB 2: REPORTES -->
+            <div id="reports" class="tab-content">
+                <div class="card">
+                    <h2 class="card-title"><i class="fas fa-file-pdf"></i> Generar Reportes</h2>
+                    <button class="btn btn-primary" onclick="generateReport()"><i class="fas fa-file-alt"></i> Generar Reporte</button>
+                    <button class="btn btn-success" onclick="downloadPDF()"><i class="fas fa-download"></i> Descargar PDF</button>
+                </div>
+
+                <div class="report-preview" id="reportPreview">
+                    <p style="text-align: center;">Presiona "Generar Reporte" para ver la vista previa</p>
+                </div>
+            </div>
+
+            <!-- 📸 TAB 3: EVIDENCIAS -->
+            <div id="evidence" class="tab-content">
+                <div class="card">
+                    <h2 class="card-title"><i class="fas fa-camera"></i> Capturar Evidencias</h2>
+                    <p>Utiliza esta función para capturar evidencia de que los estudiantes han leído tu reporte.</p>
+                    
+                    <div class="grid-2">
+                        <button class="btn btn-primary" onclick="openCamera()"><i class="fas fa-camera"></i> Tomar Foto</button>
+                        <button class="btn btn-primary" onclick="document.getElementById('uploadFileInput').click()">
+                            <i class="fas fa-upload"></i> Subir Archivo
+                        </button>
+                        <input type="file" id="uploadFileInput" accept="image/*,.pdf,.doc,.docx,.xls,.xlsx" style="display: none;" onchange="handleFileUpload(event)">
+                    </div>
+                    
+                    <div class="evidence-container">
+                        <h3>Evidencias Capturadas</h3>
+                        <div id="evidenceList" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: start;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer navigation -->
+        <div class="footer-nav">
+            <button class="footer-nav-btn" onclick="switchTab('class-register')">
+                <i class="fas fa-chalkboard-teacher"></i>
+                <span>Registro</span>
+            </button>
+            <button class="footer-nav-btn" onclick="switchTab('reports')">
+                <i class="fas fa-file-pdf"></i>
+                <span>Reportes</span>
+            </button>
+            <button class="footer-nav-btn" onclick="switchTab('evidence')">
+                <i class="fas fa-camera"></i>
+                <span>Evidencias</span>
+            </button>
+            <button class="footer-nav-btn" onclick="addStudentFormFields()">
+                <i class="fas fa-user-plus"></i>
+                <span>Agregar Estudiante</span>
+            </button>
+        </div>
+
+        <!-- Modal para la cámara -->
+        <div id="cameraModal" class="modal">
+            <div class="modal-content">
+                <h2><i class="fas fa-camera"></i> Capturar Evidencia</h2>
+                <p>Pide al estudiante que se situé frente a la cámara mientras lee el reporte.</p>
+                
+                <video id="video" class="camera-feed" autoplay></video>
+                <canvas id="canvas" style="display: none;"></canvas>
+                
+                <div>
+                    <button class="btn btn-success" onclick="capturePhoto()"><i class="fas fa-camera"></i> Capturar Foto</button>
+                    <button class="btn btn-danger" onclick="closeCamera()"><i class="fas fa-times"></i> Cerrar</button>
+                </div>
+                
+                <img id="photoPreview" class="photo-preview" style="display: none;">
+                
+                <div id="captureActions" style="display: none; margin-top: 1rem;">
+                    <div class="form-group">
+                        <label for="evidenceObservation">Observaciones:</label>
+                        <textarea id="evidenceObservation" placeholder="Agregar observaciones sobre esta evidencia..."></textarea>
+                    </div>
+                    <button class="btn btn-primary" onclick="savePhoto()"><i class="fas fa-save"></i> Guardar Evidencia</button>
+                    <button class="btn" onclick="retakePhoto()"><i class="fas fa-redo"></i> Volver a Capturar</button>
+                </div>
+            </div>
+        </div>
+    </body>
+    </html>
+</div>
+
+<!-- 🔌 SCRIPTS PRINCIPALES -->
 <script>
+    // ============================================
+    // ⚙️ CONFIGURACIÓN FIREBASE
+    // ============================================
     const firebaseConfig = {
-      apiKey: "AIzaSyCY14LkfciAkiQK8tqFedBR1oNsSJYy_NM",
-      authDomain: "registro-anecdotico-4e9f9.firebaseapp.com",
-      projectId: "registro-anecdotico-4e9f9",
-      storageBucket: "registro-anecdotico-4e9f9.firebasestorage.app",
-      messagingSenderId: "452165916569",
-      appId: "1:452165916569:web:38eba932b3a9b13cdd6508"
+        apiKey: "AIzaSyCY14LkfciAkiQK8tqFedBR1oNsSJYy_NM",
+        authDomain: "registro-anecdotico-4e9f9.firebaseapp.com",
+        projectId: "registro-anecdotico-4e9f9",
+        storageBucket: "registro-anecdotico-4e9f9.firebasestorage.app",
+        messagingSenderId: "452165916569",
+        appId: "1:452165916569:web:38eba932b3a9b13cdd6508"
     };
+
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
     const db = firebase.firestore();
-</script>
 
-<div id="login-wrapper">
-    <div class="login-card" id="login-card">
-        <div class="avatar-circle" id="login-avatar">MS</div>
-        <h2 id="login-title">Bienvenido</h2>
-        <p style="color: #777; margin-bottom: 20px;" id="login-subtitle">Sistema de Registro Anecdótico</p>
+    console.log("🔥 Firebase inicializado correctamente");
 
-        <div id="form-login">
-            <div class="input-group">
-                <label>Correo Electrónico</label>
-                <input type="email" id="email" placeholder="ejemplo@escuela.edu">
-            </div>
-            <div class="input-group">
-                <label>Contraseña</label>
-                <input type="password" id="password" placeholder="••••••••">
-            </div>
-            <div style="text-align: right; margin-bottom: 15px;">
-                <a href="#" onclick="forgotPassword()" style="color: var(--secondary-color); font-size: 13px;">¿Olvidaste tu contraseña?</a>
-            </div>
-            <button class="btn" onclick="login()">Ingresar</button>
-            <button class="btn btn-secondary" onclick="showRegister()" style="margin-top: 15px;">Crear Cuenta</button>
-        </div>
-
-        <div id="form-register" class="hidden">
-            <div class="input-group">
-                <label>Nombre Completo</label>
-                <input type="text" id="reg-name" placeholder="Prof. Juan Pérez">
-            </div>
-            <div class="input-group">
-                <label>Rol / Cargo</label>
-                <input type="text" id="reg-role" placeholder="Docente de Inglés">
-            </div>
-            <div class="input-group">
-                <label>Teléfono</label>
-                <input type="text" id="reg-phone" placeholder="809-555-5555">
-            </div>
-            <div class="input-group">
-                <label>Correo</label>
-                <input type="email" id="reg-email" placeholder="correo@ejemplo.com">
-            </div>
-            <div class="input-group">
-                <label>Contraseña</label>
-                <input type="password" id="reg-pass" placeholder="Mínimo 6 caracteres">
-            </div>
-            <button class="btn btn-success" onclick="register()">Registrar Usuario</button>
-            <button class="btn btn-secondary" onclick="showLogin()">Volver</button>
-        </div>
-
-        <div id="login-msg" class="msg-box"></div>
-    </div>
-</div>
-
-<div id="app-wrapper">
-    <header>
-        <div>
-            <h3><i class="fas fa-clipboard-list"></i> Registro Anecdótico</h3>
-            <small id="header-user-name">Cargando...</small>
-        </div>
-        <button class="btn btn-danger" style="width: auto; padding: 8px 15px;" onclick="logout()">
-            <i class="fas fa-sign-out-alt"></i> Salir
-        </button>
-    </header>
-
-    <div id="outside-indicator">
-        <h4 style="color: var(--danger-color); margin-bottom: 10px;">
-            <span class="blink-dot"></span> Estudiantes Fuera
-        </h4>
-        <div id="outside-list-content"></div>
-    </div>
-
-    <div class="container">
-        <div class="tabs">
-            <div class="tab active" onclick="setTab('registro')">Clase y Estudiantes</div>
-            <div class="tab" onclick="setTab('reportes')">Reportes</div>
-            <div class="tab" onclick="setTab('evidencias')">Evidencias</div>
-        </div>
-
-        <div id="tab-registro" class="tab-content active">
-            <div class="card">
-                <div class="card-header"><i class="fas fa-school"></i> Datos de la Clase</div>
-                <div class="grid-3">
-                    <div class="input-group">
-                        <label>Centro Educativo</label>
-                        <input type="text" id="school-name" value="Politécnico Santo Esteban Rivera">
-                    </div>
-                    <div class="input-group">
-                        <label>Profesor</label>
-                        <input type="text" id="teacher-name" readonly>
-                    </div>
-                    <div class="input-group">
-                        <label>Grado</label>
-                        <input type="text" id="grade" placeholder="Ej: 4to A">
-                    </div>
-                </div>
-                <div class="input-group">
-                    <label>Materia</label>
-                    <select id="subject">
-                        <option>Inglés Técnico</option>
-                        <option>Ofimática</option>
-                        <option>Lengua Española</option>
-                        <option>Otra</option>
-                    </select>
-                </div>
-            </div>
-
-            <div class="card">
-                <div class="card-header"><i class="fas fa-clock"></i> Control de Tiempo</div>
-                <div class="grid-3" style="text-align: center; margin-bottom: 15px;">
-                    <div>Inicio: <strong id="start-time">--:--</strong></div>
-                    <div>Fin: <strong id="end-time">--:--</strong></div>
-                    <div>Duración: <strong id="duration">00:00</strong></div>
-                </div>
-                <button class="btn btn-success" style="width: 48%; display: inline-block;" onclick="startClass()">Iniciar Clase</button>
-                <button class="btn btn-danger" style="width: 48%; display: inline-block;" onclick="endClass()">Finalizar Clase</button>
-            </div>
-
-            <div class="card">
-                <div class="card-header"><i class="fas fa-user-graduate"></i> Gestión de Estudiantes</div>
-                <button class="btn btn-primary" onclick="addStudentForm()">
-                    <i class="fas fa-plus"></i> Registrar Salida de Estudiante
-                </button>
-                <div id="students-container" style="margin-top: 20px;"></div>
-            </div>
-
-            <div class="card">
-                <div class="card-header"><i class="fas fa-comment-dots"></i> Situaciones / Eventos</div>
-                <textarea id="event-input" rows="3" placeholder="Describe lo ocurrido..."></textarea>
-                <button class="btn btn-warning" style="margin-top: 10px;" onclick="addEvent()">Agregar Evento</button>
-                <ul id="events-list" style="margin-top: 15px; list-style: none;"></ul>
-            </div>
-        </div>
-
-        <div id="tab-reportes" class="tab-content">
-            <div class="card">
-                <div class="card-header">Generar Documento</div>
-                <p>Genera un PDF con toda la información registrada en esta sesión.</p>
-                <button class="btn btn-primary" onclick="generatePreview()">Vista Previa</button>
-                <button class="btn btn-success" onclick="downloadPDF()">Descargar PDF</button>
-            </div>
-            <div id="report-preview" style="background: white; padding: 40px; border: 1px solid #ccc; min-height: 400px;">
-                <p style="text-align: center; color: #999;">La vista previa aparecerá aquí...</p>
-            </div>
-        </div>
-
-        <div id="tab-evidencias" class="tab-content">
-            <div class="card">
-                <div class="card-header">Captura de Evidencias</div>
-                <div class="grid-2">
-                    <button class="btn btn-primary" onclick="openCamera()"><i class="fas fa-camera"></i> Usar Cámara</button>
-                    <button class="btn btn-secondary" onclick="document.getElementById('file-upload').click()"><i class="fas fa-upload"></i> Subir Archivo</button>
-                </div>
-                <input type="file" id="file-upload" class="hidden" onchange="handleFileUpload(event)">
-                
-                <div id="evidence-gallery" class="grid-3" style="margin-top: 20px;"></div>
-            </div>
-        </div>
-    </div>
-
-    <div class="footer-nav">
-        <div class="nav-item active" onclick="setTab('registro')"><i class="fas fa-clipboard-check"></i> Registro</div>
-        <div class="nav-item" onclick="setTab('reportes')"><i class="fas fa-file-pdf"></i> Reportes</div>
-        <div class="nav-item" onclick="setTab('evidencias')"><i class="fas fa-camera"></i> Evidencias</div>
-    </div>
-</div>
-
-<div id="camera-modal" class="modal">
-    <div class="modal-content">
-        <h3>Capturar Foto</h3>
-        <video id="video-feed" autoplay></video>
-        <canvas id="canvas" style="display:none;"></canvas>
-        <br>
-        <button class="btn btn-success" onclick="takePhoto()">Capturar</button>
-        <button class="btn btn-danger" onclick="closeCamera()">Cancelar</button>
-    </div>
-</div>
-
-<script>
-    // ================= LÓGICA JAVASCRIPT COMPLETA =================
-    
-    // 1. GESTIÓN DE USUARIOS Y LOGIN
+    // ============================================
+    // 🔐 VARIABLES GLOBALES DE AUTENTICACIÓN
+    // ============================================
     let currentUser = null;
+    let currentUserData = null;
+    let failedAttempts = 0;
+    let isBlocked = false;
+    let blockUntil = 0;
 
-    auth.onAuthStateChanged(user => {
+    // ============================================
+    // 📱 VARIABLES GLOBALES DE LA APP
+    // ============================================
+    let students = [];
+    let events = [];
+    let interpretations = [];
+    let startTime = null;
+    let endTime = null;
+    let classDurationInterval = null;
+    let capturedEvidence = [];
+    let stream = null;
+    let participationRecords = [];
+    let currentStudentIndex = 1;
+    let outsideStudents = [];
+    let outsideStudentsInterval = null;
+
+    // ============================================
+    // 🔍 MONITOREO DE AUTENTICACIÓN
+    // ============================================
+    auth.onAuthStateChanged(async (user) => {
         if (user) {
+            console.log("✅ Usuario autenticado:", user.uid);
             currentUser = user;
-            loadUserProfile(user.uid);
-            document.getElementById('login-wrapper').style.display = 'none';
-            document.getElementById('app-wrapper').style.display = 'block';
+            
+            // Obtener datos del usuario desde Firestore
+            try {
+                const userDocSnapshot = await db.collection("usuarios").doc(user.uid).get();
+                if (userDocSnapshot.exists) {
+                    currentUserData = userDocSnapshot.data();
+                    console.log("📋 Datos de usuario:", currentUserData);
+                    
+                    // Mostrar app principal
+                    document.getElementById("login-page").style.display = "none";
+                    document.getElementById("main-page").style.display = "block";
+                    
+                    // Actualizar nombre del profesor
+                    document.getElementById("teacherName").value = currentUserData.nombre || "";
+                    document.getElementById("headerUserName").textContent = currentUserData.nombre || "Usuario";
+                    
+                    // Cargar datos guardados si existen
+                    loadSessionData();
+                    
+                    // Iniciar intervalo de actualización
+                    startOutsideStudentsInterval();
+                } else {
+                    console.warn("⚠️ Usuario sin documento en Firestore");
+                    // Crear documento si no existe
+                    await createUserDocument(user);
+                }
+            } catch (error) {
+                console.error("❌ Error al obtener datos de usuario:", error);
+            }
         } else {
-            document.getElementById('login-wrapper').style.display = 'flex';
-            document.getElementById('app-wrapper').style.display = 'none';
+            console.log("❌ Usuario no autenticado");
+            currentUser = null;
+            currentUserData = null;
+            
+            // Mostrar pantalla de login
+            document.getElementById("login-page").style.display = "flex";
+            document.getElementById("main-page").style.display = "none";
         }
     });
 
-    function showLogin() {
-        document.getElementById('form-login').classList.remove('hidden');
-        document.getElementById('form-register').classList.add('hidden');
-        document.getElementById('login-title').textContent = 'Bienvenido';
-    }
-
-    function showRegister() {
-        document.getElementById('form-login').classList.add('hidden');
-        document.getElementById('form-register').classList.remove('hidden');
-        document.getElementById('login-title').textContent = 'Crear Cuenta';
-    }
-
-    function showMsg(msg, type) {
-        const box = document.getElementById('login-msg');
-        box.textContent = msg;
-        box.className = 'msg-box ' + (type === 'error' ? 'error-msg' : 'success-msg');
-        box.style.display = 'block';
-        setTimeout(() => box.style.display = 'none', 4000);
-    }
-
-    function login() {
-        const email = document.getElementById('email').value;
-        const pass = document.getElementById('password').value;
-        if(!email || !pass) return showMsg('Completa todos los campos', 'error');
-
-        auth.signInWithEmailAndPassword(email, pass)
-            .catch(err => showMsg('Error: ' + err.message, 'error'));
-    }
-
-    function register() {
-        const email = document.getElementById('reg-email').value;
-        const pass = document.getElementById('reg-pass').value;
-        const name = document.getElementById('reg-name').value;
-        const role = document.getElementById('reg-role').value;
-        const phone = document.getElementById('reg-phone').value;
-
-        if(!email || !pass || !name) return showMsg('Campos obligatorios vacíos', 'error');
-
-        auth.createUserWithEmailAndPassword(email, pass)
-            .then((cred) => {
-                // Guardar datos extra en Firestore
-                return db.collection('users').doc(cred.user.uid).set({
-                    name: name, role: role, phone: phone, email: email
-                });
-            })
-            .then(() => showMsg('Usuario creado exitosamente', 'success'))
-            .catch(err => showMsg(err.message, 'error'));
-    }
-
-    function forgotPassword() {
-        const email = document.getElementById('email').value;
-        if(!email) return showMsg('Escribe tu correo en el campo de arriba', 'error');
-        auth.sendPasswordResetEmail(email)
-            .then(() => showMsg('Correo de recuperación enviado', 'success'))
-            .catch(err => showMsg(err.message, 'error'));
-    }
-
-    function logout() {
-        auth.signOut();
-        // Limpiar datos en memoria
-        students = [];
-        events = [];
-        evidences = [];
-        document.getElementById('students-container').innerHTML = '';
-        document.getElementById('events-list').innerHTML = '';
-    }
-
-    function loadUserProfile(uid) {
-        db.collection('users').doc(uid).get().then(doc => {
-            if(doc.exists) {
-                const data = doc.data();
-                document.getElementById('teacher-name').value = data.name;
-                document.getElementById('header-user-name').textContent = data.name + ' (' + data.role + ')';
-            }
-        });
-    }
-
-    // 2. LÓGICA DE LA APP (CLASE, ESTUDIANTES, TIEMPO)
-    let classStart = null;
-    let students = [];
-    let events = [];
-    let evidences = [];
-    let studentCounter = 0;
-
-    function setTab(tabName) {
-        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+    // ============================================
+    // 🔑 FUNCIONES DE AUTENTICACIÓN
+    // ============================================
+    async function handleLogin() {
+        const email = document.getElementById("loginEmail").value.trim();
+        const password = document.getElementById("loginPassword").value;
+        const loginBtn = document.getElementById("loginBtn");
+        const loginBtnText = document.getElementById("loginBtnText");
         
-        // Activar botones footer también
-        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+        // Validaciones
+        if (!email || !password) {
+            showError("loginErrorMsg", "Por favor completa todos los campos");
+            return;
+        }
 
-        // Mapeo simple
-        const index = tabName === 'registro' ? 0 : tabName === 'reportes' ? 1 : 2;
-        document.querySelectorAll('.tab')[index].classList.add('active');
-        document.querySelectorAll('.nav-item')[index].classList.add('active');
-        document.getElementById('tab-'+tabName).classList.add('active');
-    }
+        if (isBlocked) {
+            updateBlockedMessage();
+            return;
+        }
 
-    // Cronómetro Clase
-    function startClass() {
-        classStart = new Date();
-        document.getElementById('start-time').textContent = classStart.toLocaleTimeString();
-        setInterval(() => {
-            const now = new Date();
-            const diff = Math.floor((now - classStart) / 1000);
-            const m = Math.floor(diff / 60).toString().padStart(2,'0');
-            const s = (diff % 60).toString().padStart(2,'0');
-            document.getElementById('duration').textContent = `${m}:${s}`;
-        }, 1000);
-    }
+        // Mostrar estado de carga
+        loginBtn.disabled = true;
+        loginBtnText.innerHTML = '<span class="loading-spinner"></span>Iniciando sesión...';
+        document.getElementById("loginErrorMsg").style.display = "none";
 
-    function endClass() {
-        const end = new Date();
-        document.getElementById('end-time').textContent = end.toLocaleTimeString();
-    }
-
-    // Gestión Estudiantes (Timer Individual)
-    function addStudentForm() {
-        studentCounter++;
-        const id = studentCounter;
-        
-        const html = `
-            <div id="stu-card-${id}" class="student-box out">
-                <div class="grid-2">
-                    <input type="text" id="stu-name-${id}" placeholder="Nombre Estudiante">
-                    <input type="text" id="stu-reason-${id}" placeholder="Motivo Salida">
-                </div>
-                <div class="grid-2" style="margin-top:10px; align-items:center;">
-                    <div class="timer-display" id="stu-timer-${id}">00:00</div>
-                    <div>
-                        <button class="btn btn-success" id="btn-in-${id}" onclick="studentReturn(${id})" disabled>Registrar Retorno</button>
-                        <button class="btn btn-warning" id="btn-out-${id}" onclick="studentLeave(${id})">Confirmar Salida</button>
-                    </div>
-                </div>
-            </div>
-        `;
-        document.getElementById('students-container').insertAdjacentHTML('beforeend', html);
-    }
-
-    function studentLeave(id) {
-        const name = document.getElementById(`stu-name-${id}`).value;
-        const reason = document.getElementById(`stu-reason-${id}`).value;
-        if(!name) return alert('Ingresa el nombre');
-
-        const startTime = new Date();
-        
-        // Guardar objeto
-        const studentObj = { id, name, reason, start: startTime, end: null, interval: null };
-        students.push(studentObj);
-
-        // UI
-        document.getElementById(`btn-out-${id}`).style.display = 'none';
-        document.getElementById(`btn-in-${id}`).disabled = false;
-        
-        // Timer Interval
-        studentObj.interval = setInterval(() => {
-            const now = new Date();
-            const diff = Math.floor((now - startTime) / 1000);
-            const m = Math.floor(diff / 60).toString().padStart(2,'0');
-            const s = (diff % 60).toString().padStart(2,'0');
-            document.getElementById(`stu-timer-${id}`).textContent = `${m}:${s}`;
-        }, 1000);
-
-        updateOutsideIndicator();
-    }
-
-    function studentReturn(id) {
-        const student = students.find(s => s.id === id);
-        if(student) {
-            clearInterval(student.interval);
-            student.end = new Date();
-            student.interval = null; // Marcar como regresado
+        try {
+            const userCredential = await auth.signInWithEmailAndPassword(email, password);
+            console.log("✅ Login exitoso:", userCredential.user.email);
             
-            // UI
-            const card = document.getElementById(`stu-card-${id}`);
-            card.classList.remove('out');
-            card.style.borderLeftColor = 'green';
-            document.getElementById(`btn-in-${id}`).textContent = 'Retorno Registrado';
-            document.getElementById(`btn-in-${id}`).disabled = true;
-            document.getElementById(`stu-timer-${id}`).style.color = 'green';
+            // Mostrar mensaje de éxito
+            document.getElementById("loginSuccessMsg").style.display = "block";
+            document.getElementById("loginEmail").value = "";
+            document.getElementById("loginPassword").value = "";
+            failedAttempts = 0;
             
-            updateOutsideIndicator();
-        }
-    }
+            // Los datos se cargarán via onAuthStateChanged
+            setTimeout(() => {
+                document.getElementById("loginSuccessMsg").style.display = "none";
+            }, 2000);
 
-    function updateOutsideIndicator() {
-        const list = document.getElementById('outside-list-content');
-        list.innerHTML = '';
-        const active = students.filter(s => s.interval !== null); // Los que tienen intervalo activo
-        
-        if (active.length > 0) {
-            document.getElementById('outside-indicator').style.display = 'block';
-            active.forEach(s => {
-                list.innerHTML += `<div style="font-size:13px; border-bottom:1px solid #eee; padding:5px;">
-                    <strong>${s.name}</strong> (${s.reason})
-                </div>`;
-            });
-        } else {
-            document.getElementById('outside-indicator').style.display = 'none';
-        }
-    }
-
-    // Eventos
-    function addEvent() {
-        const txt = document.getElementById('event-input').value;
-        if(!txt) return;
-        const time = new Date().toLocaleTimeString();
-        events.push({ time, text: txt });
-        
-        const li = document.createElement('li');
-        li.innerHTML = `<strong>${time}:</strong> ${txt}`;
-        li.style.background = '#fff'; li.style.padding = '10px'; li.style.marginBottom = '5px'; li.style.borderLeft = '3px solid orange';
-        document.getElementById('events-list').appendChild(li);
-        document.getElementById('event-input').value = '';
-    }
-
-    // 3. EVIDENCIAS Y CÁMARA
-    let stream = null;
-    
-    function openCamera() {
-        document.getElementById('camera-modal').style.display = 'flex';
-        navigator.mediaDevices.getUserMedia({ video: true })
-            .then(s => {
-                stream = s;
-                document.getElementById('video-feed').srcObject = stream;
-            })
-            .catch(err => alert('Error cámara: ' + err));
-    }
-
-    function closeCamera() {
-        if(stream) stream.getTracks().forEach(t => t.stop());
-        document.getElementById('camera-modal').style.display = 'none';
-    }
-
-    function takePhoto() {
-        const video = document.getElementById('video-feed');
-        const canvas = document.getElementById('canvas');
-        canvas.width = video.videoWidth;
-        canvas.height = video.videoHeight;
-        canvas.getContext('2d').drawImage(video, 0, 0);
-        
-        const imgData = canvas.toDataURL('image/png');
-        addEvidenceToGallery(imgData, 'Foto de Cámara');
-        closeCamera();
-    }
-
-    function handleFileUpload(e) {
-        const file = e.target.files[0];
-        if(file) {
-            const reader = new FileReader();
-            reader.onload = function(evt) {
-                addEvidenceToGallery(evt.target.result, file.name);
-            };
-            reader.readAsDataURL(file);
-        }
-    }
-
-    function addEvidenceToGallery(src, title) {
-        evidences.push({ src, title });
-        const html = `
-            <div style="border:1px solid #ddd; padding:5px;">
-                <img src="${src}" style="width:100%; height:150px; object-fit:cover;">
-                <small>${title}</small>
-            </div>
-        `;
-        document.getElementById('evidence-gallery').insertAdjacentHTML('beforeend', html);
-    }
-
-    // 4. REPORTES PDF
-    function generatePreview() {
-        const teacher = document.getElementById('teacher-name').value;
-        const school = document.getElementById('school-name').value;
-        const date = new Date().toLocaleDateString();
-        
-        let html = `
-            <h2 style="text-align:center;">Reporte Anecdótico</h2>
-            <p><strong>Centro:</strong> ${school} | <strong>Fecha:</strong> ${date}</p>
-            <p><strong>Docente:</strong> ${teacher}</p>
-            <hr>
-            <h4>Situaciones Registradas</h4>
-            <ul>${events.map(e => `<li>[${e.time}] ${e.text}</li>`).join('')}</ul>
-            <hr>
-            <h4>Registro de Salidas de Estudiantes</h4>
-            <table style="width:100%; border-collapse:collapse; margin-top:10px;" border="1">
-                <tr style="background:#eee;"><th>Estudiante</th><th>Motivo</th><th>Salida</th><th>Retorno</th></tr>
-                ${students.map(s => `
-                    <tr>
-                        <td>${s.name}</td>
-                        <td>${s.reason}</td>
-                        <td>${s.start.toLocaleTimeString()}</td>
-                        <td>${s.end ? s.end.toLocaleTimeString() : 'Pendiente'}</td>
-                    </tr>
-                `).join('')}
-            </table>
-            <hr>
-            <h4>Evidencias Adjuntas</h4>
-            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
-                ${evidences.map(ev => `
-                    <div style="text-align:center;">
-                        <img src="${ev.src}" style="max-width:150px; border:1px solid #ccc;">
-                        <br><small>${ev.title}</small>
-                    </div>
-                `).join('')}
-            </div>
-        `;
-        document.getElementById('report-preview').innerHTML = html;
-    }
-
-    async function downloadPDF() {
-        const { jsPDF } = window.jspdf;
-        const element = document.getElementById('report-preview');
-        
-        // Asegurarse de que el preview esté visible y renderizado
-        if (element.innerHTML.includes("La vista previa aparecerá aquí")) {
-            generatePreview();
-        }
-
-        const canvas = await html2canvas(element, { scale: 2 });
-        const imgData = canvas.toDataURL('image/png');
-        
-        const doc = new jsPDF();
-        const imgProps = doc.getImageProperties(imgData);
-        const pdfWidth = doc.internal.pageSize.getWidth();
-        const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
-        
-        doc.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
-        doc.save(`Reporte_${new Date().toLocaleDateString()}.pdf`);
-    }
-</script>
-
-</body>
-</html>
+        } catch (error) {
+            console.error("❌ Error de login:", error.code);
+            failedAttempts++;
+            
+            let errorMessage = "Credenciales incorrectas";
+            if (error.code === "auth/user
