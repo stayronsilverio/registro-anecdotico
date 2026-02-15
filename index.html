@@ -701,20 +701,17 @@
 
 <script>
     // Datos iniciales de usuarios (ahora como objetos)
-    /*
-const usuarios = {
-    "Miguel Silverio": {
-        password: "2201",
-        expiryDate: null,
-        isDefault: true,
-        avatar: null,
-        role: "Docente de Inglés",
-        phone: "829-801-8462",
-        sessionId: null
-    }
-};
-*/
-
+    const usuarios = {
+        "Miguel Silverio": {
+            password: "2201", // Esta será encriptada al cargar
+            expiryDate: null,
+            isDefault: true,
+            avatar: null,
+            role: "Docente de Inglés",
+            phone: "829-801-8462",
+            sessionId: null // Para control de sesiones
+        }
+    };
 
     // Variables globales
     let usuarioParaReactivar = null;
@@ -744,32 +741,22 @@ const usuarios = {
     }
 
     // Función para encriptar contraseñas usando SHA-256
-   /*
- async function hashPassword(password) {
+    async function hashPassword(password) {
         const encoder = new TextEncoder();
         const data = encoder.encode(password);
         const hash = await crypto.subtle.digest('SHA-256', data);
         return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2, '0')).join('');
     }
-/*
+
     // Cargar usuarios desde localStorage si existen
-  /*
-async function loadUsers() {
-    const storedUsers = localStorage.getItem('registeredUsers');
-    if (storedUsers) {
-        const parsedUsers = JSON.parse(storedUsers);
-        for (const user in parsedUsers) {
-            usuarios[user] = parsedUsers[user];
+    async function loadUsers() {
+        const storedUsers = localStorage.getItem('registeredUsers');
+        if (storedUsers) {
+            const parsedUsers = JSON.parse(storedUsers);
+            for (const user in parsedUsers) {
+                usuarios[user] = parsedUsers[user];
+            }
         }
-    }
-
-    if (usuarios["Miguel Silverio"] && usuarios["Miguel Silverio"].password === "2201") {
-        usuarios["Miguel Silverio"].password = await hashPassword("2201");
-        saveUsers();
-    }
-}
-*/
-
         
         // Encriptar la contraseña del usuario por defecto si no está encriptada
         if (usuarios["Miguel Silverio"] && usuarios["Miguel Silverio"].password === "2201") {
@@ -4526,7 +4513,7 @@ function agregarEstudiante(event) {
 
     document.getElementById("nombreEstudiante").value = "";
     document.getElementById("telefonoEstudiante").value = "";
-    document.getElementById("Estudiante").value = "";
+    document.getElementById("correoEstudiante").value = "";
     document.getElementById("formAgregarEstudiante").style.display = "none";
 }
 </script>
