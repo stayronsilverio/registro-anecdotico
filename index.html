@@ -545,15 +545,153 @@
             <i class="fas fa-check-circle"></i> Credenciales correctas, redirigiendo...
         </p>
 
-                    
-       
+        <button class="secondary-btn" onclick="showAdminAuth()">
+            <i class="fas fa-user-cog"></i> Administrar usuarios
+        </button>
+    </div>
+
+    <div id="admin-auth" class="admin-auth">
+        <h3 style="text-align: center; margin-bottom: 15px; color: var(--primary-color);">
+            <i class="fas fa-lock"></i> Autenticación Requerida
+        </h3>
+        <p style="text-align: center; margin-bottom: 15px; color: var(--text-color); opacity: 0.8; font-size: 14px;">
+            Para administrar usuarios, debe autenticarse como administrador.
+        </p>
+        
+        <div class="input-group">
+            <label for="admin-username">Usuario administrador</label>
+            <input type="text" id="admin-username" placeholder="Usuario de administrador">
+        </div>
+        
+        <div class="input-group">
+            <label for="admin-password">Contraseña de administrador</label>
+            <input type="password" id="admin-password" placeholder="Contraseña de administrador">
+            <span class="password-toggle" id="admin-password-toggle">
+                <i class="far fa-eye"></i>
+            </span>
+        </div>
+        
+        <button onclick="verifyAdmin()">Verificar identidad</button>
         <button class="secondary-btn" onclick="hideAdminAuth()">Cancelar</button>
         
         <p class="error-msg" id="admin-error-msg"></p>
     </div>
 
-    
+    <div id="admin-panel" class="register-form">
+        <h3 style="text-align: center; margin-bottom: 15px; color: var(--primary-color);">
+            <i class="fas fa-users-cog"></i> Panel de Administración
+        </h3>
+
+        <div class="form-tabs">
+            <div class="form-tab active" id="tab-create" onclick="switchAdminTab('create')">Crear Usuario</div>
+            <div class="form-tab" id="tab-delete" onclick="switchAdminTab('delete')">Gestionar Usuarios</div>
+        </div>
+
+        <div id="create-user-form">
+            <div class="input-group">
+                <label for="new-username">Nombre de usuario *</label>
+                <input type="text" id="new-username" placeholder="Nombre completo">
+            </div>
+            
+            <div class="input-group">
+                <label for="new-password">Contraseña *</label>
+                <input type="password" id="new-password" placeholder="Mínimo 4 caracteres">
+                <span class="password-toggle" id="new-password-toggle">
+                    <i class="far fa-eye"></i>
+                </span>
+            </div>
+            
+            <div class="input-group">
+                <label for="confirm-password">Confirmar contraseña *</label>
+                <input type="password" id="confirm-password" placeholder="Repite la contraseña">
+                <span class="password-toggle" id="confirm-password-toggle">
+                    <i class="far fa-eye"></i>
+                </span>
+            </div>
+            
+            <div class="input-group">
+                <label for="user-role">Especialidad/Rol *</label>
+                <input type="text" id="user-role" placeholder="Ej: Docente de Inglés">
+            </div>
+            
+            <div class="input-group">
+                <label for="user-phone">Teléfono de contacto</label>
+                <input type="text" id="user-phone" placeholder="Ej: 829-801-8462">
+            </div>
+            
+            <div class="input-group">
+                <label for="expiry-date">Fecha de caducidad (opcional)</label>
+                <input type="date" id="expiry-date" min="2024-01-01">
+            </div>
+
+            <div class="input-group">
+                <label for="avatar-upload">Foto de perfil (opcional)</label>
+                <input type="file" id="avatar-upload" accept="image/*" style="padding: 8px;">
+            </div>
+            
+            <button onclick="registerUser()">Crear usuario</button>
+        </div>
+
+        <div id="delete-user-form" style="display: none;">
+            <div class="input-group">
+                <label>Usuarios registrados</label>
+                <div class="user-list" id="user-list">
+                    <!-- Los usuarios se cargarán aquí dinámicamente -->
+                </div>
+            </div>
+            
+            <div id="reactivate-form" class="reactivate-form">
+                <h4>Reactivar Usuario: <span id="reactivate-username"></span></h4>
+                <div class="input-group">
+                    <label for="new-expiry-date">Nueva fecha de caducidad</label>
+                    <input type="date" id="new-expiry-date" min="2024-01-01">
+                </div>
+                <button class="success-btn" onclick="reactivateUser()">Reactivar Usuario</button>
+                <button class="secondary-btn" onclick="hideReactivateForm()">Cancelar</button>
+            </div>
+
+            <div id="edit-form" class="edit-form">
+                <h4>Editar Usuario: <span id="edit-username"></span></h4>
+                <div class="input-group">
+                    <label for="edit-role">Especialidad/Rol</label>
+                    <input type="text" id="edit-role" placeholder="Ej: Docente de Inglés">
+                </div>
+                
+                <div class="input-group">
+                    <label for="edit-phone">Teléfono de contacto</label>
+                    <input type="text" id="edit-phone" placeholder="Ej: 829-801-8462">
+                </div>
+                
+                <div class="input-group">
+                    <label for="edit-expiry-date">Fecha de caducidad</label>
+                    <input type="date" id="edit-expiry-date" min="2024-01-01">
+                </div>
+
+                <div class="input-group">
+                    <label for="edit-avatar-upload">Nueva foto de perfil (opcional)</label>
+                    <input type="file" id="edit-avatar-upload" accept="image/*" style="padding: 8px;">
+                </div>
+                
+                <button class="warning-btn" onclick="saveUserEdit()">Guardar Cambios</button>
+                <button class="secondary-btn" onclick="hideEditForm()">Cancelar</button>
+            </div>
+            
+            <p style="color: var(--text-color); opacity: 0.8; font-size: 13px; margin-bottom: 15px;">
+                <i class="fas fa-exclamation-triangle"></i> Los usuarios por defecto no pueden ser eliminados
+            </p>
+        </div>
+
+        <button class="secondary-btn" onclick="hideAdminPanel()">Volver al login</button>
         
+        <p class="error-msg" id="register-error-msg"></p>
+        <p class="success-msg" id="register-success-msg"></p>
+    </div>
+
+    <div class="footer">
+        Sistema de Registro Anecdótico | v4.0<br>
+        Desarrollado por Miguel Silverio
+    </div>
+</div>
 
 <!-- Alertas personalizadas -->
 <div class="custom-alert success" id="custom-alert">
@@ -563,13 +701,31 @@
 
 <script>
     // Datos iniciales de usuarios (ahora como objetos)
-    
+    const usuarios = {
+        "Miguel Silverio": {
+            password: "2201", // Esta será encriptada al cargar
+            expiryDate: null,
+            isDefault: true,
+            avatar: null,
+            role: "Docente de Inglés",
+            phone: "829-801-8462",
+            sessionId: null // Para control de sesiones
+        }
+    };
+
     // Variables globales
-    
-    
+    let usuarioParaReactivar = null;
+    let usuarioParaEditar = null;
+    let failedAttempts = 0;
+    let isBlocked = false;
+    let blockUntil = 0;
+    let currentSessionId = generateSessionId();
 
     // Generar ID de sesión único
-    
+    function generateSessionId() {
+        return Math.random().toString(36).substring(2) + Date.now().toString(36);
+    }
+
     // Mostrar alerta personalizada
     function showAlert(message, type = "success") {
         const alert = document.getElementById("custom-alert");
@@ -585,20 +741,41 @@
     }
 
     // Función para encriptar contraseñas usando SHA-256
-    
-    
-            
-         
+    async function hashPassword(password) {
+        const encoder = new TextEncoder();
+        const data = encoder.encode(password);
+        const hash = await crypto.subtle.digest('SHA-256', data);
+        return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2, '0')).join('');
+    }
+
+    // Cargar usuarios desde localStorage si existen
+    async function loadUsers() {
+        const storedUsers = localStorage.getItem('registeredUsers');
+        if (storedUsers) {
+            const parsedUsers = JSON.parse(storedUsers);
+            for (const user in parsedUsers) {
+                usuarios[user] = parsedUsers[user];
+            }
+        }
+        
+        // Encriptar la contraseña del usuario por defecto si no está encriptada
+        if (usuarios["Miguel Silverio"] && usuarios["Miguel Silverio"].password === "2201") {
+            usuarios["Miguel Silverio"].password = await hashPassword("2201");
+            saveUsers();
+        }
+        
+        // updateUserDropdown();
+
         
         // Cargar preferencia de tema
-        
+        const savedTheme = localStorage.getItem('theme');
         if (savedTheme === 'dark') {
             document.body.classList.add('dark-mode');
             document.getElementById('theme-switch').innerHTML = '<i class="fas fa-sun"></i>';
         }
         
         // Verificar si hay bloqueo activo
-        
+        const blockTime = localStorage.getItem('blockUntil');
         if (blockTime && parseInt(blockTime) > Date.now()) {
             isBlocked = true;
             blockUntil = parseInt(blockTime);
@@ -606,10 +783,46 @@
         }
     }
 
+    // Guardar usuarios en localStorage
+    // Guardar usuarios en localStorage (incluyendo Miguel Silverio y todos los creados)
+    function saveUsers() {
+        const usersToSave = {};
+        for (const user in usuarios) {
+            usersToSave[user] = usuarios[user];
+        }
+        localStorage.setItem('registeredUsers', JSON.stringify(usersToSave));
+        // updateUserDropdown();
+
+    }
+
+    // Actualizar el dropdown de usuarios
+    function updateUserDropdown() {
+        const userSelect = document.getElementById('usuario');
+        const currentValue = userSelect.value;
         
-           
+        // Limpiar opciones excepto la primera
+        while (userSelect.options.length > 1) {
+            userSelect.remove(1);
+        }
+        
+        // Agregar usuarios del sistema
+        const option1 = document.createElement('option');
+        option1.value = "Miguel Silverio";
+        option1.textContent = "Miguel Silverio";
+        userSelect.appendChild(option1);
+        
+        // Agregar usuarios registrados
+        for (const user in usuarios) {
+            if (!usuarios[user].isDefault) {
+                const option = document.createElement('option');
+                option.value = user;
+                option.textContent = user;
+                userSelect.appendChild(option);
+            }
+        }
+        
         // Restaurar selección previa si existe
-        
+        if (currentValue && usuarios[currentValue]) {
             userSelect.value = currentValue;
         }
         updateProfile();
@@ -624,7 +837,8 @@
         const profileContact = document.getElementById('profile-contact');
         const selectedUser = userSelect.value;
         
-        
+        if (selectedUser && usuarios[selectedUser]) {
+            const userData = usuarios[selectedUser];
             
             // Actualizar avatar
             if (userData.avatar) {
@@ -663,16 +877,48 @@
     }
 
     // Normalizar nombre de usuario (sin importar mayúsculas/minúsculas)
-    
+    function normalizeUsername(username) {
+        return username.toLowerCase().trim();
+    }
+
     // Buscar usuario normalizado
-    
+    function findUser(username) {
+        const normalizedUsername = normalizeUsername(username);
+        for (const user in usuarios) {
+            if (normalizeUsername(user) === normalizedUsername) {
+                return user; // Devuelve el nombre exacto almacenado
+            }
+        }
         return null;
     }
 
     // Verificar si un usuario ha expirado
-    
+    function isUserExpired(userData) {
+        if (!userData.expiryDate) return false;
+        
+        const today = new Date();
+        const expiryDate = new Date(userData.expiryDate);
+        return today > expiryDate;
+    }
+
     // Obtener información de expiración para mostrar
-    
+    function getExpiryInfo(userData) {
+        if (!userData.expiryDate) return "Sin fecha de expiración";
+        
+        const today = new Date();
+        const expiryDate = new Date(userData.expiryDate);
+        const diffTime = expiryDate - today;
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        
+        if (diffDays < 0) {
+            return `<span class="expired">Expirado el ${formatDate(userData.expiryDate)}</span>`;
+        } else if (diffDays < 7) {
+            return `<span class="expiring-soon">Expira en ${diffDays} días (${formatDate(userData.expiryDate)})</span>`;
+        } else {
+            return `Expira el ${formatDate(userData.expiryDate)}`;
+        }
+    }
+
     // Formatear fecha a formato legible (DD/MM/YYYY)
     function formatDate(dateString) {
         if (!dateString) return "";
@@ -684,10 +930,10 @@
     function toggleTheme() {
         document.body.classList.toggle('dark-mode');
         if (document.body.classList.contains('dark-mode')) {
-            
+            localStorage.setItem('theme', 'dark');
             document.getElementById('theme-switch').innerHTML = '<i class="fas fa-sun"></i>';
         } else {
-           
+            localStorage.setItem('theme', 'light');
             document.getElementById('theme-switch').innerHTML = '<i class="fas fa-moon"></i>';
         }
     }
@@ -717,15 +963,37 @@
             return;
         }
         
-                
+        const foundUser = findUser(username);
+        if (!foundUser) {
+            showAlert('Usuario no encontrado', 'error');
+            return;
+        }
+        
         // Mostrar mensaje personalizado para contacto por WhatsApp
         showAlert(`Para recuperar tu contraseña, contacta a Miguel Silverio por WhatsApp al 829-801-8462 indicando tu usuario: ${foundUser}. Recibirás respuesta en un plazo de 12 horas.`, 'info');
     }
 
     // Función para notificar nuevo usuario
-   
+    function notifyNewUser(username, password, role, phone, expiryDate) {
+        // En un sistema real, aquí se enviaría un correo electrónico
+        console.log(`Nuevo usuario registrado: ${username}, Contraseña: ${password}, Rol: ${role}, Teléfono: ${phone}, Expiración: ${expiryDate}`);
+        
+        // Mostrar alerta de notificación
+        showAlert(`Se ha registrado el usuario ${username}. Se ha notificado por correo electrónico.`, 'success');
+    }
+
     // Actualizar mensaje de bloqueo
-            
+    function updateBlockedMessage() {
+        if (!isBlocked) return;
+        
+        const now = Date.now();
+        if (now >= blockUntil) {
+            isBlocked = false;
+            localStorage.removeItem('blockUntil');
+            document.getElementById('blocked-msg').style.display = 'none';
+            return;
+        }
+        
         const remainingSeconds = Math.ceil((blockUntil - now) / 1000);
         document.getElementById('blocked-text').textContent = `Demasiados intentos fallidos. Intenta nuevamente en ${remainingSeconds} segundos.`;
         document.getElementById('blocked-msg').style.display = 'block';
@@ -734,7 +1002,13 @@
     }
 
     // Bloquear acceso temporalmente
-    
+    function blockAccess() {
+        isBlocked = true;
+        blockUntil = Date.now() + 45000; // 45 segundos
+        localStorage.setItem('blockUntil', blockUntil.toString());
+        updateBlockedMessage();
+    }
+
     // Cargar usuarios al iniciar
 // loadUsers();
 
@@ -765,7 +1039,8 @@
             // Verificar en qué formulario estamos
             if (document.getElementById('login-form').style.display !== 'none') {
                 validarLogin();
-           
+            } else if (document.getElementById('admin-auth').style.display !== 'none') {
+                verifyAdmin();
             } else if (document.getElementById('admin-panel').style.display !== 'none') {
                 if (document.getElementById('create-user-form').style.display !== 'none') {
                     registerUser();
@@ -778,17 +1053,244 @@
         }
     });
 
-     
-                 
+    // Funciones de administración
+    function showAdminAuth() {
+        if (isBlocked) {
+            showAlert('El sistema está bloqueado temporalmente por demasiados intentos fallidos.', 'error');
+            return;
+        }
+        
+        document.getElementById('admin-auth').style.display = 'block';
+        document.getElementById('login-form').style.display = 'none';
+        
+        // Limpiar campos de autenticación
+        document.getElementById('admin-username').value = '';
+        document.getElementById('admin-password').value = '';
+        document.getElementById('admin-error-msg').style.display = 'none';
+    }
+
+    function hideAdminAuth() {
+        document.getElementById('admin-auth').style.display = 'none';
+        document.getElementById('login-form').style.display = 'block';
+    }
+
+    function showAdminPanel() {
+        document.getElementById('admin-panel').style.display = 'block';
+        document.getElementById('admin-auth').style.display = 'none';
+        
+        // Limpiar mensajes y campos del formulario
+        document.getElementById('register-error-msg').style.display = 'none';
+        document.getElementById('register-success-msg').style.display = 'none';
+        document.getElementById('new-username').value = '';
+        document.getElementById('new-password').value = '';
+        document.getElementById('confirm-password').value = '';
+        document.getElementById('user-role').value = '';
+        document.getElementById('user-phone').value = '';
+        document.getElementById('expiry-date').value = '';
+        document.getElementById('avatar-upload').value = '';
+        
+        // Cargar lista de usuarios para eliminar
+        loadUserList();
+    }
+
+    function hideAdminPanel() {
+        document.getElementById('admin-panel').style.display = 'none';
+        document.getElementById('login-form').style.display = 'block';
+        hideReactivateForm();
+        hideEditForm();
+    }
+
+    function switchAdminTab(tabName) {
+        const createTab = document.getElementById('tab-create');
+        const deleteTab = document.getElementById('tab-delete');
+        const createForm = document.getElementById('create-user-form');
+        const deleteForm = document.getElementById('delete-user-form');
+        
+        if (tabName === 'create') {
+            createTab.classList.add('active');
+            deleteTab.classList.remove('active');
+            createForm.style.display = 'block';
+            deleteForm.style.display = 'none';
+            hideReactivateForm();
+            hideEditForm();
+        } else {
+            createTab.classList.remove('active');
+            deleteTab.classList.add('active');
+            createForm.style.display = 'none';
+            deleteForm.style.display = 'block';
+            loadUserList(); // Recargar lista al cambiar a la pestaña de eliminar
+        }
+    }
+
+    function loadUserList() {
+        const userList = document.getElementById('user-list');
+        userList.innerHTML = '';
+        
+        for (const user in usuarios) {
+            const userData = usuarios[user];
+            const userItem = document.createElement('div');
+            userItem.className = 'user-item';
+            
+            const userInfo = document.createElement('div');
+            userInfo.className = 'user-info';
+            
+            const userIcon = document.createElement('div');
+            userIcon.className = 'user-icon';
+            
+            if (userData.avatar) {
+                userIcon.style.backgroundImage = `url(${userData.avatar})`;
+                userIcon.style.backgroundSize = 'cover';
+                userIcon.innerHTML = '';
+            } else {
+                userIcon.textContent = getInitials(user).substring(0, 2);
+            }
+            
+            const userDetails = document.createElement('div');
+            userDetails.className = 'user-details';
+            
+            const userName = document.createElement('div');
+            userName.innerHTML = `<strong>${user}</strong> - ${userData.role || "Usuario"}`;
+            
+            const expiryInfo = document.createElement('div');
+            expiryInfo.className = 'expiry-info';
+            expiryInfo.innerHTML = getExpiryInfo(userData);
+            
+            userDetails.appendChild(userName);
+            userDetails.appendChild(expiryInfo);
+            
+            userInfo.appendChild(userIcon);
+            userInfo.appendChild(userDetails);
+            
+            userItem.appendChild(userInfo);
+            
+            // Panel de acciones
+            const userActions = document.createElement('div');
+            userActions.className = 'user-actions';
+            
+            // Botón de editar para todos los usuarios (excepto por defecto si se desea)
+            const editBtn = document.createElement('button');
+            editBtn.className = 'action-btn edit-btn';
+            editBtn.innerHTML = '<i class="fas fa-edit"></i>';
+            editBtn.title = 'Editar usuario';
+            editBtn.onclick = function() { showEditForm(user); };
+            
+            userActions.appendChild(editBtn);
+            
+            // No permitir eliminar usuarios por defecto
+            if (!userData.isDefault) {
+                const deleteBtn = document.createElement('button');
+                deleteBtn.className = 'action-btn delete-btn';
+                deleteBtn.innerHTML = '<i class="fas fa-trash"></i>';
+                deleteBtn.title = 'Eliminar usuario';
+                deleteBtn.onclick = function() { deleteUser(user); };
+                
+                userActions.appendChild(deleteBtn);
+                
+                // Si el usuario está expirado, mostrar botón de reactivación
+                if (isUserExpired(userData)) {
+                    const reactivateBtn = document.createElement('button');
+                    reactivateBtn.className = 'action-btn reactivate-btn';
+                    reactivateBtn.innerHTML = '<i class="fas fa-redo"></i>';
+                    reactivateBtn.title = 'Reactivar usuario';
+                    reactivateBtn.onclick = function() { showReactivateForm(user); };
                     
+                    userActions.appendChild(reactivateBtn);
+                }
+            }
+            
+            userItem.appendChild(userActions);
+            userList.appendChild(userItem);
+        }
+    }
+
+    function showReactivateForm(username) {
+        usuarioParaReactivar = username;
+        document.getElementById('reactivate-username').textContent = username;
+        document.getElementById('reactivate-form').style.display = 'block';
+        document.getElementById('new-expiry-date').value = '';
         
+        // Ocultar formulario de edición si está visible
+        hideEditForm();
         
+        // Desplazar la vista al formulario de reactivación
+        document.getElementById('reactivate-form').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function hideReactivateForm() {
+        document.getElementById('reactivate-form').style.display = 'none';
+        usuarioParaReactivar = null;
+    }
+
+    function showEditForm(username) {
+        usuarioParaEditar = username;
+        const userData = usuarios[username];
+        
+        document.getElementById('edit-username').textContent = username;
+        document.getElementById('edit-role').value = userData.role || "";
+        document.getElementById('edit-phone').value = userData.phone || "";
+        document.getElementById('edit-expiry-date').value = userData.expiryDate || "";
+        document.getElementById('edit-form').style.display = 'block';
+        
+        // Ocultar formulario de reactivación si está visible
+        hideReactivateForm();
+        
+        // Desplazar la vista al formulario de edición
+        document.getElementById('edit-form').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function hideEditForm() {
+        document.getElementById('edit-form').style.display = 'none';
+        usuarioParaEditar = null;
+    }
+
+    function reactivateUser() {
+        if (!usuarioParaReactivar) return;
+        
+        const newExpiryDate = document.getElementById('new-expiry-date').value;
+        
+        if (!newExpiryDate) {
+            showAlert('Por favor, selecciona una nueva fecha de caducidad', 'error');
+            return;
+        }
+        
+        // Actualizar la fecha de caducidad del usuario
+        usuarios[usuarioParaReactivar].expiryDate = newExpiryDate;
+        saveUsers();
+        
+        // Mostrar mensaje de éxito
+        showAlert(`Usuario "${usuarioParaReactivar}" reactivado correctamente. Nueva fecha de expiración: ${formatDate(newExpiryDate)}`, 'success');
+        
+        // Recargar lista de usuarios
+        // updateUserDropdown();
+ // 🔥 Actualizar desplegable de login y ocultar formulario de reactivación
+        loadUserList();
+        hideReactivateForm();
+    }
+
+    async function saveUserEdit() {
+        if (!usuarioParaEditar) return;
+        
+        const newRole = document.getElementById('edit-role').value;
+        const newPhone = document.getElementById('edit-phone').value;
+        const newExpiryDate = document.getElementById('edit-expiry-date').value;
+        const newAvatarFile = document.getElementById('edit-avatar-upload').files[0];
+        
+        // Validar campos obligatorios
+        if (!newRole) {
+            showAlert('El campo de especialidad/rol es obligatorio', 'error');
+            return;
+        }
+        
+        // Actualizar datos del usuario
+        usuarios[usuarioParaEditar].role = newRole;
+        usuarios[usuarioParaEditar].phone = newPhone;
+        usuarios[usuarioParaEditar].expiryDate = newExpiryDate || null;
         
         // Procesar nuevo avatar si se subió uno
         if (newAvatarFile) {
             const reader = new FileReader();
             reader.onload = function(e) {
-                
+                usuarios[usuarioParaEditar].avatar = e.target.result;
                 completeUserEdit();
             };
             reader.readAsDataURL(newAvatarFile);
@@ -797,7 +1299,81 @@
         }
     }
 
-    async function validarLogin() {
+    function completeUserEdit() {
+        saveUsers();
+        
+        // Mostrar mensaje de éxito
+        showAlert(`Usuario "${usuarioParaEditar}" actualizado correctamente`, 'success');
+        
+        // Recargar lista de usuarios
+        // updateUserDropdown();
+ // 🔥 Actualizar desplegable de login y ocultar formulario de edición
+        loadUserList();
+        hideEditForm();
+        
+        // updateUserDropdown();
+ // 🔥 Actualizar desplegable de login
+        // Actualizar perfil si el usuario editado es el seleccionado
+        const currentUser = document.getElementById('usuario').value;
+        if (currentUser === usuarioParaEditar) {
+            updateProfile();
+        }
+    }
+
+    function deleteUser(username) {
+        showAlert(`¿Estás seguro de que deseas eliminar al usuario "${username}"? Esta acción no se puede deshacer.`, 'error');
+        
+        // En una aplicación real, aquí se mostraría un modal de confirmación
+        // Para este ejemplo, usaremos confirmación simple
+        if (confirm(`¿Estás seguro de que deseas eliminar al usuario "${username}"?`)) {
+            delete usuarios[username];
+            saveUsers();
+            loadUserList(); // Recargar la lista
+            // updateUserDropdown();
+ // 🔥 Refrescar el desplegable del login
+            
+            // Mostrar mensaje de éxito
+            showAlert(`Usuario "${username}" eliminado correctamente`, 'success');
+        }
+    }
+
+    async function verifyAdmin() {
+        const adminUsername = document.getElementById('admin-username').value;
+        const adminPassword = document.getElementById('admin-password').value;
+        const errorMsg = document.getElementById('admin-error-msg');
+        
+        // Ocultar mensajes previos
+        errorMsg.style.display = 'none';
+        
+        // Verificar credenciales de administrador (Miguel Silverio)
+        const foundUser = findUser(adminUsername);
+        const hashedPassword = await hashPassword(adminPassword);
+        
+        if (foundUser === "Miguel Silverio" && usuarios[foundUser].password === hashedPassword) {
+            showAdminPanel();
+        } else {
+            errorMsg.textContent = 'Credenciales de administrador incorrectas';
+            errorMsg.style.display = 'block';
+            
+            // Efecto de sacudida para indicar error
+            document.querySelector('.login-container').animate([
+                { transform: 'translateX(0)' },
+                { transform: 'translateX(-10px)' },
+                { transform: 'translateX(10px)' },
+                { transform: 'translateX(0)' }
+            ], {
+                duration: 300,
+                iterations: 1
+            });
+        }
+    }
+
+    window.validarLogin = async function() {
+
+    if (isBlocked) {
+        updateBlockedMessage();
+        return;
+    }
 
     const email = document.getElementById('usuario').value;
     const password = document.getElementById('password').value;
@@ -869,7 +1445,26 @@
 };
 
 
-    
+    async function registerUser() {
+        const username = document.getElementById('new-username').value;
+        const password = document.getElementById('new-password').value;
+        const confirmPassword = document.getElementById('confirm-password').value;
+        const role = document.getElementById('user-role').value;
+        const phone = document.getElementById('user-phone').value;
+        const expiryDate = document.getElementById('expiry-date').value;
+        const avatarFile = document.getElementById('avatar-upload').files[0];
+        const errorMsg = document.getElementById('register-error-msg');
+        const successMsg = document.getElementById('register-success-msg');
+        
+        // Ocultar mensajes previos
+        errorMsg.style.display = 'none';
+        successMsg.style.display = 'none';
+        
+        // Validaciones
+        if (!username || !password || !confirmPassword || !role) {
+            showAlert('Todos los campos marcados con * son obligatorios', 'error');
+            return;
+        }
         
         if (password.length < 4) {
             showAlert('La contraseña debe tener al menos 4 caracteres', 'error');
@@ -901,7 +1496,21 @@
         }
     }
 
-    
+    async function completeUserRegistration(username, password, role, phone, expiryDate, avatarData) {
+        // Encriptar la contraseña
+        const hashedPassword = await hashPassword(password);
+        
+        // Registrar el nuevo usuario
+        usuarios[username] = {
+            password: hashedPassword,
+            expiryDate: expiryDate || null,
+            isDefault: false,
+            avatar: avatarData,
+            role: role,
+            phone: phone,
+            sessionId: null
+        };
+        saveUsers();
         
         // Notificar por correo (simulado)
         notifyNewUser(username, password, role, phone, expiryDate);
@@ -957,7 +1566,9 @@ document.addEventListener("DOMContentLoaded", function() {
 });
 </script>
 
-
+<!DOCTYPE html>
+<html lang="es">
+<head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sistema de Registro Anecdótico</title>
@@ -1609,7 +2220,8 @@ document.addEventListener("DOMContentLoaded", function() {
             border-radius: 5px;
         }
     </style>
-
+</head>
+<body>
     <header>
         <div class="container header-content">
             <h1 class="app-title"><i class="fas fa-clipboard-list"></i> Sistema de Registro Anecdótico</h1>
