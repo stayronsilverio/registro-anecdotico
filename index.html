@@ -4648,11 +4648,13 @@ $(document).ready(function() {
 </body>
 </html>
 </div>
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-  import { getAuth } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-  import { getFirestore } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+<!-- ================= FIREBASE COMPAT ================= -->
 
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+
+<script>
   const firebaseConfig = {
     apiKey: "AIzaSyCY14LkfciAkiQK8tqFedBR1oNsSJYy_NM",
     authDomain: "registro-anecdotico-4e9f9.firebaseapp.com",
@@ -4662,11 +4664,7 @@ $(document).ready(function() {
     appId: "1:452165916569:web:38eba932b3a9b13cdd6508"
   };
 
-  const app = initializeApp(firebaseConfig);
-  const auth = getAuth(app);
-  const db = getFirestore(app);
+  firebase.initializeApp(firebaseConfig);
 
-  console.log("🔥 Firebase conectado correctamente");
+  console.log("🔥 Firebase conectado en modo COMPAT");
 </script>
-</body>
-</html>
