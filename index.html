@@ -744,15 +744,16 @@ const usuarios = {
     }
 
     // Función para encriptar contraseñas usando SHA-256
-    async function hashPassword(password) {
+   /*
+ async function hashPassword(password) {
         const encoder = new TextEncoder();
         const data = encoder.encode(password);
         const hash = await crypto.subtle.digest('SHA-256', data);
         return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2, '0')).join('');
     }
-
+/*
     // Cargar usuarios desde localStorage si existen
-   /*
+  /*
 async function loadUsers() {
     const storedUsers = localStorage.getItem('registeredUsers');
     if (storedUsers) {
@@ -768,7 +769,6 @@ async function loadUsers() {
     }
 }
 */
-
 
         
         // Encriptar la contraseña del usuario por defecto si no está encriptada
