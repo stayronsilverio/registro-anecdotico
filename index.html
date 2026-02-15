@@ -1362,79 +1362,82 @@
         }
     }
 
-    async function validarLogin() {
-        if (isBlocked) {
-            updateBlockedMessage();
+    window.validarLogin = async function() {
+
+    if (isBlocked) {
+        updateBlockedMessage();
+        return;
+    }
+
+    const email = document.getElementById('usuario').value;
+    const password = document.getElementById('password').value;
+    const errorMsg = document.getElementById('error-msg');
+    const errorText = document.getElementById('error-text');
+    const successMsg = document.getElementById('success-msg');
+
+    errorMsg.style.display = 'none';
+    successMsg.style.display = 'none';
+    document.getElementById('blocked-msg').style.display = 'none';
+
+    try {
+
+        // 🔐 Login con Firebase
+        const userCredential = await firebase.auth().signInWithEmailAndPassword(email, password);
+        const user = userCredential.user;
+
+        // 🔎 Buscar datos en Firestore
+        const docRef = firebase.firestore().collection("usuarios").doc(user.uid);
+        const docSnap = await docRef.get();
+
+        if (!docSnap.exists) {
+            errorText.textContent = "Usuario no registrado en base de datos";
+            errorMsg.style.display = "block";
             return;
         }
-        
-        const usuario = document.getElementById('usuario').value;
-        const password = document.getElementById('password').value;
-        const errorMsg = document.getElementById('error-msg');
-        const errorText = document.getElementById('error-text');
-        const successMsg = document.getElementById('success-msg');
 
-        // Ocultar mensajes previos
-        errorMsg.style.display = 'none';
-        successMsg.style.display = 'none';
-        document.getElementById('blocked-msg').style.display = 'none';
+        const userData = docSnap.data();
 
-        // Buscar usuario normalizado (sin importar mayúsculas/minúsculas)
-        const foundUser = findUser(usuario);
-        const hashedPassword = await hashPassword(password);
-        
-        // Validar si el usuario existe
-        if (foundUser && usuarios[foundUser].password === hashedPassword) {
-            // Verificar si el usuario ha expirado
-            if (isUserExpired(usuarios[foundUser])) {
-                errorText.textContent = `Usuario expirado. Fecha de caducidad: ${formatDate(usuarios[foundUser].expiryDate)}`;
+        if (!userData.activo) {
+            errorText.textContent = "Usuario desactivado";
+            errorMsg.style.display = "block";
+            return;
+        }
+
+        // Verificar expiración
+        if (userData.expiryDate) {
+            const today = new Date();
+            const expiry = new Date(userData.expiryDate);
+
+            if (expiry < today) {
+                errorText.textContent = "Usuario expirado";
                 errorMsg.style.display = "block";
-                
-                // Efecto de sacudida para indicar error
-                document.querySelector('.login-container').animate([
-                    { transform: 'translateX(0)' },
-                    { transform: 'translateX(-10px)' },
-                    { transform: 'translateX(10px)' },
-                    { transform: 'translateX(0)' }
-                ], {
-                    duration: 300,
-                    iterations: 1
-                });
                 return;
             }
-            
-            // Login exitoso, reiniciar contador de intentos
-            failedAttempts = 0;
-            successMsg.style.display = "block";
-            
-            // Simular redirección después de un breve delay
-            setTimeout(function() {
-                showAlert("Redirigiendo al sistema principal...", "success");
-                document.getElementById("main-page").style.display = "block";
-                document.getElementById("login-page").style.display = "none";
-            }, 1500);
-        } else {
-            failedAttempts++;
-            errorText.textContent = 'Usuario o contraseña incorrecta';
-            errorMsg.style.display = "block";
-            
-            // Efecto de sacudida para indicar error
-            document.querySelector('.login-container').animate([
-                { transform: 'translateX(0)' },
-                { transform: 'translateX(-10px)' },
-                { transform: 'translateX(10px)' },
-                { transform: 'translateX(0)' }
-            ], {
-                duration: 300,
-                iterations: 1
-            });
-            
-            // Bloquear después de 3 intentos fallidos
-            if (failedAttempts >= 3) {
-                blockAccess();
-            }
+        }
+
+        // ✅ Login exitoso
+        failedAttempts = 0;
+        successMsg.style.display = "block";
+
+        setTimeout(function() {
+            showAlert("Redirigiendo al sistema principal...", "success");
+            document.getElementById("main-page").style.display = "block";
+            document.getElementById("login-page").style.display = "none";
+        }, 1500);
+
+    } catch (error) {
+
+        failedAttempts++;
+
+        errorText.textContent = "Correo o contraseña incorrectos";
+        errorMsg.style.display = "block";
+
+        if (failedAttempts >= 3) {
+            blockAccess();
         }
     }
+};
+
 
     async function registerUser() {
         const username = document.getElementById('new-username').value;
