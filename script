@@ -1,4 +1,3 @@
-<script>
     // Configuración de Firebase
     const firebaseConfig = {
         apiKey: "AIzaSyCY14LkfciAkiQK8tqFedBR1oNsSJYy_NM",
@@ -155,7 +154,5 @@
         document.getElementById('tab-' + tab).classList.add('active');
     }
 
-    function hideAdminPanel() { document.getElementById('admin-panel').style.display = 'none'; document.getElementById('login-form').style.display = 'block'; }
-</script>
-</body>
-</html>
+    function hideAdminPanel() { document.getElementById('admin-panel').style.display = 'none'; document.getElementById('login-form').style.display = 'block'; 
+}
