@@ -1,357 +1,173 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Login - Registro Anecdótico (Firebase)</title>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Registro Anecdótico - Cloud</title>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+    <style>
+        /* ================= ESTILOS CSS COMPLETOS ================= */
+        :root {
+            --primary-color: #6a11cb;
+            --secondary-color: #2575fc;
+            --accent-color: #2ecc71;
+            --danger-color: #e74c3c;
+            --warning-color: #f39c12;
+            --text-color: #333;
+            --bg-color: #f8f9fa;
+            --card-bg: #ffffff;
+            --input-bg: #ffffff;
+            --border-color: #ddd;
+            --shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+            
+            /* Variables Sistema Interno */
+            --sys-primary: #2c3e50;
+            --sys-secondary: #3498db;
+            --light-gray: #f5f5f5;
+        }
 
-<style>
-    /* ... ESTILOS ORIGINALES ... */
-    :root {
-        --primary-color: #6a11cb;
-        --secondary-color: #2575fc;
-        --accent-color: #2ecc71;
-        --danger-color: #e74c3c;
-        --warning-color: #f39c12;
-        --text-color: #333;
-        --bg-color: #f8f9fa;
-        --card-bg: #ffffff;
-        --input-bg: #ffffff;
-        --border-color: #ddd;
-        --shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+        .dark-mode {
+            --primary-color: #8c68cd;
+            --secondary-color: #5e97fc;
+            --text-color: #f0f0f0;
+            --bg-color: #121212;
+            --card-bg: #1e1e1e;
+            --input-bg: #2d2d2d;
+            --border-color: #444;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; transition: all 0.3s; }
+        body { background-color: var(--bg-color); color: var(--text-color); min-height: 100vh; }
+
+        /* --- PANTALLA LOGIN --- */
+        #login-wrapper {
+            display: flex; justify-content: center; align-items: center; min-height: 100vh;
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            padding: 20px;
+        }
+
+        .login-card {
+            background: var(--card-bg); padding: 40px; border-radius: 20px;
+            box-shadow: var(--shadow); width: 100%; max-width: 450px; text-align: center;
+            position: relative; overflow: hidden;
+        }
+
+        .login-card::before {
+            content: ''; position: absolute; top: 0; left: 0; right: 0; height: 5px;
+            background: linear-gradient(to right, var(--primary-color), var(--secondary-color));
+        }
+
+        .avatar-circle {
+            width: 100px; height: 100px; border-radius: 50%; margin: 0 auto 20px;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            display: flex; align-items: center; justify-content: center;
+            font-size: 35px; color: white; font-weight: bold;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .input-group { margin-bottom: 15px; text-align: left; position: relative; }
+        .input-group label { display: block; margin-bottom: 5px; font-size: 14px; font-weight: 500; }
         
-        /* Variables para el sistema principal */
-        --primary: #2c3e50;
-        --secondary: #3498db;
-        --accent: #e74c3c;
-        --light: #ecf0f1;
-        --dark: #2c3e50;
-        --success: #2ecc71;
-        --warning: #f39c12;
-        --danger: #e74c3c;
-        --gray: #95a5a6;
-        --light-gray: #f5f5f5;
-    }
+        input, select, textarea {
+            width: 100%; padding: 12px; border-radius: 8px; border: 2px solid var(--border-color);
+            background: var(--input-bg); color: var(--text-color); font-size: 15px;
+        }
+        
+        input:focus { border-color: var(--primary-color); outline: none; }
 
-    .dark-mode {
-        --primary-color: #8c68cd;
-        --secondary-color: #5e97fc;
-        --accent-color: #35de7d;
-        --danger-color: #ff6b6b;
-        --warning-color: #ffd166;
-        --text-color: #f0f0f0;
-        --bg-color: #121212;
-        --card-bg: #1e1e1e;
-        --input-bg: #2d2d2d;
-        --border-color: #444;
-        --shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
-    }
+        .btn {
+            width: 100%; padding: 12px; border: none; border-radius: 8px;
+            background: linear-gradient(to right, var(--primary-color), var(--secondary-color));
+            color: white; font-weight: 600; cursor: pointer; margin-top: 10px;
+        }
+        .btn:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
+        
+        .btn-secondary { background: linear-gradient(to right, #7f8c8d, #95a5a6); }
+        .btn-danger { background: linear-gradient(to right, #e74c3c, #c0392b); }
+        .btn-success { background: linear-gradient(to right, #2ecc71, #27ae60); }
+        .btn-warning { background: linear-gradient(to right, #f39c12, #e67e22); }
 
-    * {
-        box-sizing: border-box;
-        margin: 0;
-        padding: 0;
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        transition: background-color 0.3s, color 0.3s;
-    }
+        .msg-box { padding: 10px; border-radius: 5px; margin-top: 15px; font-size: 14px; display: none; }
+        .error-msg { background: rgba(231, 76, 60, 0.1); color: var(--danger-color); border-left: 3px solid var(--danger-color); }
+        .success-msg { background: rgba(46, 204, 113, 0.1); color: var(--accent-color); border-left: 3px solid var(--accent-color); }
 
-    body {
-        /* Estilos generales body login */
-        min-height: 100vh;
-        background-color: var(--bg-color);
-        color: var(--text-color);
-    }
-    
-    /* Estilos específicos para el contenedor de Login */
-    #login-page-container {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        min-height: 100vh;
-        background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
-        padding: 20px;
-        width: 100%;
-    }
+        /* --- SISTEMA PRINCIPAL --- */
+        #app-wrapper { display: none; padding-bottom: 80px; }
+        
+        header {
+            background: linear-gradient(135deg, var(--sys-primary) 0%, var(--sys-secondary) 100%);
+            color: white; padding: 1.5rem 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            display: flex; justify-content: space-between; align-items: center;
+        }
 
-    .login-container {
-        background: var(--card-bg);
-        padding: 40px;
-        border-radius: 20px;
-        box-shadow: var(--shadow);
-        width: 100%;
-        max-width: 500px;
-        text-align: center;
-        position: relative;
-        overflow: hidden;
-    }
+        .container { max-width: 1200px; margin: 20px auto; padding: 0 20px; }
+        
+        .card {
+            background: white; border-radius: 10px; padding: 20px; margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        
+        .card-header { 
+            border-bottom: 2px solid #f0f0f0; padding-bottom: 10px; margin-bottom: 15px;
+            color: var(--sys-primary); font-size: 1.2rem; display: flex; align-items: center; gap: 10px;
+        }
 
-    .login-container::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        height: 5px;
-        background: linear-gradient(to right, var(--primary-color), var(--secondary-color));
-    }
+        .tabs { display: flex; border-bottom: 1px solid #ddd; margin-bottom: 20px; }
+        .tab { padding: 12px 20px; cursor: pointer; background: #eee; margin-right: 5px; border-radius: 5px 5px 0 0; }
+        .tab.active { background: white; border: 1px solid #ddd; border-bottom: none; font-weight: bold; color: var(--sys-primary); }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
 
-    .theme-switch {
-        position: absolute;
-        top: 20px;
-        right: 20px;
-        cursor: pointer;
-        font-size: 24px;
-        color: var(--primary-color);
-    }
+        /* Grid System */
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; }
 
-    .avatar-container {
-        width: 130px;
-        height: 130px;
-        border-radius: 50%;
-        background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
-        margin: 0 auto 20px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: white;
-        font-size: 40px;
-        font-weight: bold;
-        border: 4px solid var(--card-bg);
-        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-        overflow: hidden;
-    }
+        /* Estudiantes */
+        .student-box {
+            border-left: 4px solid var(--sys-secondary); background: #f9f9f9;
+            padding: 15px; margin-bottom: 10px; border-radius: 4px;
+        }
+        .student-box.out { border-left-color: var(--danger-color); background: #fff5f5; }
+        
+        .timer-display { font-size: 1.5rem; font-weight: bold; text-align: center; margin: 10px 0; color: #555; }
+        
+        /* Indicador Flotante */
+        #outside-indicator {
+            position: fixed; top: 100px; right: 20px; width: 250px;
+            background: white; padding: 15px; border-radius: 8px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.2); z-index: 999; display: none;
+            border: 1px solid #ffcccc;
+        }
+        .blink-dot { height: 12px; width: 12px; background: red; border-radius: 50%; display: inline-block; animation: blink 1s infinite; }
+        @keyframes blink { 50% { opacity: 0; } }
 
-    .avatar-container img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-    }
+        /* Footer Nav */
+        .footer-nav {
+            position: fixed; bottom: 0; left: 0; width: 100%; background: var(--sys-primary);
+            display: flex; justify-content: space-around; padding: 10px; z-index: 1000;
+        }
+        .nav-item { color: white; text-align: center; font-size: 0.8rem; cursor: pointer; opacity: 0.7; }
+        .nav-item.active { opacity: 1; font-weight: bold; }
+        .nav-item i { font-size: 1.2rem; display: block; margin-bottom: 3px; }
 
-    .login-container h2 {
-        font-size: 24px;
-        margin-bottom: 5px;
-        color: var(--text-color);
-        font-weight: 600;
-    }
-
-    .user-role {
-        font-size: 16px;
-        color: var(--primary-color);
-        font-weight: 500;
-        margin-bottom: 5px;
-    }
-
-    .contact-info {
-        font-size: 14px;
-        color: var(--text-color);
-        opacity: 0.8;
-        margin-bottom: 25px;
-    }
-
-    .input-group {
-        margin-bottom: 15px;
-        text-align: left;
-        position: relative;
-    }
-
-    .input-group label {
-        display: block;
-        margin-bottom: 5px;
-        font-size: 14px;
-        color: var(--text-color);
-        font-weight: 500;
-    }
-
-    .login-container select,
-    .login-container input {
-        width: 100%;
-        padding: 12px 15px;
-        border-radius: 10px;
-        border: 2px solid var(--border-color);
-        font-size: 15px;
-        transition: all 0.3s;
-        background-color: var(--input-bg);
-        color: var(--text-color);
-    }
-
-    .login-container select:focus,
-    .login-container input:focus {
-        border-color: var(--primary-color);
-        outline: none;
-        box-shadow: 0 0 0 3px rgba(106, 17, 203, 0.2);
-    }
-
-    .password-toggle {
-        position: absolute;
-        right: 15px;
-        top: 38px;
-        cursor: pointer;
-        color: var(--text-color);
-        opacity: 0.7;
-    }
-
-    .login-container button {
-        width: 100%;
-        padding: 14px;
-        margin-top: 10px;
-        border: none;
-        border-radius: 10px;
-        background: linear-gradient(to right, var(--primary-color), var(--secondary-color));
-        color: white;
-        font-size: 16px;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.3s;
-        box-shadow: 0 4px 10px rgba(106, 17, 203, 0.3);
-    }
-
-    .login-container button:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 6px 15px rgba(106, 17, 203, 0.4);
-    }
-
-    .secondary-btn {
-        background: linear-gradient(to right, #fd746c, #ff9068) !important;
-        box-shadow: 0 4px 10px rgba(253, 116, 108, 0.3) !important;
-    }
-
-    .error-msg {
-        color: var(--danger-color);
-        font-size: 14px;
-        margin-top: 15px;
-        display: none;
-        background: rgba(231, 76, 60, 0.1);
-        padding: 10px;
-        border-radius: 8px;
-        border-left: 4px solid var(--danger-color);
-    }
-
-    .success-msg {
-        color: var(--accent-color);
-        font-size: 14px;
-        margin-top: 15px;
-        display: none;
-        background: rgba(46, 204, 113, 0.1);
-        padding: 10px;
-        border-radius: 8px;
-        border-left: 4px solid var(--accent-color);
-    }
-
-    .admin-auth, .register-form {
-        display: none;
-        text-align: left;
-        margin-top: 20px;
-        padding-top: 20px;
-        border-top: 1px dashed var(--border-color);
-    }
-
-    .footer {
-        margin-top: 25px;
-        font-size: 12px;
-        color: var(--text-color);
-        opacity: 0.7;
-        text-align: center;
-    }
-
-    .custom-alert {
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        padding: 15px 20px;
-        border-radius: 8px;
-        background: var(--card-bg);
-        color: var(--text-color);
-        box-shadow: var(--shadow);
-        z-index: 10000;
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        transform: translateX(100%);
-        transition: transform 0.3s ease;
-    }
-
-    .custom-alert.show { transform: translateX(0); }
-    .custom-alert.success { border-left: 4px solid var(--accent-color); }
-    .custom-alert.error { border-left: 4px solid var(--danger-color); }
-    .custom-alert.info { border-left: 4px solid var(--primary-color); }
-
-    /* ESTILOS DEL SISTEMA PRINCIPAL (Simplificados para no romper) */
-    .main-container {
-        max-width: 1200px;
-        margin: 0 auto;
-        padding: 0 20px;
-        padding-bottom: 120px;
-    }
-    
-    header {
-        background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
-        color: white;
-        padding: 1.5rem 0;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        margin-bottom: 2rem;
-    }
-    
-    .header-content { display: flex; justify-content: space-between; align-items: center; padding: 0 20px; }
-    .card {
-        background: white;
-        border-radius: 10px;
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
-        padding: 1.5rem;
-        margin-bottom: 1.5rem;
-    }
-    
-    .card-title { font-size: 1.3rem; color: var(--primary); margin-bottom: 1.2rem; border-bottom: 2px solid var(--light); display: flex; align-items: center; }
-    
-    .form-group { margin-bottom: 1.2rem; }
-    label { display: block; margin-bottom: 0.5rem; font-weight: 500; color: var(--dark); }
-    input[type="text"], input[type="date"], input[type="time"], textarea, select {
-        width: 100%; padding: 12px 15px; border: 1px solid #ddd; border-radius: 6px;
-    }
-    
-    .btn {
-        display: inline-block; padding: 12px 20px; background-color: var(--secondary); color: white;
-        border: none; border-radius: 6px; cursor: pointer; margin-right: 10px; margin-bottom: 10px;
-    }
-    
-    .btn-primary { background-color: var(--primary); }
-    .btn-success { background-color: var(--success); }
-    .btn-danger { background-color: var(--danger); }
-    .btn-warning { background-color: var(--warning); }
-    .hidden { display: none; }
-
-    .tabs { display: flex; margin-bottom: 1.5rem; border-bottom: 1px solid #ddd; }
-    .tab { padding: 12px 20px; cursor: pointer; background: #f1f1f1; margin-right: 5px; }
-    .tab.active { background: white; border: 1px solid #ddd; border-bottom: none; font-weight: 500; }
-    .tab-content { display: none; }
-    .tab-content.active { display: block; }
-
-    .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; justify-content: center; align-items: center; }
-    .modal-content { background: white; padding: 2rem; border-radius: 10px; max-width: 90%; max-height: 90%; overflow: auto; }
-    
-    .footer-nav { position: fixed; bottom: 0; left: 0; right: 0; background: var(--primary); display: flex; justify-content: space-around; padding: 10px 0; z-index: 99; }
-    .footer-nav-btn { display: flex; flex-direction: column; align-items: center; color: white; text-decoration: none; font-size: 0.8rem; }
-    
-    .outside-student { padding: 10px; margin: 8px 0; background: #fff4f4; border-radius: 5px; border-left: 4px solid var(--danger); }
-    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
-    .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1.5rem; }
-
-    /* Ajustes visuales para listas */
-    ul { list-style-type: none; }
-    .participation-table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
-    .participation-table th, .participation-table td { border: 1px solid #ddd; padding: 10px; text-align: left; }
-    
-    @media (max-width: 768px) {
-        .grid-2, .grid-3 { grid-template-columns: 1fr; }
-    }
-</style>
+        /* Utilidades */
+        .hidden { display: none; }
+        @media (max-width: 768px) { .grid-2, .grid-3 { grid-template-columns: 1fr; } }
+        
+        /* Modal Cámara */
+        .modal { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:2000; align-items:center; justify-content:center; }
+        .modal-content { background:white; padding:20px; border-radius:10px; max-width:90%; text-align:center; }
+        video { width: 100%; max-width: 500px; border-radius: 8px; background: black; }
+    </style>
 </head>
 <body>
 
@@ -364,611 +180,522 @@
       messagingSenderId: "452165916569",
       appId: "1:452165916569:web:38eba932b3a9b13cdd6508"
     };
-  
-    // Inicializar Firebase
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
     const db = firebase.firestore();
-    console.log("🔥 Firebase Inicializado y listo.");
 </script>
 
-<div id="login-page-container">
-    <div class="login-container" id="login-page">
-        <div class="theme-switch" id="theme-switch">
-            <i class="fas fa-moon"></i>
+<div id="login-wrapper">
+    <div class="login-card" id="login-card">
+        <div class="avatar-circle" id="login-avatar">MS</div>
+        <h2 id="login-title">Bienvenido</h2>
+        <p style="color: #777; margin-bottom: 20px;" id="login-subtitle">Sistema de Registro Anecdótico</p>
+
+        <div id="form-login">
+            <div class="input-group">
+                <label>Correo Electrónico</label>
+                <input type="email" id="email" placeholder="ejemplo@escuela.edu">
+            </div>
+            <div class="input-group">
+                <label>Contraseña</label>
+                <input type="password" id="password" placeholder="••••••••">
+            </div>
+            <div style="text-align: right; margin-bottom: 15px;">
+                <a href="#" onclick="forgotPassword()" style="color: var(--secondary-color); font-size: 13px;">¿Olvidaste tu contraseña?</a>
+            </div>
+            <button class="btn" onclick="login()">Ingresar</button>
+            <button class="btn btn-secondary" onclick="showRegister()" style="margin-top: 15px;">Crear Cuenta</button>
         </div>
 
-        <div class="avatar-container" id="user-avatar">MS</div>
-        
-        <h2 id="profile-name">Bienvenido</h2>
-        <p class="user-role" id="profile-role">Por favor, inicia sesión</p>
-        <p class="contact-info" id="profile-contact"></p>
-
-        <div id="login-form">
+        <div id="form-register" class="hidden">
             <div class="input-group">
-                <label for="usuario">Correo electrónico</label>
-                <input type="email" id="usuario" placeholder="ejemplo@correo.com" required>
+                <label>Nombre Completo</label>
+                <input type="text" id="reg-name" placeholder="Prof. Juan Pérez">
             </div>
-
             <div class="input-group">
-                <label for="password">Contraseña</label>
-                <input type="password" id="password" placeholder="Ingresa tu contraseña">
-                <span class="password-toggle" id="password-toggle">
-                    <i class="far fa-eye"></i>
-                </span>
+                <label>Rol / Cargo</label>
+                <input type="text" id="reg-role" placeholder="Docente de Inglés">
             </div>
-
-            <div class="forgot-password" style="text-align: right; margin-bottom: 15px;">
-                <a class="forgot-link" style="color: var(--primary-color); cursor: pointer;" onclick="forgotPassword()">¿Olvidaste tu contraseña?</a>
-            </div>
-
-            <button onclick="validarLogin()">Ingresar al Sistema</button>
-            
-            <p class="error-msg" id="error-msg">
-                <i class="fas fa-exclamation-circle"></i> <span id="error-text"></span>
-            </p>
-            
-            <p class="success-msg" id="success-msg">
-                <i class="fas fa-check-circle"></i> Acceso concedido, redirigiendo...
-            </p>
-
-            <button class="secondary-btn" onclick="showRegisterForm()">
-                <i class="fas fa-user-plus"></i> Registrar nuevo usuario
-            </button>
-        </div>
-
-        <div id="register-form" class="register-form">
-            <h3 style="text-align: center; margin-bottom: 15px; color: var(--primary-color);">
-                <i class="fas fa-user-circle"></i> Crear Nueva Cuenta
-            </h3>
-            
             <div class="input-group">
-                <label for="reg-email">Correo Electrónico *</label>
+                <label>Teléfono</label>
+                <input type="text" id="reg-phone" placeholder="809-555-5555">
+            </div>
+            <div class="input-group">
+                <label>Correo</label>
                 <input type="email" id="reg-email" placeholder="correo@ejemplo.com">
             </div>
-            
             <div class="input-group">
-                <label for="reg-password">Contraseña *</label>
-                <input type="password" id="reg-password" placeholder="Mínimo 6 caracteres">
+                <label>Contraseña</label>
+                <input type="password" id="reg-pass" placeholder="Mínimo 6 caracteres">
             </div>
-
-            <div class="input-group">
-                <label for="reg-name">Nombre Completo *</label>
-                <input type="text" id="reg-name" placeholder="Ej: Juan Pérez">
-            </div>
-            
-            <div class="input-group">
-                <label for="reg-role">Rol/Cargo</label>
-                <input type="text" id="reg-role" placeholder="Ej: Docente de Inglés">
-            </div>
-
-            <div class="input-group">
-                <label for="reg-phone">Teléfono</label>
-                <input type="text" id="reg-phone" placeholder="Ej: 809-555-5555">
-            </div>
-            
-            <button onclick="registerUser()">Registrar Usuario</button>
-            <button class="secondary-btn" onclick="hideRegisterForm()">Volver al Login</button>
-            
-            <p class="error-msg" id="reg-error-msg"></p>
+            <button class="btn btn-success" onclick="register()">Registrar Usuario</button>
+            <button class="btn btn-secondary" onclick="showLogin()">Volver</button>
         </div>
 
-        <div class="footer">
-            Sistema de Registro Anecdótico v5.0 (Cloud)<br>
-            Powered by Firebase
-        </div>
+        <div id="login-msg" class="msg-box"></div>
     </div>
 </div>
 
-<div id="main-page" style="display:none;">
-    
-    <button onclick="logout()" 
-            style="position:fixed; top:15px; right:15px; padding:10px 15px; 
-                   background:linear-gradient(to right,#e74c3c,#c0392b); 
-                   color:#fff; border:none; border-radius:8px; 
-                   cursor:pointer; font-weight:bold; z-index:9999;">
-        <i class="fas fa-sign-out-alt"></i> Cerrar sesión
-    </button>
-
+<div id="app-wrapper">
     <header>
-        <div class="main-container header-content">
-            <h1 class="app-title"><i class="fas fa-clipboard-list"></i> Registro Anecdótico</h1>
-            <div class="header-buttons">
-                <button class="btn btn-success" onclick="navigateToStudentSection()">
-                    <i class="fas fa-user-plus"></i> Agregar Estudiante
-                </button>
-            </div>
+        <div>
+            <h3><i class="fas fa-clipboard-list"></i> Registro Anecdótico</h3>
+            <small id="header-user-name">Cargando...</small>
         </div>
+        <button class="btn btn-danger" style="width: auto; padding: 8px 15px;" onclick="logout()">
+            <i class="fas fa-sign-out-alt"></i> Salir
+        </button>
     </header>
 
-    <div id="studentOutsideIndicator" style="display: none; position: fixed; top: 100px; right: 10px; background: white; border: 1px solid #ddd; padding: 15px; z-index: 1000; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
-        <h3><span style="color:red">●</span> Estudiante(s) Fuera</h3>
-        <div id="outsideStudentsList"></div>
+    <div id="outside-indicator">
+        <h4 style="color: var(--danger-color); margin-bottom: 10px;">
+            <span class="blink-dot"></span> Estudiantes Fuera
+        </h4>
+        <div id="outside-list-content"></div>
     </div>
 
-    <div class="main-container">
+    <div class="container">
         <div class="tabs">
-            <div class="tab active" onclick="switchTab('class-register')">Registro de Clase</div>
-            <div class="tab" onclick="switchTab('reports')">Reportes</div>
-            <div class="tab" onclick="switchTab('evidence')">Evidencias</div>
+            <div class="tab active" onclick="setTab('registro')">Clase y Estudiantes</div>
+            <div class="tab" onclick="setTab('reportes')">Reportes</div>
+            <div class="tab" onclick="setTab('evidencias')">Evidencias</div>
         </div>
 
-        <div id="class-register" class="tab-content active">
+        <div id="tab-registro" class="tab-content active">
             <div class="card">
-                <h2 class="card-title"><i class="fas fa-school"></i> Datos de la Clase</h2>
+                <div class="card-header"><i class="fas fa-school"></i> Datos de la Clase</div>
                 <div class="grid-3">
-                    <div class="form-group">
-                        <label>Nombre del Centro:</label>
-                        <input type="text" id="schoolName" value="Politécnico Santo Esteban Rivera">
+                    <div class="input-group">
+                        <label>Centro Educativo</label>
+                        <input type="text" id="school-name" value="Politécnico Santo Esteban Rivera">
                     </div>
-                    <div class="form-group">
-                        <label>Profesor:</label>
-                        <input type="text" id="teacherName" placeholder="Cargando..." readonly>
+                    <div class="input-group">
+                        <label>Profesor</label>
+                        <input type="text" id="teacher-name" readonly>
                     </div>
-                    <div class="form-group">
-                        <label>Grado:</label>
-                        <input type="text" id="grade" placeholder="Ej: 4to Contabilidad">
+                    <div class="input-group">
+                        <label>Grado</label>
+                        <input type="text" id="grade" placeholder="Ej: 4to A">
                     </div>
                 </div>
-                <div class="form-group">
-                    <label>Materia:</label>
-                    <select id="subject" onchange="toggleOtherSubject()">
-                        <option value="">Seleccione...</option>
-                        <option value="Ofimática">Ofimática</option>
-                        <option value="Inglés Técnico">Inglés Técnico</option>
-                        <option value="Inglés Turístico">Inglés Turístico</option>
-                        <option value="Otra">Otra</option>
+                <div class="input-group">
+                    <label>Materia</label>
+                    <select id="subject">
+                        <option>Inglés Técnico</option>
+                        <option>Ofimática</option>
+                        <option>Lengua Española</option>
+                        <option>Otra</option>
                     </select>
-                    <input type="text" id="otherSubject" class="hidden" placeholder="Especifique la materia" style="margin-top: 5px;">
                 </div>
             </div>
 
             <div class="card">
-                <h2 class="card-title"><i class="fas fa-clock"></i> Control de Tiempo</h2>
-                <div style="display: flex; justify-content: space-between; margin-bottom: 15px; text-align: center;">
-                    <div><strong>Inicio:</strong> <span id="startTime">--:--</span></div>
-                    <div><strong>Fin:</strong> <span id="endTime">--:--</span></div>
-                    <div><strong>Duración:</strong> <span id="classDuration">00:00:00</span></div>
+                <div class="card-header"><i class="fas fa-clock"></i> Control de Tiempo</div>
+                <div class="grid-3" style="text-align: center; margin-bottom: 15px;">
+                    <div>Inicio: <strong id="start-time">--:--</strong></div>
+                    <div>Fin: <strong id="end-time">--:--</strong></div>
+                    <div>Duración: <strong id="duration">00:00</strong></div>
                 </div>
-                <button class="btn btn-success" onclick="startClass()"><i class="fas fa-play"></i> Iniciar</button>
-                <button class="btn btn-danger" onclick="endClass()"><i class="fas fa-stop"></i> Finalizar</button>
-            </div>
-
-            <div class="card" id="studentManagementSection">
-                <h2 class="card-title"><i class="fas fa-user-graduate"></i> Salida de Estudiantes</h2>
-                <button class="btn btn-primary" onclick="toggleStudentForm()"><i class="fas fa-plus"></i> Registrar Salida</button>
-                <div id="studentInputs" class="hidden" style="margin-top: 15px;">
-                    </div>
+                <button class="btn btn-success" style="width: 48%; display: inline-block;" onclick="startClass()">Iniciar Clase</button>
+                <button class="btn btn-danger" style="width: 48%; display: inline-block;" onclick="endClass()">Finalizar Clase</button>
             </div>
 
             <div class="card">
-                <h2 class="card-title"><i class="fas fa-calendar-check"></i> Situaciones del Aula</h2>
-                <textarea id="classEvents" placeholder="Describe el evento..."></textarea>
-                <button class="btn btn-primary" onclick="addEvent()" style="margin-top:10px;">Agregar Evento</button>
-                <ul id="eventsList" style="margin-top: 15px;"></ul>
+                <div class="card-header"><i class="fas fa-user-graduate"></i> Gestión de Estudiantes</div>
+                <button class="btn btn-primary" onclick="addStudentForm()">
+                    <i class="fas fa-plus"></i> Registrar Salida de Estudiante
+                </button>
+                <div id="students-container" style="margin-top: 20px;"></div>
             </div>
 
             <div class="card">
-                <h2 class="card-title"><i class="fas fa-chart-line"></i> Participación y Conducta</h2>
-                <div class="form-group">
-                    <label>Estudiante:</label>
-                    <input type="text" id="participationStudent" placeholder="Nombre del estudiante">
-                </div>
-                <div style="margin: 10px 0;">
-                    <button class="btn" style="background:#fff; border:1px solid #ddd" onclick="addEmoji('👍', 'Positiva')">👍</button>
-                    <button class="btn" style="background:#fff; border:1px solid #ddd" onclick="addEmoji('👎', 'Negativa')">👎</button>
-                    <button class="btn" style="background:#fff; border:1px solid #ddd" onclick="addEmoji('👏', 'Participación')">👏</button>
-                    <button class="btn" style="background:#fff; border:1px solid #ddd" onclick="addEmoji('⚠️', 'Atención')">⚠️</button>
-                </div>
-                <textarea id="participationComment" placeholder="Comentario..."></textarea>
-                <button class="btn btn-primary" onclick="registerParticipation()" style="margin-top:10px;">Registrar</button>
-
-                <table class="participation-table">
-                    <thead><tr><th>Estudiante</th><th>Tipo</th><th>Detalle</th></tr></thead>
-                    <tbody id="participationList"></tbody>
-                </table>
+                <div class="card-header"><i class="fas fa-comment-dots"></i> Situaciones / Eventos</div>
+                <textarea id="event-input" rows="3" placeholder="Describe lo ocurrido..."></textarea>
+                <button class="btn btn-warning" style="margin-top: 10px;" onclick="addEvent()">Agregar Evento</button>
+                <ul id="events-list" style="margin-top: 15px; list-style: none;"></ul>
             </div>
         </div>
 
-        <div id="reports" class="tab-content">
+        <div id="tab-reportes" class="tab-content">
             <div class="card">
-                <h2 class="card-title">Generar Reportes</h2>
-                <button class="btn btn-primary" onclick="generateReport()">Vista Previa</button>
+                <div class="card-header">Generar Documento</div>
+                <p>Genera un PDF con toda la información registrada en esta sesión.</p>
+                <button class="btn btn-primary" onclick="generatePreview()">Vista Previa</button>
                 <button class="btn btn-success" onclick="downloadPDF()">Descargar PDF</button>
             </div>
-            <div id="reportPreview" style="background:white; padding:20px; border:1px solid #ddd; margin-top:20px;">
-                <p style="text-align:center; color:#999;">Genera el reporte para ver la vista previa aquí.</p>
+            <div id="report-preview" style="background: white; padding: 40px; border: 1px solid #ccc; min-height: 400px;">
+                <p style="text-align: center; color: #999;">La vista previa aparecerá aquí...</p>
             </div>
         </div>
 
-        <div id="evidence" class="tab-content">
+        <div id="tab-evidencias" class="tab-content">
             <div class="card">
-                <h2 class="card-title">Evidencias</h2>
-                <p>Captura fotos o sube archivos.</p>
-                <button class="btn btn-primary" onclick="document.getElementById('uploadEvidence').click()">Subir Archivo</button>
-                <input type="file" id="uploadEvidence" class="hidden" onchange="handleEvidenceUpload(event)">
-                <div id="evidenceList" class="grid-2" style="margin-top:20px;"></div>
+                <div class="card-header">Captura de Evidencias</div>
+                <div class="grid-2">
+                    <button class="btn btn-primary" onclick="openCamera()"><i class="fas fa-camera"></i> Usar Cámara</button>
+                    <button class="btn btn-secondary" onclick="document.getElementById('file-upload').click()"><i class="fas fa-upload"></i> Subir Archivo</button>
+                </div>
+                <input type="file" id="file-upload" class="hidden" onchange="handleFileUpload(event)">
+                
+                <div id="evidence-gallery" class="grid-3" style="margin-top: 20px;"></div>
             </div>
         </div>
     </div>
 
     <div class="footer-nav">
-        <a href="javascript:void(0)" onclick="switchTab('class-register')" class="footer-nav-btn"><i class="fas fa-chalkboard-teacher"></i><span>Registro</span></a>
-        <a href="javascript:void(0)" onclick="switchTab('reports')" class="footer-nav-btn"><i class="fas fa-file-pdf"></i><span>Reportes</span></a>
-        <a href="javascript:void(0)" onclick="switchTab('evidence')" class="footer-nav-btn"><i class="fas fa-camera"></i><span>Evidencias</span></a>
+        <div class="nav-item active" onclick="setTab('registro')"><i class="fas fa-clipboard-check"></i> Registro</div>
+        <div class="nav-item" onclick="setTab('reportes')"><i class="fas fa-file-pdf"></i> Reportes</div>
+        <div class="nav-item" onclick="setTab('evidencias')"><i class="fas fa-camera"></i> Evidencias</div>
     </div>
 </div>
 
-<div class="custom-alert" id="custom-alert">
-    <i class="fas fa-info-circle"></i>
-    <span id="alert-message">Mensaje</span>
+<div id="camera-modal" class="modal">
+    <div class="modal-content">
+        <h3>Capturar Foto</h3>
+        <video id="video-feed" autoplay></video>
+        <canvas id="canvas" style="display:none;"></canvas>
+        <br>
+        <button class="btn btn-success" onclick="takePhoto()">Capturar</button>
+        <button class="btn btn-danger" onclick="closeCamera()">Cancelar</button>
+    </div>
 </div>
 
 <script>
-    // ================= LÓGICA JAVASCRIPT & FIREBASE =================
-
-    // Variables globales de la APP
-    let currentUser = null;
-    let students = [];
-    let events = [];
-    let participationRecords = [];
-    let evidenceList = [];
-    let startTime = null;
-    let endTime = null;
-    let outsideStudents = [];
-    let currentStudentIndex = 0;
+    // ================= LÓGICA JAVASCRIPT COMPLETA =================
     
-    // --- AUTHENTICATION (FIREBASE) ---
+    // 1. GESTIÓN DE USUARIOS Y LOGIN
+    let currentUser = null;
 
-    // Escuchar cambios en el estado de autenticación (Sesión persistente)
     auth.onAuthStateChanged(user => {
         if (user) {
-            // Usuario logueado
             currentUser = user;
-            console.log("Usuario detectado:", user.email);
-            
-            // Cargar datos adicionales del usuario desde Firestore
-            db.collection("usuarios").doc(user.uid).get().then((doc) => {
-                if (doc.exists) {
-                    const userData = doc.data();
-                    updateProfileUI(user.email, userData);
-                    document.getElementById("teacherName").value = userData.nombre || "Profesor";
-                } else {
-                    console.log("No hay datos extra en Firestore, usando defaults.");
-                    updateProfileUI(user.email, {});
-                }
-            }).catch((error) => {
-                console.log("Error obteniendo datos usuario:", error);
-            });
-
-            // Mostrar app principal, ocultar login
-            document.getElementById("login-page-container").style.display = "none";
-            document.getElementById("main-page").style.display = "block";
-            
+            loadUserProfile(user.uid);
+            document.getElementById('login-wrapper').style.display = 'none';
+            document.getElementById('app-wrapper').style.display = 'block';
         } else {
-            // Usuario no logueado
-            currentUser = null;
-            console.log("No hay usuario logueado.");
-            
-            // Mostrar login, ocultar app principal
-            document.getElementById("login-page-container").style.display = "flex";
-            document.getElementById("main-page").style.display = "none";
+            document.getElementById('login-wrapper').style.display = 'flex';
+            document.getElementById('app-wrapper').style.display = 'none';
         }
     });
 
-    // Función LOGIN
-    function validarLogin() {
-        const email = document.getElementById("usuario").value;
-        const password = document.getElementById("password").value;
-        const errorMsg = document.getElementById("error-msg");
-        const errorText = document.getElementById("error-text");
-
-        if (!email || !password) {
-            showAlert("Por favor ingresa correo y contraseña", "error");
-            return;
-        }
-
-        auth.signInWithEmailAndPassword(email, password)
-            .then((userCredential) => {
-                // Login exitoso, el onAuthStateChanged manejará el cambio de pantalla
-                showAlert("Credenciales correctas. Ingresando...", "success");
-            })
-            .catch((error) => {
-                let mensaje = "Error al iniciar sesión";
-                if (error.code === 'auth/user-not-found') mensaje = "Usuario no encontrado";
-                if (error.code === 'auth/wrong-password') mensaje = "Contraseña incorrecta";
-                if (error.code === 'auth/invalid-email') mensaje = "Correo inválido";
-                
-                errorText.textContent = mensaje;
-                errorMsg.style.display = "block";
-                showAlert(mensaje, "error");
-            });
+    function showLogin() {
+        document.getElementById('form-login').classList.remove('hidden');
+        document.getElementById('form-register').classList.add('hidden');
+        document.getElementById('login-title').textContent = 'Bienvenido';
     }
 
-    // Función REGISTRO
-    function registerUser() {
-        const email = document.getElementById("reg-email").value;
-        const password = document.getElementById("reg-password").value;
-        const name = document.getElementById("reg-name").value;
-        const role = document.getElementById("reg-role").value;
-        const phone = document.getElementById("reg-phone").value;
-        const errorMsg = document.getElementById("reg-error-msg");
+    function showRegister() {
+        document.getElementById('form-login').classList.add('hidden');
+        document.getElementById('form-register').classList.remove('hidden');
+        document.getElementById('login-title').textContent = 'Crear Cuenta';
+    }
 
-        if (!email || !password || !name) {
-            errorMsg.textContent = "Campos obligatorios: Email, Password, Nombre";
-            errorMsg.style.display = "block";
-            return;
-        }
+    function showMsg(msg, type) {
+        const box = document.getElementById('login-msg');
+        box.textContent = msg;
+        box.className = 'msg-box ' + (type === 'error' ? 'error-msg' : 'success-msg');
+        box.style.display = 'block';
+        setTimeout(() => box.style.display = 'none', 4000);
+    }
 
-        auth.createUserWithEmailAndPassword(email, password)
-            .then((userCredential) => {
-                // Usuario creado en Auth, ahora guardar datos en Firestore
-                const user = userCredential.user;
-                return db.collection("usuarios").doc(user.uid).set({
-                    nombre: name,
-                    email: email,
-                    role: role,
-                    phone: phone,
-                    fechaRegistro: new Date()
+    function login() {
+        const email = document.getElementById('email').value;
+        const pass = document.getElementById('password').value;
+        if(!email || !pass) return showMsg('Completa todos los campos', 'error');
+
+        auth.signInWithEmailAndPassword(email, pass)
+            .catch(err => showMsg('Error: ' + err.message, 'error'));
+    }
+
+    function register() {
+        const email = document.getElementById('reg-email').value;
+        const pass = document.getElementById('reg-pass').value;
+        const name = document.getElementById('reg-name').value;
+        const role = document.getElementById('reg-role').value;
+        const phone = document.getElementById('reg-phone').value;
+
+        if(!email || !pass || !name) return showMsg('Campos obligatorios vacíos', 'error');
+
+        auth.createUserWithEmailAndPassword(email, pass)
+            .then((cred) => {
+                // Guardar datos extra en Firestore
+                return db.collection('users').doc(cred.user.uid).set({
+                    name: name, role: role, phone: phone, email: email
                 });
             })
-            .then(() => {
-                showAlert("Usuario registrado correctamente", "success");
-                hideRegisterForm();
-                // onAuthStateChanged detectará el nuevo usuario y lo logueará
-            })
-            .catch((error) => {
-                errorMsg.textContent = error.message;
-                errorMsg.style.display = "block";
-            });
-    }
-
-    // Función LOGOUT
-    function logout() {
-        auth.signOut().then(() => {
-            showAlert("Sesión cerrada", "info");
-            // Limpiar datos en memoria
-            students = [];
-            events = [];
-            participationRecords = [];
-            document.getElementById("startTime").textContent = "--:--";
-            document.getElementById("endTime").textContent = "--:--";
-        });
+            .then(() => showMsg('Usuario creado exitosamente', 'success'))
+            .catch(err => showMsg(err.message, 'error'));
     }
 
     function forgotPassword() {
-        const email = document.getElementById('usuario').value;
-        if (!email) {
-            showAlert('Ingresa tu correo en el campo de usuario primero', 'error');
-            return;
-        }
+        const email = document.getElementById('email').value;
+        if(!email) return showMsg('Escribe tu correo en el campo de arriba', 'error');
         auth.sendPasswordResetEmail(email)
-            .then(() => {
-                showAlert('Se ha enviado un correo para restablecer contraseña', 'success');
-            })
-            .catch((error) => {
-                showAlert('Error: ' + error.message, 'error');
-            });
+            .then(() => showMsg('Correo de recuperación enviado', 'success'))
+            .catch(err => showMsg(err.message, 'error'));
     }
 
-    // --- UI HELPERS Login ---
-    function showRegisterForm() {
-        document.getElementById("login-form").style.display = "none";
-        document.getElementById("register-form").style.display = "block";
-    }
-    function hideRegisterForm() {
-        document.getElementById("register-form").style.display = "none";
-        document.getElementById("login-form").style.display = "block";
-    }
-    function updateProfileUI(email, data) {
-        document.getElementById("profile-name").textContent = data.nombre || email;
-        document.getElementById("profile-role").textContent = data.role || "Usuario";
-        document.getElementById("profile-contact").textContent = data.phone || "";
-        // Generar iniciales para avatar
-        const name = data.nombre || email;
-        document.getElementById("user-avatar").textContent = name.substring(0,2).toUpperCase();
+    function logout() {
+        auth.signOut();
+        // Limpiar datos en memoria
+        students = [];
+        events = [];
+        evidences = [];
+        document.getElementById('students-container').innerHTML = '';
+        document.getElementById('events-list').innerHTML = '';
     }
 
-    // --- LÓGICA DEL SISTEMA PRINCIPAL (Registro Anecdótico) ---
+    function loadUserProfile(uid) {
+        db.collection('users').doc(uid).get().then(doc => {
+            if(doc.exists) {
+                const data = doc.data();
+                document.getElementById('teacher-name').value = data.name;
+                document.getElementById('header-user-name').textContent = data.name + ' (' + data.role + ')';
+            }
+        });
+    }
 
-    // Navegación de Pestañas
-    function switchTab(tabId) {
+    // 2. LÓGICA DE LA APP (CLASE, ESTUDIANTES, TIEMPO)
+    let classStart = null;
+    let students = [];
+    let events = [];
+    let evidences = [];
+    let studentCounter = 0;
+
+    function setTab(tabName) {
         document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
         document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
         
-        // Activar tab visualmente
-        const tabs = document.querySelectorAll('.tab');
-        if(tabId === 'class-register') tabs[0].classList.add('active');
-        if(tabId === 'reports') tabs[1].classList.add('active');
-        if(tabId === 'evidence') tabs[2].classList.add('active');
+        // Activar botones footer también
+        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
 
-        document.getElementById(tabId).classList.add('active');
+        // Mapeo simple
+        const index = tabName === 'registro' ? 0 : tabName === 'reportes' ? 1 : 2;
+        document.querySelectorAll('.tab')[index].classList.add('active');
+        document.querySelectorAll('.nav-item')[index].classList.add('active');
+        document.getElementById('tab-'+tabName).classList.add('active');
     }
 
-    function toggleOtherSubject() {
-        const val = document.getElementById("subject").value;
-        const other = document.getElementById("otherSubject");
-        if(val === "Otra") other.classList.remove("hidden");
-        else other.classList.add("hidden");
-    }
-
-    // --- CONTROL DE TIEMPO DE CLASE ---
+    // Cronómetro Clase
     function startClass() {
-        startTime = new Date();
-        document.getElementById("startTime").textContent = startTime.toLocaleTimeString();
-        setInterval(updateClassDuration, 1000);
-        showAlert("Clase iniciada", "success");
+        classStart = new Date();
+        document.getElementById('start-time').textContent = classStart.toLocaleTimeString();
+        setInterval(() => {
+            const now = new Date();
+            const diff = Math.floor((now - classStart) / 1000);
+            const m = Math.floor(diff / 60).toString().padStart(2,'0');
+            const s = (diff % 60).toString().padStart(2,'0');
+            document.getElementById('duration').textContent = `${m}:${s}`;
+        }, 1000);
     }
 
     function endClass() {
-        endTime = new Date();
-        document.getElementById("endTime").textContent = endTime.toLocaleTimeString();
-        showAlert("Clase finalizada", "success");
+        const end = new Date();
+        document.getElementById('end-time').textContent = end.toLocaleTimeString();
     }
 
-    function updateClassDuration() {
-        if (!startTime) return;
-        const now = endTime || new Date();
-        const diff = now - startTime;
-        const date = new Date(diff);
-        document.getElementById("classDuration").textContent = date.toISOString().substr(11, 8);
-    }
-
-    // --- GESTIÓN DE ESTUDIANTES (SALIDAS) ---
-    function toggleStudentForm() {
-        const container = document.getElementById("studentInputs");
-        container.classList.remove("hidden");
-        addStudentField();
-    }
-
-    function navigateToStudentSection() {
-        switchTab('class-register');
-        document.getElementById('studentManagementSection').scrollIntoView({behavior: 'smooth'});
-        toggleStudentForm();
-    }
-
-    function addStudentField() {
-        currentStudentIndex++;
-        const id = currentStudentIndex;
+    // Gestión Estudiantes (Timer Individual)
+    function addStudentForm() {
+        studentCounter++;
+        const id = studentCounter;
+        
         const html = `
-            <div id="stu_${id}" class="student-box" style="border:1px solid #ddd; padding:10px; margin-bottom:10px; border-radius:5px; background:#f9f9f9;">
-                <input type="text" id="name_${id}" placeholder="Nombre Estudiante" style="margin-bottom:5px;">
-                <input type="text" id="reason_${id}" placeholder="Motivo" style="margin-bottom:5px;">
-                <button class="btn btn-warning btn-sm" onclick="studentOut(${id})">Registrar Salida</button>
-                <button class="btn btn-success btn-sm hidden" id="btnIn_${id}" onclick="studentIn(${id})">Registrar Retorno</button>
-                <div id="timer_${id}" style="font-weight:bold; color:red; margin-top:5px;"></div>
+            <div id="stu-card-${id}" class="student-box out">
+                <div class="grid-2">
+                    <input type="text" id="stu-name-${id}" placeholder="Nombre Estudiante">
+                    <input type="text" id="stu-reason-${id}" placeholder="Motivo Salida">
+                </div>
+                <div class="grid-2" style="margin-top:10px; align-items:center;">
+                    <div class="timer-display" id="stu-timer-${id}">00:00</div>
+                    <div>
+                        <button class="btn btn-success" id="btn-in-${id}" onclick="studentReturn(${id})" disabled>Registrar Retorno</button>
+                        <button class="btn btn-warning" id="btn-out-${id}" onclick="studentLeave(${id})">Confirmar Salida</button>
+                    </div>
+                </div>
             </div>
         `;
-        document.getElementById("studentInputs").insertAdjacentHTML('beforeend', html);
+        document.getElementById('students-container').insertAdjacentHTML('beforeend', html);
     }
 
-    function studentOut(id) {
-        const name = document.getElementById(`name_${id}`).value;
-        const reason = document.getElementById(`reason_${id}`).value;
-        if(!name) { showAlert("Escribe el nombre", "error"); return; }
+    function studentLeave(id) {
+        const name = document.getElementById(`stu-name-${id}`).value;
+        const reason = document.getElementById(`stu-reason-${id}`).value;
+        if(!name) return alert('Ingresa el nombre');
+
+        const startTime = new Date();
         
-        const start = new Date();
-        const studentObj = { id, name, reason, start, end: null, interval: null };
+        // Guardar objeto
+        const studentObj = { id, name, reason, start: startTime, end: null, interval: null };
+        students.push(studentObj);
+
+        // UI
+        document.getElementById(`btn-out-${id}`).style.display = 'none';
+        document.getElementById(`btn-in-${id}`).disabled = false;
         
-        // Mostrar botón retorno
-        document.getElementById(`btnIn_${id}`).classList.remove("hidden");
-        
-        // Timer
+        // Timer Interval
         studentObj.interval = setInterval(() => {
             const now = new Date();
-            const diff = Math.floor((now - start) / 1000);
-            const min = Math.floor(diff / 60).toString().padStart(2,'0');
-            const sec = (diff % 60).toString().padStart(2,'0');
-            document.getElementById(`timer_${id}`).textContent = `${min}:${sec}`;
-            
-            // Actualizar indicador flotante
-            updateOutsideIndicator();
+            const diff = Math.floor((now - startTime) / 1000);
+            const m = Math.floor(diff / 60).toString().padStart(2,'0');
+            const s = (diff % 60).toString().padStart(2,'0');
+            document.getElementById(`stu-timer-${id}`).textContent = `${m}:${s}`;
         }, 1000);
 
-        students.push(studentObj);
-        outsideStudents.push(studentObj);
-        showAlert(`Salida registrada: ${name}`, "warning");
+        updateOutsideIndicator();
     }
 
-    function studentIn(id) {
+    function studentReturn(id) {
         const student = students.find(s => s.id === id);
         if(student) {
             clearInterval(student.interval);
             student.end = new Date();
-            document.getElementById(`timer_${id}`).style.color = "green";
-            document.getElementById(`btnIn_${id}`).disabled = true;
+            student.interval = null; // Marcar como regresado
             
-            // Remover de lista de fuera
-            outsideStudents = outsideStudents.filter(s => s.id !== id);
+            // UI
+            const card = document.getElementById(`stu-card-${id}`);
+            card.classList.remove('out');
+            card.style.borderLeftColor = 'green';
+            document.getElementById(`btn-in-${id}`).textContent = 'Retorno Registrado';
+            document.getElementById(`btn-in-${id}`).disabled = true;
+            document.getElementById(`stu-timer-${id}`).style.color = 'green';
+            
             updateOutsideIndicator();
-            showAlert(`${student.name} ha regresado`, "success");
         }
     }
 
     function updateOutsideIndicator() {
-        const indicator = document.getElementById("studentOutsideIndicator");
-        const list = document.getElementById("outsideStudentsList");
-        list.innerHTML = "";
+        const list = document.getElementById('outside-list-content');
+        list.innerHTML = '';
+        const active = students.filter(s => s.interval !== null); // Los que tienen intervalo activo
         
-        if (outsideStudents.length > 0) {
-            indicator.style.display = "block";
-            outsideStudents.forEach(s => {
-                const div = document.createElement("div");
-                div.innerHTML = `<strong>${s.name}</strong> (${s.reason})`;
-                div.style.borderBottom = "1px solid #eee";
-                div.style.padding = "5px 0";
-                list.appendChild(div);
+        if (active.length > 0) {
+            document.getElementById('outside-indicator').style.display = 'block';
+            active.forEach(s => {
+                list.innerHTML += `<div style="font-size:13px; border-bottom:1px solid #eee; padding:5px;">
+                    <strong>${s.name}</strong> (${s.reason})
+                </div>`;
             });
         } else {
-            indicator.style.display = "none";
+            document.getElementById('outside-indicator').style.display = 'none';
         }
     }
 
-    // --- EVENTOS ---
+    // Eventos
     function addEvent() {
-        const text = document.getElementById("classEvents").value;
-        if(!text) return;
-        const ev = { text, time: new Date().toLocaleTimeString() };
-        events.push(ev);
+        const txt = document.getElementById('event-input').value;
+        if(!txt) return;
+        const time = new Date().toLocaleTimeString();
+        events.push({ time, text: txt });
         
-        const li = document.createElement("li");
-        li.innerHTML = `<strong>${ev.time}:</strong> ${ev.text}`;
-        document.getElementById("eventsList").appendChild(li);
-        document.getElementById("classEvents").value = "";
+        const li = document.createElement('li');
+        li.innerHTML = `<strong>${time}:</strong> ${txt}`;
+        li.style.background = '#fff'; li.style.padding = '10px'; li.style.marginBottom = '5px'; li.style.borderLeft = '3px solid orange';
+        document.getElementById('events-list').appendChild(li);
+        document.getElementById('event-input').value = '';
     }
 
-    // --- PARTICIPACIÓN ---
-    function addEmoji(emoji, type) {
-        document.getElementById("participationComment").value += ` ${emoji} (${type})`;
+    // 3. EVIDENCIAS Y CÁMARA
+    let stream = null;
+    
+    function openCamera() {
+        document.getElementById('camera-modal').style.display = 'flex';
+        navigator.mediaDevices.getUserMedia({ video: true })
+            .then(s => {
+                stream = s;
+                document.getElementById('video-feed').srcObject = stream;
+            })
+            .catch(err => alert('Error cámara: ' + err));
     }
 
-    function registerParticipation() {
-        const name = document.getElementById("participationStudent").value;
-        const comment = document.getElementById("participationComment").value;
-        if(!name) { showAlert("Nombre requerido", "error"); return; }
-        
-        const record = { name, comment, time: new Date().toLocaleTimeString() };
-        participationRecords.push(record);
-        
-        const row = `<tr><td>${name}</td><td>${comment}</td><td>${record.time}</td></tr>`;
-        document.getElementById("participationList").insertAdjacentHTML('beforeend', row);
-        
-        document.getElementById("participationStudent").value = "";
-        document.getElementById("participationComment").value = "";
-        showAlert("Participación guardada", "success");
+    function closeCamera() {
+        if(stream) stream.getTracks().forEach(t => t.stop());
+        document.getElementById('camera-modal').style.display = 'none';
     }
 
-    // --- REPORTES ---
-    function generateReport() {
-        const container = document.getElementById("reportPreview");
-        let html = `<h3>REPORTE ANECDÓTICO</h3>
-                    <p><strong>Fecha:</strong> ${new Date().toLocaleDateString()}</p>
-                    <p><strong>Docente:</strong> ${document.getElementById("teacherName").value}</p>
-                    <hr>`;
+    function takePhoto() {
+        const video = document.getElementById('video-feed');
+        const canvas = document.getElementById('canvas');
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        canvas.getContext('2d').drawImage(video, 0, 0);
         
-        html += `<h4>Eventos:</h4><ul>`;
-        events.forEach(e => html += `<li>${e.time} - ${e.text}</li>`);
-        html += `</ul>`;
-        
-        html += `<h4>Estudiantes Fuera:</h4><ul>`;
-        students.forEach(s => {
-            const duration = s.end ? Math.floor((s.end - s.start)/60000) + " min" : "En curso";
-            html += `<li>${s.name}: ${s.reason} (${duration})</li>`;
-        });
-        html += `</ul>`;
-        
-        html += `<h4>Participación:</h4><ul>`;
-        participationRecords.forEach(p => html += `<li>${p.name}: ${p.comment}</li>`);
-        html += `</ul>`;
+        const imgData = canvas.toDataURL('image/png');
+        addEvidenceToGallery(imgData, 'Foto de Cámara');
+        closeCamera();
+    }
 
-        container.innerHTML = html;
-        showAlert("Reporte generado", "success");
+    function handleFileUpload(e) {
+        const file = e.target.files[0];
+        if(file) {
+            const reader = new FileReader();
+            reader.onload = function(evt) {
+                addEvidenceToGallery(evt.target.result, file.name);
+            };
+            reader.readAsDataURL(file);
+        }
+    }
+
+    function addEvidenceToGallery(src, title) {
+        evidences.push({ src, title });
+        const html = `
+            <div style="border:1px solid #ddd; padding:5px;">
+                <img src="${src}" style="width:100%; height:150px; object-fit:cover;">
+                <small>${title}</small>
+            </div>
+        `;
+        document.getElementById('evidence-gallery').insertAdjacentHTML('beforeend', html);
+    }
+
+    // 4. REPORTES PDF
+    function generatePreview() {
+        const teacher = document.getElementById('teacher-name').value;
+        const school = document.getElementById('school-name').value;
+        const date = new Date().toLocaleDateString();
+        
+        let html = `
+            <h2 style="text-align:center;">Reporte Anecdótico</h2>
+            <p><strong>Centro:</strong> ${school} | <strong>Fecha:</strong> ${date}</p>
+            <p><strong>Docente:</strong> ${teacher}</p>
+            <hr>
+            <h4>Situaciones Registradas</h4>
+            <ul>${events.map(e => `<li>[${e.time}] ${e.text}</li>`).join('')}</ul>
+            <hr>
+            <h4>Registro de Salidas de Estudiantes</h4>
+            <table style="width:100%; border-collapse:collapse; margin-top:10px;" border="1">
+                <tr style="background:#eee;"><th>Estudiante</th><th>Motivo</th><th>Salida</th><th>Retorno</th></tr>
+                ${students.map(s => `
+                    <tr>
+                        <td>${s.name}</td>
+                        <td>${s.reason}</td>
+                        <td>${s.start.toLocaleTimeString()}</td>
+                        <td>${s.end ? s.end.toLocaleTimeString() : 'Pendiente'}</td>
+                    </tr>
+                `).join('')}
+            </table>
+            <hr>
+            <h4>Evidencias Adjuntas</h4>
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+                ${evidences.map(ev => `
+                    <div style="text-align:center;">
+                        <img src="${ev.src}" style="max-width:150px; border:1px solid #ccc;">
+                        <br><small>${ev.title}</small>
+                    </div>
+                `).join('')}
+            </div>
+        `;
+        document.getElementById('report-preview').innerHTML = html;
     }
 
     async function downloadPDF() {
         const { jsPDF } = window.jspdf;
-        const element = document.getElementById('reportPreview');
-        const canvas = await html2canvas(element);
+        const element = document.getElementById('report-preview');
+        
+        // Asegurarse de que el preview esté visible y renderizado
+        if (element.innerHTML.includes("La vista previa aparecerá aquí")) {
+            generatePreview();
+        }
+
+        const canvas = await html2canvas(element, { scale: 2 });
         const imgData = canvas.toDataURL('image/png');
         
         const doc = new jsPDF();
@@ -977,36 +704,8 @@
         const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
         
         doc.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
-        doc.save(`Reporte-${new Date().toLocaleDateString()}.pdf`);
+        doc.save(`Reporte_${new Date().toLocaleDateString()}.pdf`);
     }
-
-    // --- UTILS ---
-    function showAlert(msg, type) {
-        const alert = document.getElementById("custom-alert");
-        const msgSpan = document.getElementById("alert-message");
-        msgSpan.textContent = msg;
-        alert.className = `custom-alert ${type} show`;
-        setTimeout(() => alert.classList.remove("show"), 3000);
-    }
-    
-    function toggleTheme() {
-        document.body.classList.toggle('dark-mode');
-        const icon = document.querySelector('#theme-switch i');
-        if(document.body.classList.contains('dark-mode')) {
-            icon.classList.remove('fa-moon');
-            icon.classList.add('fa-sun');
-        } else {
-            icon.classList.remove('fa-sun');
-            icon.classList.add('fa-moon');
-        }
-    }
-    document.getElementById('theme-switch').addEventListener('click', toggleTheme);
-    
-    // Toggles de contraseña
-    document.getElementById('password-toggle').addEventListener('click', () => {
-        const inp = document.getElementById('password');
-        inp.type = inp.type === 'password' ? 'text' : 'password';
-    });
 </script>
 
 </body>
