@@ -39,6 +39,11 @@
         <p class="error-msg" id="error-msg">
             <i class="fas fa-exclamation-circle"></i> <span id="error-text"></span>
         </p>
+
+        <p class="blocked-msg" id="blocked-msg" style="display: none;">
+            <i class="fas fa-lock"></i> <span id="blocked-text"></span>
+        </p>
+        
         <p class="success-msg" id="success-msg">
             <i class="fas fa-check-circle"></i> Credenciales correctas, redirigiendo...
         </p>
@@ -48,7 +53,49 @@
         </button>
     </div>
 
+    <div id="admin-auth" class="admin-auth">
+        <h3><i class="fas fa-lock"></i> Autenticación Requerida</h3>
+        <div class="input-group">
+            <label for="admin-username">Usuario administrador</label>
+            <input type="text" id="admin-username">
+        </div>
+        <div class="input-group">
+            <label for="admin-password">Contraseña</label>
+            <input type="password" id="admin-password">
+        </div>
+        <button onclick="verifyAdmin()">Verificar</button>
+        <button class="secondary-btn" onclick="hideAdminAuth()">Cancelar</button>
     </div>
+
+    <div id="admin-panel" class="register-form">
+        <h3><i class="fas fa-users-cog"></i> Panel de Administración</h3>
+        <div class="form-tabs">
+            <div class="form-tab active" id="tab-create" onclick="switchAdminTab('create')">Crear</div>
+            <div class="form-tab" id="tab-delete" onclick="switchAdminTab('delete')">Gestionar</div>
+        </div>
+        <div id="create-user-form">
+            <input type="text" id="new-username" placeholder="Nombre completo">
+            <input type="email" id="new-email" placeholder="Correo">
+            <input type="password" id="new-password" placeholder="Contraseña">
+            <input type="text" id="user-role-input" placeholder="Rol">
+            <button onclick="registerUser()">Crear Usuario</button>
+        </div>
+        <div id="delete-user-form" style="display: none;">
+            <div class="user-list" id="user-list"></div>
+        </div>
+        <button class="secondary-btn" onclick="hideAdminPanel()">Volver</button>
+    </div>
+
+    <div class="footer">
+        Sistema de Registro Anecdótico | v4.0<br>
+        Desarrollado por Miguel Silverio
+    </div>
+</div>
+
+<div class="custom-alert" id="custom-alert">
+    <i class="fas fa-check-circle"></i>
+    <span id="alert-message"></span>
+</div>
 
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
