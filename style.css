@@ -3,109 +3,50 @@
     --secondary-color: #2575fc;
     --accent-color: #2ecc71;
     --danger-color: #e74c3c;
-    --warning-color: #f39c12;
     --text-color: #333;
     --bg-color: #f8f9fa;
     --card-bg: #ffffff;
-    --input-bg: #ffffff;
-    --border-color: #ddd;
     --shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
 }
 
 .dark-mode {
-    --primary-color: #8c68cd;
-    --secondary-color: #5e97fc;
-    --accent-color: #35de7d;
-    --danger-color: #ff6b6b;
-    --warning-color: #ffd166;
-    --text-color: #f0f0f0;
     --bg-color: #121212;
     --card-bg: #1e1e1e;
-    --input-bg: #2d2d2d;
+    --text-color: #f0f0f0;
     --border-color: #444;
-    --shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
-}
-
-* {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    transition: background-color 0.3s, color 0.3s;
 }
 
 body {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    min-height: 100vh;
-    background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
-    padding: 20px;
     background-color: var(--bg-color);
     color: var(--text-color);
+    transition: 0.3s;
 }
 
+.student-card {
+    background: var(--card-bg);
+    border-radius: 15px;
+    padding: 20px;
+    box-shadow: var(--shadow);
+    height: 100%;
+    border: none;
+}
+
+.timer-badge {
+    font-family: monospace;
+    font-size: 1.2rem;
+    padding: 8px 15px;
+    border-radius: 10px;
+    background: #eee;
+    color: #333;
+}
+
+/* Conserva aquí todos los estilos de .login-container que ya tenías */
 .login-container {
     background: var(--card-bg);
     padding: 40px;
     border-radius: 20px;
-    box-shadow: var(--shadow);
-    width: 100%;
-    max-width: 500px;
+    max-width: 400px;
+    margin: 100px auto;
     text-align: center;
-    position: relative;
-    overflow: hidden;
+    box-shadow: var(--shadow);
 }
-
-.login-container::before {
-    content: '';
-    position: absolute; top: 0; left: 0; right: 0; height: 5px;
-    background: linear-gradient(to right, var(--primary-color), var(--secondary-color));
-}
-
-.theme-switch {
-    position: absolute; top: 20px; right: 20px;
-    cursor: pointer; font-size: 24px; color: var(--primary-color);
-}
-
-.avatar-container {
-    width: 130px; height: 130px; border-radius: 50%;
-    background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
-    margin: 0 auto 20px; display: flex; align-items: center; justify-content: center;
-    color: white; font-size: 40px; font-weight: bold; border: 4px solid var(--card-bg);
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2); overflow: hidden;
-}
-
-.input-group { margin-bottom: 20px; text-align: left; position: relative; }
-.input-group label { display: block; margin-bottom: 8px; font-size: 14px; font-weight: 600; color: var(--text-color); }
-
-input {
-    width: 100%; padding: 12px 15px; border: 2px solid var(--border-color);
-    border-radius: 10px; background-color: var(--input-bg); color: var(--text-color);
-    font-size: 16px; transition: 0.3s;
-}
-
-.password-toggle { position: absolute; right: 15px; top: 38px; cursor: pointer; color: #888; }
-
-button {
-    width: 100%; padding: 14px; border: none; border-radius: 10px;
-    background: linear-gradient(to right, var(--primary-color), var(--secondary-color));
-    color: white; font-size: 16px; font-weight: 600; cursor: pointer; transition: 0.3s;
-}
-
-.secondary-btn { background: transparent !important; color: var(--primary-color) !important; border: 2px solid var(--primary-color) !important; margin-top: 15px; }
-
-.error-msg, .blocked-msg { color: var(--danger-color); background: rgba(231, 76, 60, 0.1); padding: 12px; border-radius: 8px; margin-top: 20px; display: none; }
-.success-msg { color: var(--accent-color); background: rgba(46, 204, 113, 0.1); padding: 12px; border-radius: 8px; margin-top: 20px; display: none; }
-
-.admin-auth, .register-form { display: none; margin-top: 25px; padding-top: 25px; border-top: 2px dashed var(--border-color); }
-.form-tabs { display: flex; gap: 10px; margin-bottom: 20px; }
-.form-tab { flex: 1; padding: 10px; cursor: pointer; border-radius: 8px; background: var(--bg-color); }
-.form-tab.active { background: var(--primary-color); color: white; }
-
-.custom-alert {
-    position: fixed; top: 20px; right: 20px; padding: 15px 25px; border-radius: 10px;
-    background: white; box-shadow: var(--shadow); display: flex; align-items: center; gap: 12px;
-    transform: translateX(150%); transition: 0.5s; z-index: 9999;
-}
-.custom-alert.show { transform: translateX(0); }
