@@ -1,27 +1,1409 @@
-// Assuming this script is written within the index.html
-// Update all localStorage calls to Firestore calls as specified (example functionality)
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Registro Anecdótico</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        :root {
+            --primary: #2c3e50;
+            --secondary: #3498db;
+            --accent: #e74c3c;
+            --light: #ecf0f1;
+            --dark: #2c3e50;
+            --success: #2ecc71;
+            --warning: #f39c12;
+            --danger: #e74c3c;
+            --gray: #95a5a6;
+            --light-gray: #f5f5f5;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f8f9fa;
+            color: #333;
+            line-height: 1.6;
+            padding-bottom: 120px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        
+        header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: white;
+            padding: 1.5rem 0;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            position: relative;
+            margin-bottom: 2rem;
+        }
+        
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .app-title {
+            font-size: 1.8rem;
+            font-weight: 600;
+        }
+        
+        .copyright {
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+        }
+        
+        .card-title {
+            font-size: 1.3rem;
+            color: var(--primary);
+            margin-bottom: 1.2rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid var(--light);
+            display: flex;
+            align-items: center;
+        }
+        
+        .card-title i {
+            margin-right: 10px;
+            color: var(--secondary);
+        }
+        
+        .form-group {
+            margin-bottom: 1.2rem;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: var(--dark);
+        }
+        
+        input[type="text"], 
+        input[type="date"], 
+        textarea, 
+        select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 1rem;
+            transition: border 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        input[type="text"]:focus, 
+        input[type="date"]:focus, 
+        textarea:focus, 
+        select:focus {
+            border-color: var(--secondary);
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+            outline: none;
+        }
+        
+        textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+        
+        .btn {
+            display: inline-block;
+            padding: 12px 20px;
+            background-color: var(--secondary);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+        
+        .btn:hover {
+            opacity: 0.9;
+            transform: translateY(-2px);
+        }
+        
+        .btn-primary {
+            background-color: var(--primary);
+        }
+        
+        .btn-success {
+            background-color: var(--success);
+        }
+        
+        .btn-danger {
+            background-color: var(--danger);
+        }
+        
+        .btn-warning {
+            background-color: var(--warning);
+        }
+        
+        .btn-info {
+            background-color: #17a2b8;
+        }
+        
+        .btn-sm {
+            padding: 8px 15px;
+            font-size: 0.9rem;
+        }
+        
+        .timeline {
+            display: flex;
+            justify-content: space-between;
+            margin: 1.5rem 0;
+        }
+        
+        .timeline-item {
+            text-align: center;
+            flex: 1;
+            padding: 1rem;
+            background: var(--light);
+            border-radius: 8px;
+            margin: 0 5px;
+        }
+        
+        .timeline-item strong {
+            display: block;
+            font-size: 1.1rem;
+            margin-bottom: 5px;
+            color: var(--primary);
+        }
+        
+        .student-box {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            background: var(--light-gray);
+        }
+        
+        .student-box h3 {
+            margin-bottom: 0.8rem;
+            color: var(--primary);
+        }
+        
+        .timer-display {
+            font-size: 1.5rem;
+            font-weight: bold;
+            text-align: center;
+            margin: 10px 0;
+            color: var(--secondary);
+        }
+        
+        .event-list, .interpretation-list {
+            list-style-type: none;
+        }
+        
+        .event-item, .interpretation-item {
+            padding: 1rem;
+            background: var(--light-gray);
+            border-left: 4px solid var(--secondary);
+            margin-bottom: 0.8rem;
+            border-radius: 0 4px 4px 0;
+        }
+        
+        .event-time, .interpretation-time {
+            font-size: 0.85rem;
+            color: var(--gray);
+            margin-top: 5px;
+        }
+        
+        .report-preview {
+            padding: 2rem;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            margin-top: 2rem;
+        }
+        
+        .report-header {
+            text-align: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid var(--light);
+        }
+        
+        .report-section {
+            margin-bottom: 1.5rem;
+        }
+        
+        .report-section h3 {
+            color: var(--primary);
+            margin-bottom: 0.8rem;
+            padding-bottom: 0.3rem;
+            border-bottom: 1px solid var(--light);
+        }
+        
+        .tabs {
+            display: flex;
+            margin-bottom: 1.5rem;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .tab {
+            padding: 12px 20px;
+            cursor: pointer;
+            background: #f1f1f1;
+            border-radius: 5px 5px 0 0;
+            margin-right: 5px;
+        }
+        
+        .tab.active {
+            background: white;
+            border: 1px solid #ddd;
+            border-bottom: none;
+            font-weight: 500;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .blink {
+            animation: blink 1s infinite;
+        }
+        
+        @keyframes blink {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+        
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+        }
+        
+        .grid-3 {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 1.5rem;
+        }
+        
+        @media (max-width: 992px) {
+            .grid-2, .grid-3 {
+                grid-template-columns: 1fr;
+            }
+            
+            .timeline {
+                flex-direction: column;
+            }
+            
+            .timeline-item {
+                margin: 5px 0;
+            }
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .modal-content {
+            background: white;
+            padding: 2rem;
+            border-radius: 10px;
+            max-width: 90%;
+            max-height: 90%;
+            overflow: auto;
+            text-align: center;
+        }
+        
+        .camera-feed {
+            width: 100%;
+            max-width: 500px;
+            background: #333;
+            margin: 1rem 0;
+            border-radius: 5px;
+        }
+        
+        .photo-preview {
+            max-width: 100%;
+            margin-top: 1rem;
+            border-radius: 5px;
+            border: 2px solid var(--secondary);
+        }
+        
+        .evidence-container {
+            margin: 1.5rem 0;
+            padding: 1rem;
+            background: var(--light-gray);
+            border-radius: 8px;
+        }
+        
+        .evidence-image {
+            max-width: 100%;
+            border-radius: 5px;
+            margin-top: 1rem;
+        }
+        
+        .conformity-statement {
+            background-color: #f8f9fa;
+            border-left: 4px solid var(--success);
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+            border-radius: 0 8px 8px 0;
+            font-style: italic;
+        }
+        
+        .header-image-preview, .footer-image-preview {
+            max-width: 100%;
+            margin-top: 10px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+        }
+        
+        .participation-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+        
+        .participation-table th, 
+        .participation-table td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: left;
+        }
+        
+        .participation-table th {
+            background-color: var(--primary);
+            color: white;
+        }
+        
+        .participation-table tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+        
+        .emoji-selector {
+            display: flex;
+            gap: 10px;
+            margin: 10px 0;
+            flex-wrap: wrap;
+            max-height: 400px;
+            overflow-y: auto;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        
+        .emoji-btn {
+            font-size: 1.5rem;
+            background: none;
+            border: none;
+            cursor: pointer;
+            transition: transform 0.2s;
+            position: relative;
+        }
+        
+        .emoji-btn:hover {
+            transform: scale(1.2);
+        }
+        
+        .emoji-tooltip {
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #333;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            white-space: nowrap;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s;
+            z-index: 1000;
+        }
+        
+        .emoji-btn:hover .emoji-tooltip {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .report-type-selector {
+            margin: 15px 0;
+            padding: 10px;
+            background-color: #f5f5f5;
+            border-radius: 5px;
+        }
+        
+        .participation-badge {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            margin-right: 5px;
+        }
+        
+        .badge-positive {
+            background-color: var(--success);
+            color: white;
+        }
+        
+        .badge-negative {
+            background-color: var(--danger);
+            color: white;
+        }
+        
+        .badge-neutral {
+            background-color: var(--warning);
+            color: white;
+        }
+        
+        .footer-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: var(--primary);
+            display: flex;
+            justify-content: space-around;
+            padding: 10px 0;
+            z-index: 99;
+        }
+        
+        .footer-nav-btn {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: white;
+            text-decoration: none;
+            font-size: 0.8rem;
+            padding: 5px 10px;
+            border-radius: 5px;
+            transition: background 0.3s;
+        }
+        
+        .footer-nav-btn:hover {
+            background: rgba(255,255,255,0.1);
+        }
+        
+        .footer-nav-btn i {
+            font-size: 1.2rem;
+            margin-bottom: 5px;
+        }
+        
+        .acuerdo-item {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            border-left: 4px solid #17a2b8;
+        }
+        
+        #studentOutsideIndicator {
+            position: fixed;
+            top: 100px;
+            right: 10px;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 15px;
+            z-index: 1000;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            max-width: 300px;
+        }
+        
+        #studentOutsideIndicator h3 {
+            color: var(--danger);
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .outside-student {
+            padding: 10px;
+            margin: 8px 0;
+            background: #fff4f4;
+            border-radius: 5px;
+            border-left: 4px solid var(--danger);
+        }
+        
+        .blinking-light {
+            width: 15px;
+            height: 15px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 8px;
+            animation: blink 1s infinite;
+        }
+        
+        .red-light {
+            background-color: var(--danger);
+        }
+        
+        .yellow-light {
+            background-color: var(--warning);
+        }
+        
+        .evidence-observation {
+            margin-top: 10px;
+            width: 100%;
+        }
+        
+        .hidden {
+            display: none;
+        }
 
-// Firestore configuration
-globalThis.firestore = firebase.firestore();
+        .header-buttons {
+            display: flex;
+            gap: 10px;
+        }
 
-// Example function to save data to Firestore instead of localStorage
-async function saveDataToFirestore(key, value) {
-    const docRef = firestore.collection('yourCollection').doc(key);
-    await docRef.set({ data: value });
-}
+        .edit-modal-content {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
 
-// Example function to fetch data from Firestore instead of localStorage
-async function fetchDataFromFirestore(key) {
-    const docRef = firestore.collection('yourCollection').doc(key);
-    const doc = await docRef.get();
-    if (doc.exists) {
-        return doc.data().data;
-    } else {
-        console.log('No such document!');
-    }
-}
+        .participation-control {
+            margin-top: 2rem;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container header-content">
+            <h1 class="app-title"><i class="fas fa-clipboard-list"></i> Sistema de Registro Anecdótico</h1>
+            <div class="header-buttons">
+                <button class="btn btn-success" onclick="navigateToStudentSection()">
+                    <i class="fas fa-user-plus"></i> Agregar Estudiante
+                </button>
+            </div>
+            <div class="copyright">© 2025 Prof. Miguel Silverio</div>
+        </div>
+    </header>
 
-// Replace instances of localStorage calls in your existing index.html
+    <div id="studentOutsideIndicator" style="display: none;">
+        <h3><span class="blinking-light red-light"></span><span class="blinking-light yellow-light"></span> Estudiante(s) Fuera</h3>
+        <div id="outsideStudentsList"></div>
+    </div>
 
-// Original localStorage code is replaced with Firestore equivalent.
-// Make sure to validate each function to ensure it maintains the same structure and functionality as required.
+    <div class="container">
+        <div class="tabs">
+            <div class="tab active" onclick="switchTab('class-register')">Registro de Clase</div>
+            <div class="tab" onclick="switchTab('reports')">Reportes</div>
+            <div class="tab" onclick="switchTab('evidence')">Evidencias</div>
+        </div>
+
+        <div id="class-register" class="tab-content active">
+            <div class="card">
+                <h2 class="card-title"><i class="fas fa-school"></i> Datos de la Clase</h2>
+                <button class="btn btn-primary" onclick="fillDefaultData()">
+                    <i class="fas fa-magic"></i> Autocompletar datos
+                </button>
+                <div class="grid-3">
+                    <div class="form-group">
+                        <label for="schoolName">Nombre del Centro:</label>
+                        <input type="text" id="schoolName" placeholder="Nombre del Centro Educativo">
+                    </div>
+                    <div class="form-group">
+                        <label for="teacherName">Profesor:</label>
+                        <input type="text" id="teacherName" placeholder="Nombre del Profesor" value="Prof. Miguel Silverio">
+                    </div>
+                    <div class="form-group">
+                        <label for="grade">Grado:</label>
+                        <input type="text" id="grade" placeholder="Ej: 4to Contabilidad">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="subject">Materia:</label>
+                    <select id="subject" onchange="toggleOtherSubject()">
+                        <option value="">Seleccione una materia</option>
+                        <option value="Ofimática">Ofimática</option>
+                        <option value="Inglés Técnico">Inglés Técnico</option>
+                        <option value="Inglés Turístico">Inglés Turístico</option>
+                        <option value="Tecnologías Digitales">Tecnologías Digitales</option>
+                        <option value="Lengua Española">Lengua Española</option>
+                        <option value="Otra">Otra</option>
+                    </select>
+                    <input type="text" id="otherSubject" class="hidden" placeholder="Especifique la materia">
+                </div>
+            </div>
+
+            <div class="card">
+                <h2 class="card-title"><i class="fas fa-images"></i> Imágenes del Reporte</h2>
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label>Encabezado:</label>
+                        <button class="btn btn-primary" onclick="document.getElementById('headerImageInput').click()">
+                            <i class="fas fa-upload"></i> Seleccionar Encabezado
+                        </button>
+                        <input type="file" id="headerImageInput" accept="image/*" style="display: none;" onchange="handleHeaderImage(event)">
+                        <img id="headerImagePreview" class="header-image-preview" style="display: none;">
+                    </div>
+                    <div class="form-group">
+                        <label>Pie de página:</label>
+                        <button class="btn btn-primary" onclick="document.getElementById('footerImageInput').click()">
+                            <i class="fas fa-upload"></i> Seleccionar Pie de Página
+                        </button>
+                        <input type="file" id="footerImageInput" accept="image/*" style="display: none;" onchange="handleFooterImage(event)">
+                        <img id="footerImagePreview" class="footer-image-preview" style="display: none;">
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2 class="card-title"><i class="fas fa-clock"></i> Control de Tiempo</h2>
+                <div class="timeline">
+                    <div class="timeline-item">
+                        <strong>Inicio de Clase</strong>
+                        <span id="startTime">No iniciado</span><br><input type="time" id="manualStartTime" onchange="updateManualTime('start')">
+                    </div>
+                    <div class="timeline-item">
+                        <strong>Fin de Clase</strong>
+                        <span id="endTime">No finalizado</span><br><input type="time" id="manualEndTime" onchange="updateManualTime('end')">
+                    </div>
+                    <div class="timeline-item">
+                        <strong>Duración</strong>
+                        <span id="classDuration">--:--</span>
+                    </div>
+                </div>
+                <button class="btn btn-success" onclick="startClass()"><i class="fas fa-play"></i> Iniciar Clase</button>
+                <button class="btn btn-danger" onclick="endClass()"><i class="fas fa-stop"></i> Finalizar Clase</button>
+            </div>
+
+            <div class="card" id="studentManagementSection">
+                <h2 class="card-title"><i class="fas fa-user-graduate"></i> Gestión de Estudiantes</h2>
+                <button class="btn btn-primary add-student-btn"><i class="fas fa-plus"></i> Agregar Estudiante</button>
+                <div id="studentInputs" class="hidden"></div>
+            </div>
+
+            <div class="card">
+                <h2 class="card-title"><i class="fas fa-calendar-check"></i> Situaciones del Aula</h2>
+                <div class="form-group">
+                    <label for="classEvents">Descripción del evento:</label>
+                    <textarea id="classEvents" placeholder="Describe el evento ocurrido en clase..."></textarea>
+                </div>
+                <button class="btn btn-primary" onclick="addEvent()"><i class="fas fa-plus"></i> Agregar Evento</button>
+                
+                <h3 style="margin-top: 20px;">Eventos Registrados</h3>
+                <ul class="event-list" id="eventsList"></ul>
+            </div>
+
+            <div class="card">
+                <h2 class="card-title"><i class="fas fa-analytics"></i> Interpretación de lo Observado</h2>
+                <div class="form-group">
+                    <textarea id="interpretation" placeholder="Escribe tu interpretación de lo observado..."></textarea>
+                </div>
+                <button class="btn btn-primary" onclick="addInterpretation()"><i class="fas fa-plus"></i> Agregar Interpretación</button>
+                
+                <h3 style="margin-top: 20px;">Interpretaciones Registradas</h3>
+                <ul class="interpretation-list" id="interpretationsList"></ul>
+            </div>
+
+            <div class="card">
+                <h2 class="card-title"><i class="fas fa-chart-line"></i> Registro diario Conductas y Observaciones</h2>
+                
+                <div class="report-type-selector">
+                    <label><input type="radio" name="reportType" value="individual" checked onchange="toggleReportType()"> Reporte Individual</label>
+                    <label><input type="radio" name="reportType" value="multiple" onchange="toggleReportType()"> Reporte Múltiple</label>
+                    <label><input type="radio" name="reportType" value="general" onchange="toggleReportType()"> Reporte General del Curso</label>
+                </div>
+                
+                <div id="individualReportSection">
+                    <div class="form-group">
+                        <label for="studentNameInput">Nombre del Estudiante:</label>
+                        <input type="text" id="studentNameInput" placeholder="Escribe el nombre del estudiante">
+                    </div>
+                </div>
+                
+                <div id="multipleReportSection" style="display: none;">
+                    <div class="form-group">
+                        <label for="multipleStudents">Estudiantes (uno por línea):</label>
+                        <textarea id="multipleStudents" placeholder="Escribe los nombres de los estudiantes, uno por línea"></textarea>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>Seleccionar Emoji:</label>
+                    <div class="emoji-selector">
+                        <button class="emoji-btn" onclick="addParticipation('👍', 'positiva')">👍<span class="emoji-tooltip">Positiva</span></button>
+                        <button class="emoji-btn" onclick="addParticipation('👎', 'negativa')">👎<span class="emoji-tooltip">Negativa</span></button>
+                        <button class="emoji-btn" onclick="addParticipation('👏', 'participación')">👏<span class="emoji-tooltip">Participación</span></button>
+                        <button class="emoji-btn" onclick="addParticipation('😊', 'buena conducta')">😊<span class="emoji-tooltip">Buena conducta</span></button>
+                        <button class="emoji-btn" onclick="addParticipation('😞', 'mala conducta')">😞<span class="emoji-tooltip">Mala conducta</span></button>
+                        <button class="emoji-btn" onclick="addParticipation('❤️', 'ayuda a otros')">❤️<span class="emoji-tooltip">Ayuda a otros</span></button>
+                        <button class="emoji-btn" onclick="addParticipation('💡', 'buena idea')">💡<span class="emoji-tooltip">Buena idea</span></button>
+                        <button class="emoji-btn" onclick="addParticipation('⚠️', 'llamar la atención')">⚠️<span class="emoji-tooltip">Atención</span></button>
+                        <button class="emoji-btn" onclick="addParticipation('🚀', 'excelente trabajo')">🚀<span class="emoji-tooltip">Excelente trabajo</span></button>
+                        <button class="emoji-btn" onclick="addParticipation('🎯', 'objetivo cumplido')">🎯<span class="emoji-tooltip">Objetivo cumplido</span></button>
+                        <button class="emoji-btn" onclick="addParticipation('🤔', 'necesita mejorar')">🤔<span class="emoji-tooltip">Necesita mejorar</span></button>
+                        <button class="emoji-btn" onclick="addParticipation('😴', 'falta de atención')">😴<span class="emoji-tooltip">Sin atención</span></button>
+                        <button class="emoji-btn" onclick="addParticipation('⭐', 'destacado')">⭐<span class="emoji-tooltip">Destacado</span></button>
+                        <button class="emoji-btn" onclick="addParticipation('🙌', 'colaboración')">🙌<span class="emoji-tooltip">Colaboración</span></button>
+                        <button class="emoji-btn" onclick="addParticipation('🤝', 'acuerdo cumplido')">🤝<span class="emoji-tooltip">Acuerdo cumplido</span></button>
+                        <button class="emoji-btn" onclick="addParticipation('📚', 'estudio')">📚<span class="emoji-tooltip">Estudio</span></button>
+                        <button class="emoji-btn" onclick="addParticipation('🎉', 'celebración')">🎉<span class="emoji-tooltip">Celebración</span></button>
+                        <button class="emoji-btn" onclick="addParticipation('💪', 'esfuerzo')">💪<span class="emoji-tooltip">Esfuerzo</span></button>
+                        <button class="emoji-btn" onclick="addParticipation('🧠', 'inteligencia')">🧠<span class="emoji-tooltip">Inteligencia</span></button>
+                        <button class="emoji-btn" onclick="addParticipation('🌟', 'brillantez')">🌟<span class="emoji-tooltip">Brillantez</span></button>
+                        <button class="emoji-btn" onclick="addParticipation('🏆', 'triunfo')">🏆<span class="emoji-tooltip">Triunfo</span></button>
+                        <button class="emoji-btn" onclick="addParticipation('🔍', 'investigación')">🔍<span class="emoji-tooltip">Investigación</span></button>
+                        <button class="emoji-btn" onclick="addParticipation('💬', 'comunicación')">💬<span class="emoji-tooltip">Comunicación</span></button>
+                        <button class="emoji-btn" onclick="addParticipation('🤲', 'compartir')">🤲<span class="emoji-tooltip">Compartir</span></button>
+                        <button class="emoji-btn" onclick="addParticipation('🌱', 'crecimiento')">🌱<span class="emoji-tooltip">Crecimiento</span></button>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="participationComment">Comentario (opcional):</label>
+                    <textarea id="participationComment" placeholder="Agrega un comentario sobre la participación/conducta..."></textarea>
+                </div>
+                
+                <button class="btn btn-primary" onclick="registerParticipation()"><i class="fas fa-plus"></i> Registrar Participación/Conducta</button>
+                
+                <div class="participation-control">
+                    <h3>Registro diario Conductas y Observaciones</h3>
+                    <table class="participation-table">
+                        <thead>
+                            <tr>
+                                <th>Estudiante(s)</th>
+                                <th>Tipo</th>
+                                <th>Emoji</th>
+                                <th>Comentario</th>
+                                <th>Hora</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="participationList">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div id="reports" class="tab-content">
+            <div class="card">
+                <h2 class="card-title"><i class="fas fa-file-pdf"></i> Generar Reportes</h2>
+                <button class="btn btn-primary" onclick="generateReport()"><i class="fas fa-file-alt"></i> Generar Reporte</button>
+                <button class="btn btn-success" onclick="downloadPDF()"><i class="fas fa-download"></i> Descargar PDF</button>
+                <button class="btn btn-warning" onclick="showInasistenciaReportForm()"><i class="fas fa-user-times"></i> Reporte de Inasistencia</button>
+                <button class="btn btn-info" onclick="toggleAcuerdosForm()"><i class="fas fa-handshake"></i> Acuerdos Escolares</button>
+                <button class="btn btn-danger" onclick="saveReportToFirestore()"><i class="fas fa-cloud-upload-alt"></i> Guardar en Firebase</button>
+            </div>
+
+            <div id="inasistenciaReportForm" style="display: none;">
+                <div class="card">
+                    <h2 class="card-title"><i class="fas fa-exclamation-triangle"></i> Reporte de Inasistencia Consecutiva</h2>
+                    <div class="grid-2">
+                        <div class="form-group">
+                            <label for="studentNameInasistencia">Nombre del Estudiante:</label>
+                            <input type="text" id="studentNameInasistencia" placeholder="Nombre del Estudiante">
+                        </div>
+                        <div class="form-group">
+                            <label for="lastAttendanceDate">Última Fecha de Asistencia:</label>
+                            <input type="date" id="lastAttendanceDate">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="motivoInasistencia">Motivo del Reporte:</label>
+                        <textarea id="motivoInasistencia" placeholder="Escribe el motivo del reporte..."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="accionesRealizadas">Acciones Realizadas:</label>
+                        <textarea id="accionesRealizadas" placeholder="Escribe las acciones realizadas antes del reporte..."></textarea>
+                    </div>
+                    <button class="btn btn-primary" onclick="addInasistenciaReport()"><i class="fas fa-plus"></i> Agregar Reporte</button>
+                </div>
+            </div>
+
+            <div id="acuerdosForm" class="hidden">
+                <div class="card">
+                    <h2 class="card-title"><i class="fas fa-handshake"></i> Acuerdos y Compromisos Escolares</h2>
+                    
+                    <div class="form-group">
+                        <label for="acuerdoTituloSelect">Título del Acuerdo:</label>
+                        <select id="acuerdoTituloSelect" onchange="toggleAcuerdoOtro()">
+                            <option value="">Seleccione un acuerdo</option>
+                            <option value="Compromiso de puntualidad">Compromiso de puntualidad</option>
+                            <option value="Compromiso de entrega de tareas">Compromiso de entrega de tareas</option>
+                            <option value="Compromiso de comportamiento">Compromiso de comportamiento</option>
+                            <option value="Compromiso de participación">Compromiso de participación</option>
+                            <option value="Otro">Otro (especificar)</option>
+                        </select>
+                        <input type="text" id="acuerdoTituloOtro" class="hidden" placeholder="Especifique el acuerdo">
+                    </div>
+                    <div class="form-group">
+                        <label for="acuerdoDescripcion">Descripción:</label>
+                        <textarea id="acuerdoDescripcion" placeholder="Describe el acuerdo o compromiso..."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="acuerdoParticipantes">Participantes:</label>
+                        <textarea id="acuerdoParticipantes" placeholder="Nombres de los participantes..."></textarea>
+                    </div>
+                    <div class="grid-3">
+                        <div class="form-group">
+                            <label for="acuerdoFechaCompromiso">Fecha de Compromiso:</label>
+                            <input type="date" id="acuerdoFechaCompromiso">
+                        </div>
+                        <div class="form-group">
+                            <label for="acuerdoFechaSeguimiento">Fecha de Seguimiento:</label>
+                            <input type="date" id="acuerdoFechaSeguimiento">
+                        </div>
+                        <div class="form-group">
+                            <label for="acuerdoFechaEntrega">Fecha de Entrega:</label>
+                            <input type="date" id="acuerdoFechaEntrega">
+                        </div>
+                    </div>
+                    <button class="btn btn-primary" onclick="addAcuerdo()"><i class="fas fa-plus"></i> Agregar Acuerdo</button>
+                </div>
+                
+                <div class="card">
+                    <h3 class="card-title">Acuerdos Registrados</h3>
+                    <div id="acuerdosList"></div>
+                </div>
+            </div>
+
+            <div class="report-preview" id="reportPreview">
+                <p>Presiona "Generar Reporte" para ver la vista previa</p>
+            </div>
+        </div>
+
+        <div id="evidence" class="tab-content">
+            <div class="card">
+                <h2 class="card-title"><i class="fas fa-camera"></i> Capturar Evidencias</h2>
+                <p>Utiliza esta función para capturar evidencia de que los estudiantes han leído tu reporte.</p>
+                
+                <div class="grid-2">
+                    <button class="btn btn-primary" onclick="openCamera()"><i class="fas fa-camera"></i> Tomar Foto</button>
+                    <button class="btn btn-primary" onclick="document.getElementById('uploadFileInput').click()">
+                        <i class="fas fa-upload"></i> Subir Archivo
+                    </button>
+                    <input type="file" id="uploadFileInput" accept="image/*,.pdf,.doc,.docx,.xls,.xlsx" style="display: none;" onchange="handleFileUpload(event)">
+                </div>
+                
+                <div class="evidence-container">
+                    <h3>Evidencias Capturadas</h3>
+                    <div id="evidenceList"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer-nav">
+        <a href="javascript:void(0)" onclick="switchTab('class-register')" class="footer-nav-btn">
+            <i class="fas fa-chalkboard-teacher"></i>
+            <span>Registro</span>
+        </a>
+        <a href="javascript:void(0)" onclick="switchTab('reports')" class="footer-nav-btn">
+            <i class="fas fa-file-pdf"></i>
+            <span>Reportes</span>
+        </a>
+        <a href="javascript:void(0)" onclick="switchTab('evidence')" class="footer-nav-btn">
+            <i class="fas fa-camera"></i>
+            <span>Evidencias</span>
+        </a>
+        <a href="javascript:void(0)" onclick="addStudentForm()" class="footer-nav-btn">
+            <i class="fas fa-user-plus"></i>
+            <span>Agregar Estudiante</span>
+        </a>
+    </div>
+
+    <div id="cameraModal" class="modal">
+        <div class="modal-content">
+            <h2><i class="fas fa-camera"></i> Capturar Evidencia</h2>
+            <p>Pide al estudiante que se situé frente a la cámara mientras lee el reporte.</p>
+            
+            <video id="video" class="camera-feed" autoplay></video>
+            <canvas id="canvas" style="display: none;"></canvas>
+            
+            <div>
+                <button class="btn btn-success" onclick="capturePhoto()"><i class="fas fa-camera"></i> Capturar Foto</button>
+                <button class="btn btn-danger" onclick="closeCamera()"><i class="fas fa-times"></i> Cerrar</button>
+            </div>
+            
+            <img id="photoPreview" class="photo-preview" style="display: none;">
+            
+            <div id="captureActions" style="display: none; margin-top: 1rem;">
+                <div class="form-group">
+                    <label for="evidenceObservation">Observaciones:</label>
+                    <textarea id="evidenceObservation" placeholder="Agregar observaciones sobre esta evidencia..."></textarea>
+                </div>
+                <button class="btn btn-primary" onclick="savePhoto()"><i class="fas fa-save"></i> Guardar Evidencia</button>
+                <button class="btn" onclick="retakePhoto()"><i class="fas fa-redo"></i> Volver a Capturar</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="editParticipationModal" class="modal">
+        <div class="edit-modal-content">
+            <h2><i class="fas fa-edit"></i> Editar Participación/Conducta</h2>
+            
+            <div class="form-group">
+                <label for="editStudentName">Nombre del Estudiante:</label>
+                <input type="text" id="editStudentName" placeholder="Nombre del estudiante">
+            </div>
+            
+            <div class="form-group">
+                <label for="editComment">Comentario:</label>
+                <textarea id="editComment" placeholder="Agrega un comentario sobre la participación/conducta..." rows="4"></textarea>
+            </div>
+            
+            <input type="hidden" id="editIndex">
+            
+            <button class="btn btn-primary" onclick="saveEditedParticipation()"><i class="fas fa-save"></i> Guardar Cambios</button>
+            <button class="btn btn-danger" onclick="closeEditModal()"><i class="fas fa-times"></i> Cancelar</button>
+        </div>
+    </div>
+
+    <!-- Firebase Scripts -->
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+
+    <script>
+        // ✅ CONFIGURACIÓN FIREBASE
+        const firebaseConfig = {
+            apiKey: "AIzaSyCY14LkfciAkiQK8tqFedBR1oNsSJYy_NM",
+            authDomain: "registro-anecdotico-4e9f9.firebaseapp.com",
+            projectId: "registro-anecdotico-4e9f9",
+            storageBucket: "registro-anecdotico-4e9f9.appspot.com",
+            messagingSenderId: "1090150651792",
+            appId: "1:1090150651792:web:7235a82869df91969a5840"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        const auth = firebase.auth();
+
+        console.log("🔥 Firebase conectado en modo COMPAT");
+
+        // ✅ VARIABLES GLOBALES
+        let students = [];
+        let events = [];
+        let interpretations = [];
+        let inasistenciaReports = [];
+        let acuerdos = [];
+        let startTime = null;
+        let endTime = null;
+        let classDurationInterval = null;
+        let capturedEvidence = [];
+        let stream = null;
+        let headerImage = null;
+        let footerImage = null;
+        let participationRecords = [];
+        let currentStudentIndex = 1;
+        let outsideStudents = [];
+        let outsideStudentsInterval = null;
+        let currentUser = null;
+
+        // ✅ FUNCIONES DE UTILIDAD
+        function updateManualTime(type) {
+            if (type === 'start') {
+                const manual = document.getElementById('manualStartTime').value;
+                if (manual) document.getElementById('startTime').textContent = manual;
+            } else if (type === 'end') {
+                const manual = document.getElementById('manualEndTime').value;
+                if (manual) document.getElementById('endTime').textContent = manual;
+            }
+        }
+
+        function navigateToStudentSection() {
+            switchTab('class-register');
+            document.getElementById('studentManagementSection').scrollIntoView({ behavior: 'smooth' });
+            toggleStudentForm();
+        }
+
+        function fillDefaultData() {
+            document.getElementById('schoolName').value = "Politécnico Santo Esteban Rivera";
+            document.getElementById('teacherName').value = "Miguel Silverio";
+            document.getElementById('subject').value = "Inglés";
+            showNotification("Datos autocompletados correctamente", "success");
+        }
+
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            
+            const tabIndex = Array.from(document.querySelectorAll('.tab')).findIndex(t => 
+                t.getAttribute('onclick').includes(tabId)
+            );
+            
+            if (tabIndex >= 0) {
+                document.querySelectorAll('.tab')[tabIndex].classList.add('active');
+            }
+            document.getElementById(tabId).classList.add('active');
+        }
+
+        function toggleReportType() {
+            const reportType = document.querySelector('input[name="reportType"]:checked').value;
+            document.getElementById('individualReportSection').style.display = 'none';
+            document.getElementById('multipleReportSection').style.display = 'none';
+            
+            if (reportType === 'individual') {
+                document.getElementById('individualReportSection').style.display = 'block';
+            } else if (reportType === 'multiple') {
+                document.getElementById('multipleReportSection').style.display = 'block';
+            }
+        }
+
+        function showInasistenciaReportForm() {
+            document.getElementById("inasistenciaReportForm").style.display = "block";
+            document.getElementById("acuerdosForm").classList.add("hidden");
+        }
+
+        function toggleAcuerdosForm() {
+            const acuerdosForm = document.getElementById("acuerdosForm");
+            if (acuerdosForm.classList.contains("hidden")) {
+                acuerdosForm.classList.remove("hidden");
+                document.getElementById("inasistenciaReportForm").style.display = "none";
+                updateAcuerdosList();
+            } else {
+                acuerdosForm.classList.add("hidden");
+            }
+        }
+
+        function toggleOtherSubject() {
+            const subjectSelect = document.getElementById('subject');
+            const otherSubjectInput = document.getElementById('otherSubject');
+            otherSubjectInput.classList.toggle('hidden', subjectSelect.value !== 'Otra');
+        }
+
+        function toggleAcuerdoOtro() {
+            const select = document.getElementById('acuerdoTituloSelect');
+            const otroInput = document.getElementById('acuerdoTituloOtro');
+            otroInput.classList.toggle('hidden', select.value !== 'Otro');
+        }
+
+        function toggleCompromisoOtro() {
+            const select = document.getElementById('compromisosSelect');
+            const otroInput = document.getElementById('compromisoOtro');
+            const textarea = document.getElementById('acuerdoCompromisos');
+            
+            otroInput.classList.toggle('hidden', select.value !== 'Otro');
+            if (select.value && select.value !== 'Otro') {
+                textarea.value = select.value;
+                textarea.classList.remove('hidden');
+            } else {
+                textarea.classList.add('hidden');
+            }
+        }
+
+        function handleHeaderImage(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    headerImage = e.target.result;
+                    const preview = document.getElementById('headerImagePreview');
+                    preview.src = headerImage;
+                    preview.style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function handleFooterImage(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    footerImage = e.target.result;
+                    const preview = document.getElementById('footerImagePreview');
+                    preview.src = footerImage;
+                    preview.style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function handleFileUpload(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    capturedEvidence.push({
+                        type: file.type.includes('image') ? "image" : "document",
+                        data: e.target.result,
+                        timestamp: new Date(),
+                        formattedTime: formatDateTime(new Date()),
+                        filename: file.name,
+                        observation: ""
+                    });
+                    updateEvidenceList();
+                    showNotification("Archivo subido correctamente", "success");
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function startClass() {
+            startTime = new Date();
+            document.getElementById("startTime").textContent = formatDateTime(startTime);
+            if (classDurationInterval) clearInterval(classDurationInterval);
+            classDurationInterval = setInterval(updateClassDuration, 1000);
+            showNotification("Clase iniciada", "success");
+        }
+
+        function endClass() {
+            endTime = new Date();
+            document.getElementById("endTime").textContent = formatDateTime(endTime);
+            if (classDurationInterval) clearInterval(classDurationInterval);
+            updateClassDuration();
+            showNotification("Clase finalizada", "success");
+        }
+
+        function updateClassDuration() {
+            if (!startTime) return;
+            const now = endTime || new Date();
+            const duration = Math.floor((now - startTime) / 1000);
+            const hours = Math.floor(duration / 3600);
+            const minutes = Math.floor((duration % 3600) / 60);
+            const seconds = duration % 60;
+            document.getElementById("classDuration").textContent = 
+                `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        }
+
+        function toggleStudentForm() {
+            const studentInputs = document.getElementById("studentInputs");
+            studentInputs.classList.toggle("hidden");
+        }
+
+        function addStudentForm() {
+            navigateToStudentSection();
+        }
+
+        function addStudentFormFields() {
+            const studentCount = currentStudentIndex;
+            const studentForm = `
+                <div id="student${studentCount}" class="student-box">
+                    <h3>Estudiante ${studentCount}</h3>
+                    <div class="grid-2">
+                        <div class="form-group">
+                            <label>Nombre:</label>
+                            <input type="text" id="studentNameInput${studentCount}" placeholder="Nombre del estudiante">
+                        </div>
+                        <div class="form-group">
+                            <label>Razón:</label>
+                            <input type="text" id="reason${studentCount}" placeholder="Razón de salida">
+                        </div>
+                    </div>
+                    <button class="btn btn-sm btn-warning" onclick="startStudentTimer(${studentCount})"><i class="fas fa-sign-out-alt"></i> Registrar Salida</button>
+                    <button class="btn btn-sm btn-success" onclick="stopStudentTimer(${studentCount})"><i class="fas fa-sign-in-alt"></i> Registrar Retorno</button>
+                    <div class="timer-display" id="timer${studentCount}">00:00</div>
+                    <p id="exitTime${studentCount}"></p>
+                    <p id="returnTime${studentCount}"></p>
+                    <p id="totalTime${studentCount}"></p>
+                </div>
+            `;
+            document.getElementById("studentInputs").insertAdjacentHTML('beforeend', studentForm);
+            students.push({ 
+                name: "", 
+                reason: "", 
+                startTime: null, 
+                returnTime: null, 
+                duration: 0, 
+                comment: "",
+                timerInterval: null,
+                timerElement: `timer${studentCount}`
+            });
+            currentStudentIndex++;
+        }
+
+        function startStudentTimer(studentIndex) {
+            const student = students[studentIndex - 1];
+            student.name = document.getElementById(`studentNameInput${studentIndex}`).value;
+            student.reason = document.getElementById(`reason${studentIndex}`).value;
+            
+            if (!student.name || !student.reason) {
+                showNotification("Completa los campos antes de registrar la salida", "error");
+                return;
+            }
+            
+            student.startTime = new Date();
+            document.getElementById(`exitTime${studentIndex}`).textContent = `Hora de salida: ${formatDateTime(student.startTime)}`;
+            document.getElementById(`student${studentIndex}`).style.borderLeftColor = "#e74c3c";
+            
+            student.timerInterval = setInterval(() => {
+                const elapsed = new Date() - student.startTime;
+                const minutes = Math.floor(elapsed / 60000);
+                const seconds = Math.floor((elapsed % 60000) / 1000);
+                document.getElementById(`timer${studentIndex}`).innerText = 
+                    `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            }, 1000);
+            
+            outsideStudents.push({
+                id: studentIndex,
+                name: student.name,
+                reason: student.reason,
+                startTime: student.startTime,
+                timerInterval: student.timerInterval
+            });
+            
+            updateOutsideStudentsList();
+            showNotification(`Salida registrada para ${student.name}`, "success");
+        }
+
+        function stopStudentTimer(studentIndex) {
+            const student = students[studentIndex - 1];
+            
+            if (!student.startTime) {
+                showNotification("Primero debe registrar la salida del estudiante", "error");
+                return;
+            }
+            
+            student.returnTime = new Date();
+            clearInterval(student.timerInterval);
+            
+            const duration = Math.floor((student.returnTime - student.startTime) / 60000);
+            student.duration = duration;
+            
+            document.getElementById(`returnTime${studentIndex}`).textContent = `Hora de retorno: ${formatDateTime(student.returnTime)}`;
+            document.getElementById(`totalTime${studentIndex}`).textContent = `Tiempo fuera: ${duration} minutos`;
+            
+            if (duration <= 2) {
+                student.comment = "Regresó en un tiempo prudente.";
+            } else if (duration <= 3) {
+                student.comment = "Regresó con una ligera demora.";
+            } else {
+                student.comment = "Regresó con una tardanza considerable.";
+            }
+            
+            document.getElementById(`student${studentIndex}`).style.borderLeftColor = "#3498db";
+            document.getElementById(`student${studentIndex}`).style.display = "none";
+            document.getElementById(`studentNameInput${studentIndex}`).value = "";
+            document.getElementById(`reason${studentIndex}`).value = "";
+            document.getElementById(`timer${studentIndex}`).innerText = "00:00";
+            
+            outsideStudents = outsideStudents.filter(s => s.id !== studentIndex);
+            updateOutsideStudentsList();
+            
+            showNotification(`Retorno registrado para ${student.name}`, "success");
+        }
+
+        function updateOutsideStudentsList() {
+            const outsideList = document.getElementById("outsideStudentsList");
+            const indicator = document.getElementById("studentOutsideIndicator");
+            if (!outsideList || !indicator) return;
+            
+            if (outsideStudents.length === 0) {
+                indicator.style.display = "none";
+                return;
+            }
+            
+            indicator.style.display = "block";
+            const existing = {};
+            Array.from(outsideList.children).forEach(child => {
+                const id = child.getAttribute('data-student-id');
+                if (id) existing[id] = child;
+            });
+            
+            outsideStudents.forEach(student => {
+                const sid = String(student.id);
+                const now = new Date();
+                const elapsed = Math.floor((now - student.startTime) / 1000);
+                const minutes = Math.floor(elapsed / 60);
+                const seconds = elapsed % 60;
+                const timeText = `${minutes.toString().padStart(2,'0')}:${seconds.toString().padStart(2,'0')}`;
+                
+                if (existing[sid]) {
+                    const el = existing[sid];
+                    const timeEl = el.querySelector('.student-time');
+                    const nameEl = el.querySelector('.student-name');
+                    const reasonEl = el.querySelector('.student-reason');
+                    if (timeEl) timeEl.textContent = timeText;
+                    if (nameEl) nameEl.textContent = student.name;
+                    if (reasonEl) reasonEl.textContent = student.reason;
+                    delete existing[sid];
+                } else {
+                    const studentElement = document.createElement("div");
+                    studentElement.className = "outside-student";
+                    studentElement.setAttribute('data-student-id', sid);
+                    studentElement.innerHTML = `
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <div style="display:flex; align-items:center; gap:8px;">
+                                <span class="blinking-light red-light"></span>
+                                <span class="student-name"><strong>${student.name}</strong></span>
+                            </div>
+                            <span class="student-time">${timeText}</span>
+                        </div>
+                        <div class="student-reason">${student.reason}</div>
+                        <button class="btn btn-sm btn-success" onclick="stopStudentTimer(${student.id})" style="margin-top: 8px;">
+                            <i class="fas fa-sign-in-alt"></i> Registrar Retorno
+                        </button>
+                    `;
+                    outsideList.appendChild(studentElement);
+                }
+            });
+            
+            Object.keys(existing).forEach(id => {
+                const node = existing[id];
+                if (node && node.parentNode) node.parentNode.removeChild(node);
+            });
+        }
+
+        function addEvent() {
+            const eventText = document.getElementById("classEvents").value;
+            if (!eventText.trim()) {
+                showNotification("Escribe un evento antes de agregarlo", "error");
+                return;
+            }
+            
+            events.push({
+                text: eventText,
+                time: new Date(),
+                formattedTime: formatDateTime(new Date())
+            });
+            
+            updateEventsList();
+            document.getElementById("classEvents").value = "";
+            showNotification("Evento agregado correctamente", "success");
+        }
+
+        function updateEventsList() {
+            const eventsList = document.getElementById("eventsList");
+            if (!eventsList) return;
+            eventsList.innerHTML = "";
+            
+            events.forEach((event, index
