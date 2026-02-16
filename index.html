@@ -1406,4 +1406,813 @@
             if (!eventsList) return;
             eventsList.innerHTML = "";
             
-            events.forEach((event, index
+                        events.forEach((event, index) => {
+                const li = document.createElement("li");
+                li.className = "event-item";
+                li.innerHTML = `
+                    <div style="display:flex; justify-content:space-between; align-items:center; gap:10px;">
+                        <div>
+                            <strong>Evento ${index + 1}:</strong> ${event.text}
+                            <div class="event-time">${event.formattedTime}</div>
+                        </div>
+                        <div style="display:flex; gap:6px;">
+                            <button class="btn btn-sm btn-primary" onclick="editEvent(${index})"><i class="fas fa-edit"></i> Editar</button>
+                            <button class="btn btn-sm btn-danger" onclick="deleteEvent(${index})"><i class="fas fa-trash"></i> Eliminar</button>
+                        </div>
+                    </div>
+                `;
+                eventsList.appendChild(li);
+            });
+        }
+
+        function addInterpretation() {
+            const interpretationText = document.getElementById("interpretation").value;
+            if (!interpretationText.trim()) {
+                showNotification("Escribe una interpretación antes de agregarla", "error");
+                return;
+            }
+            
+            interpretations.push({
+                text: interpretationText,
+                time: new Date(),
+                formattedTime: formatDateTime(new Date())
+            });
+            
+            updateInterpretationsList();
+            document.getElementById("interpretation").value = "";
+            showNotification("Interpretación agregada correctamente", "success");
+        }
+
+        function updateInterpretationsList() {
+            const interpretationsList = document.getElementById("interpretationsList");
+            if (!interpretationsList) return;
+            interpretationsList.innerHTML = "";
+            
+            interpretations.forEach((interpretation, index) => {
+                const li = document.createElement("li");
+                li.className = "interpretation-item";
+                li.innerHTML = `
+                    <div style="display:flex; justify-content:space-between; align-items:center; gap:10px;">
+                        <div>
+                            <strong>Interpretación ${index + 1}:</strong> ${interpretation.text}
+                            <div class="interpretation-time">${interpretation.formattedTime}</div>
+                        </div>
+                        <div style="display:flex; gap:6px;">
+                            <button class="btn btn-sm btn-primary" onclick="editInterpretation(${index})"><i class="fas fa-edit"></i> Editar</button>
+                            <button class="btn btn-sm btn-danger" onclick="deleteInterpretation(${index})"><i class="fas fa-trash"></i> Eliminar</button>
+                        </div>
+                    </div>
+                `;
+                interpretationsList.appendChild(li);
+            });
+        }
+
+        function addInasistenciaReport() {
+            const studentName = document.getElementById("studentNameInasistencia").value;
+            const lastAttendanceDate = document.getElementById("lastAttendanceDate").value;
+            const motivo = document.getElementById("motivoInasistencia").value;
+            const acciones = document.getElementById("accionesRealizadas").value;
+            
+            if (!studentName || !lastAttendanceDate || !motivo || !acciones) {
+                showNotification("Completa todos los campos antes de agregar el reporte", "error");
+                return;
+            }
+            
+            inasistenciaReports.push({
+                studentName,
+                lastAttendanceDate,
+                motivo,
+                acciones,
+                reportDate: formatDate(new Date()),
+                teacherName: document.getElementById("teacherName").value || "Prof. Miguel Silverio",
+                grade: document.getElementById("grade").value,
+                subject: document.getElementById("subject").value
+            });
+            
+            document.getElementById("studentNameInasistencia").value = "";
+            document.getElementById("lastAttendanceDate").value = "";
+            document.getElementById("motivoInasistencia").value = "";
+            document.getElementById("accionesRealizadas").value = "";
+            document.getElementById("inasistenciaReportForm").style.display = "none";
+            
+            showNotification("Reporte de inasistencia agregado correctamente", "success");
+        }
+
+        function addAcuerdo() {
+            let titulo = document.getElementById("acuerdoTituloSelect").value;
+            if (titulo === "Otro") {
+                titulo = document.getElementById("acuerdoTituloOtro").value;
+            }
+            
+            const descripcion = document.getElementById("acuerdoDescripcion").value;
+            const participantes = document.getElementById("acuerdoParticipantes").value;
+            const fechaCompromiso = document.getElementById("acuerdoFechaCompromiso").value;
+            const fechaSeguimiento = document.getElementById("acuerdoFechaSeguimiento").value;
+            const fechaEntrega = document.getElementById("acuerdoFechaEntrega").value;
+            
+            if (!titulo || !descripcion) {
+                showNotification("Completa al menos el título y la descripción del acuerdo", "error");
+                return;
+            }
+            
+            const teacherName = document.getElementById("teacherName").value || "Prof. Miguel Silverio";
+            const grade = document.getElementById("grade").value;
+            const subjectSelect = document.getElementById("subject");
+            const subject = subjectSelect.value === "Otra" ? document.getElementById("otherSubject").value : subjectSelect.value;
+            const schoolName = document.getElementById("schoolName").value;
+            
+            acuerdos.push({
+                titulo,
+                descripcion,
+                participantes,
+                fechaCompromiso: formatDate(new Date(fechaCompromiso)),
+                fechaSeguimiento: formatDate(new Date(fechaSeguimiento)),
+                fechaEntrega: formatDate(new Date(fechaEntrega)),
+                fechaCreacion: formatDate(new Date()),
+                teacherName,
+                grade,
+                subject,
+                schoolName
+            });
+            
+            document.getElementById("acuerdoTituloSelect").value = "";
+            document.getElementById("acuerdoTituloOtro").value = "";
+            document.getElementById("acuerdoTituloOtro").classList.add("hidden");
+            document.getElementById("acuerdoDescripcion").value = "";
+            document.getElementById("acuerdoParticipantes").value = "";
+            document.getElementById("acuerdosForm").classList.add("hidden");
+            
+            updateAcuerdosList();
+            showNotification("Acuerdo escolar agregado correctamente", "success");
+        }
+
+        function updateAcuerdosList() {
+            const acuerdosList = document.getElementById("acuerdosList");
+            acuerdosList.innerHTML = "";
+            
+            if (acuerdos.length === 0) {
+                acuerdosList.innerHTML = "<p>No hay acuerdos registrados aún.</p>";
+                return;
+            }
+            
+            acuerdos.forEach((acuerdo, index) => {
+                const acuerdoItem = document.createElement("div");
+                acuerdoItem.className = "acuerdo-item";
+                
+                acuerdoItem.innerHTML = `
+                    <h4>${acuerdo.titulo}</h4>
+                    <p><strong>Fecha de creación:</strong> ${acuerdo.fechaCreacion}</p>
+                    <p><strong>Descripción:</strong> ${acuerdo.descripcion}</p>
+                    ${acuerdo.participantes ? `<p><strong>Participantes:</strong> ${acuerdo.participantes}</p>` : ''}
+                    <p><strong>Fecha de compromiso:</strong> ${acuerdo.fechaCompromiso}</p>
+                    <p><strong>Fecha de seguimiento:</strong> ${acuerdo.fechaSeguimiento}</p>
+                    <p><strong>Fecha de entrega:</strong> ${acuerdo.fechaEntrega}</p>
+                    <button class="btn btn-sm btn-danger" onclick="deleteAcuerdo(${index})"><i class="fas fa-trash"></i> Eliminar</button>
+                `;
+                
+                acuerdosList.appendChild(acuerdoItem);
+            });
+        }
+
+        function deleteAcuerdo(index) {
+            acuerdos.splice(index, 1);
+            updateAcuerdosList();
+            showNotification("Acuerdo eliminado", "info");
+        }
+
+        function addParticipation(emoji, type) {
+            document.getElementById("participationComment").value += ` ${emoji} (${type})`;
+        }
+
+        function registerParticipation() {
+            const reportType = document.querySelector('input[name="reportType"]:checked').value;
+            const comment = document.getElementById("participationComment").value;
+            
+            let studentsList = [];
+            
+            if (reportType === "individual") {
+                const studentName = document.getElementById("studentNameInput").value;
+                
+                if (!studentName.trim()) {
+                    showNotification("Escribe el nombre del estudiante para el reporte individual", "error");
+                    return;
+                }
+                
+                studentsList = [studentName];
+            } else if (reportType === "multiple") {
+                const multipleStudentsText = document.getElementById("multipleStudents").value;
+                
+                if (!multipleStudentsText.trim()) {
+                    showNotification("Escribe los nombres de los estudiantes para el reporte múltiple", "error");
+                    return;
+                }
+                
+                studentsList = multipleStudentsText.split('\n')
+                    .map(name => name.trim())
+                    .filter(name => name !== "");
+            } else if (reportType === "general") {
+                studentsList = ["Todo el curso"];
+            }
+            
+            studentsList.forEach(studentName => {
+                participationRecords.push({
+                    studentName,
+                    comment,
+                    time: new Date(),
+                    formattedTime: formatDateTime(new Date())
+                });
+            });
+            
+            updateParticipationList();
+            document.getElementById("participationComment").value = "";
+            document.getElementById("studentNameInput").value = "";
+            document.getElementById("multipleStudents").value = "";
+            
+            showNotification("Participación/conducta registrada correctamente", "success");
+        }
+
+        function updateParticipationList() {
+            const participationList = document.getElementById("participationList");
+            participationList.innerHTML = "";
+            
+            if (participationRecords.length === 0) {
+                participationList.innerHTML = "<tr><td colspan='6'>No hay registros de participación/conducta aún.</td></tr>";
+                return;
+            }
+            
+            participationRecords.forEach((record, index) => {
+                const row = document.createElement("tr");
+                
+                const emojiMatch = record.comment.match(/([\u{1F300}-\u{1F9FF}])/gu);
+                const emoji = emojiMatch ? emojiMatch[0] : "📝";
+                
+                const typeMatch = record.comment.match(/\(([^)]+)\)/);
+                const type = typeMatch ? typeMatch[1] : "comentario";
+                
+                let badgeClass = "badge-neutral";
+                if (type.includes("positiva") || type.includes("buena") || type.includes("participación") || 
+                    type.includes("ayuda") || type.includes("excelente") || type.includes("objetivo") || 
+                    type.includes("destacado") || type.includes("colaboración")) {
+                    badgeClass = "badge-positive";
+                } else if (type.includes("negativa") || type.includes("mala") || type.includes("atención") || 
+                           type.includes("mejorar") || type.includes("falta")) {
+                    badgeClass = "badge-negative";
+                }
+                
+                row.innerHTML = `
+                    <td>${record.studentName}</td>
+                    <td><span class="participation-badge ${badgeClass}">${type}</span></td>
+                    <td>${emoji}</td>
+                    <td>${record.comment}</td>
+                    <td>${record.formattedTime}</td>
+                    <td>
+                        <button class="btn btn-sm btn-primary" onclick="editParticipation(${index})"><i class="fas fa-edit"></i></button>
+                        <button class="btn btn-sm btn-danger" onclick="deleteParticipation(${index})"><i class="fas fa-trash"></i></button>
+                    </td>
+                `;
+                
+                participationList.appendChild(row);
+            });
+        }
+
+        function editParticipation(index) {
+            const record = participationRecords[index];
+            document.getElementById('editStudentName').value = record.studentName;
+            document.getElementById('editComment').value = record.comment;
+            document.getElementById('editIndex').value = index;
+            document.getElementById('editParticipationModal').style.display = 'flex';
+        }
+
+        function closeEditModal() {
+            document.getElementById('editParticipationModal').style.display = 'none';
+        }
+
+        function addEmojiToEdit(emoji, type) {
+            const commentTextarea = document.getElementById('editComment');
+            commentTextarea.value += ` ${emoji} (${type})`;
+        }
+
+        function saveEditedParticipation() {
+            const index = document.getElementById('editIndex').value;
+            if (index === "") return;
+            
+            const studentName = document.getElementById('editStudentName').value;
+            const comment = document.getElementById('editComment').value;
+            
+            if (!studentName) {
+                showNotification("El nombre del estudiante es obligatorio", "error");
+                return;
+            }
+            
+            participationRecords[index].studentName = studentName;
+            participationRecords[index].comment = comment;
+            
+            updateParticipationList();
+            closeEditModal();
+            showNotification("Registro actualizado correctamente", "success");
+        }
+
+        function deleteParticipation(index) {
+            participationRecords.splice(index, 1);
+            updateParticipationList();
+            showNotification("Registro de participación eliminado", "info");
+        }
+
+        function openCamera() {
+            const modal = document.getElementById("cameraModal");
+            modal.style.display = "flex";
+            
+            const video = document.getElementById("video");
+            
+            if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+                navigator.mediaDevices.getUserMedia({ video: true })
+                    .then(function(mediaStream) {
+                        video.srcObject = mediaStream;
+                        stream = mediaStream;
+                    })
+                    .catch(function(error) {
+                        console.error("Error al acceder a la cámara: ", error);
+                        showNotification("Error al acceder a la cámara", "error");
+                    });
+            } else {
+                showNotification("Tu navegador no soporta acceso a la cámara", "error");
+            }
+        }
+
+        function closeCamera() {
+            const modal = document.getElementById("cameraModal");
+            modal.style.display = "none";
+            
+            if (stream) {
+                stream.getTracks().forEach(track => track.stop());
+                stream = null;
+            }
+            
+            document.getElementById("photoPreview").style.display = "none";
+            document.getElementById("captureActions").style.display = "none";
+            const video = document.getElementById("video");
+            video.style.display = "block";
+        }
+
+        function capturePhoto() {
+            const video = document.getElementById("video");
+            const canvas = document.getElementById("canvas");
+            const context = canvas.getContext('2d');
+            const photoPreview = document.getElementById("photoPreview");
+            
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+            
+            photoPreview.src = canvas.toDataURL('image/png');
+            photoPreview.style.display = "block";
+            
+            video.style.display = "none";
+            document.getElementById("captureActions").style.display = "block";
+        }
+
+        function retakePhoto() {
+            const video = document.getElementById("video");
+            const photoPreview = document.getElementById("photoPreview");
+            
+            video.style.display = "block";
+            photoPreview.style.display = "none";
+            document.getElementById("captureActions").style.display = "none";
+        }
+
+        function savePhoto() {
+            const canvas = document.getElementById("canvas");
+            const imageData = canvas.toDataURL('image/png');
+            const observation = document.getElementById("evidenceObservation").value;
+            
+            capturedEvidence.push({
+                type: "image",
+                data: imageData,
+                timestamp: new Date(),
+                formattedTime: formatDateTime(new Date()),
+                filename: "foto_evidencia.png",
+                observation: observation
+            });
+            
+            updateEvidenceList();
+            document.getElementById("evidenceObservation").value = "";
+            closeCamera();
+            showNotification("Evidencia capturada correctamente", "success");
+        }
+
+        function updateEvidenceList() {
+            const evidenceList = document.getElementById("evidenceList");
+            evidenceList.innerHTML = "";
+            
+            if (capturedEvidence.length === 0) {
+                evidenceList.innerHTML = "<p>No hay evidencias capturadas aún.</p>";
+                return;
+            }
+            
+            capturedEvidence.forEach((evidence, index) => {
+                const evidenceItem = document.createElement("div");
+                evidenceItem.className = "evidence-item";
+                
+                if (evidence.type === "image") {
+                    evidenceItem.innerHTML = `
+                        <p><strong>Foto de evidencia</strong> - ${evidence.formattedTime}</p>
+                        <img src="${evidence.data}" class="evidence-image" alt="Evidencia ${index + 1}">
+                    `;
+                } else if (evidence.type === "document") {
+                    evidenceItem.innerHTML = `
+                        <p><strong>Documento:</strong> ${evidence.filename} - ${evidence.formattedTime}</p>
+                        <a href="${evidence.data}" download="${evidence.filename}" class="btn btn-sm btn-primary">
+                            <i class="fas fa-download"></i> Descargar documento
+                        </a>
+                    `;
+                }
+                
+                if (evidence.observation) {
+                    evidenceItem.innerHTML += `
+                        <p><strong>Observaciones:</strong> ${evidence.observation}</p>
+                    `;
+                }
+                
+                evidenceItem.innerHTML += `
+                    <div class="form-group evidence-observation">
+                        <label>Agregar/Editar observaciones:</label>
+                        <textarea id="evidenceObservation${index}" placeholder="Agregar observaciones sobre esta evidencia...">${evidence.observation || ''}</textarea>
+                        <button class="btn btn-sm btn-primary" onclick="updateEvidenceObservation(${index})">
+                            <i class="fas fa-save"></i> Guardar observación
+                        </button>
+                    </div>
+                    <button class="btn btn-sm btn-danger" onclick="deleteEvidence(${index})"><i class="fas fa-trash"></i> Eliminar</button>
+                    <hr>
+                `;
+                
+                evidenceList.appendChild(evidenceItem);
+            });
+        }
+
+        function updateEvidenceObservation(index) {
+            const observation = document.getElementById(`evidenceObservation${index}`).value;
+            capturedEvidence[index].observation = observation;
+            showNotification("Observación guardada correctamente", "success");
+        }
+
+        function deleteEvidence(index) {
+            capturedEvidence.splice(index, 1);
+            updateEvidenceList();
+            showNotification("Evidencia eliminada", "info");
+        }
+
+        function editEvent(index) {
+            const current = events[index];
+            if (!current) return;
+            const nuevo = prompt('Editar evento:', current.text);
+            if (nuevo === null) return;
+            events[index].text = nuevo.trim();
+            updateEventsList();
+            showNotification('Evento editado', 'success');
+        }
+
+        function deleteEvent(index) {
+            if (!confirm('¿Eliminar este evento?')) return;
+            events.splice(index, 1);
+            updateEventsList();
+            showNotification('Evento eliminado', 'info');
+        }
+
+        function editInterpretation(index) {
+            const current = interpretations[index];
+            if (!current) return;
+            const nuevo = prompt('Editar interpretación:', current.text);
+            if (nuevo === null) return;
+            interpretations[index].text = nuevo.trim();
+            updateInterpretationsList();
+            showNotification('Interpretación editada', 'success');
+        }
+
+        function deleteInterpretation(index) {
+            if (!confirm('¿Eliminar esta interpretación?')) return;
+            interpretations.splice(index, 1);
+            updateInterpretationsList();
+            showNotification('Interpretación eliminada', 'info');
+        }
+
+        function generateReport() {
+            const teacherName = document.getElementById("teacherName").value || "Prof. Miguel Silverio";
+            const grade = document.getElementById("grade").value;
+            const subjectSelect = document.getElementById("subject");
+            const subject = subjectSelect.value === "Otra" ? document.getElementById("otherSubject").value : subjectSelect.value;
+            const schoolName = document.getElementById("schoolName").value;
+            const date = formatDate(new Date());
+            
+            let content = '';
+            
+            if (headerImage) {
+                content += `<div style="text-align: center; margin-bottom: 20px;">
+                    <img src="${headerImage}" style="max-width: 100%;">
+                </div>`;
+            }
+            
+            content += `
+                <div class="report-header">
+                    <h2>REGISTRO ANECDÓTICO DE ${grade}</h2>
+                    <p><strong>Centro Educativo:</strong> ${schoolName}</p>
+                    <p><strong>Fecha:</strong> ${date}</p>
+                </div>
+                
+                <div class="report-section">
+                    <h3>Información General</h3>
+                    <p><strong>Profesor:</strong> ${teacherName}</p>
+                    <p><strong>Grado/Sección:</strong> ${grade}</p>
+                    <p><strong>Materia:</strong> ${subject}</p>
+                    <p><strong>Inicio:</strong> ${startTime ? formatDateTime(startTime) : "No registrado"}</p>
+                    <p><strong>Fin:</strong> ${endTime ? formatDateTime(endTime) : "No registrado"}</p>
+                    <p><strong>Duración:</strong> ${document.getElementById("classDuration").textContent}</p>
+                </div>
+            `;
+            
+            if (students.length > 0) {
+                content += `<div class="report-section"><h3>Registro de Salidas de Estudiantes</h3>`;
+                students.forEach((student, index) => {
+                    if (student.name) {
+                        content += `
+                            <p><strong>Estudiante ${index + 1}:</strong> ${student.name}</p>
+                            <p><strong>Razón:</strong> ${student.reason}</p>
+                            <p><strong>Hora de salida:</strong> ${student.startTime ? formatDateTime(student.startTime) : "No registrada"}</p>
+                            <p><strong>Hora de retorno:</strong> ${student.returnTime ? formatDateTime(student.returnTime) : "No registrada"}</p>
+                            <p><strong>Tiempo fuera:</strong> ${student.duration} minutos</p>
+                            <p><strong>Observación:</strong> ${student.comment}</p>
+                            <hr>
+                        `;
+                    }
+                });
+                content += `</div>`;
+            }
+            
+            if (events.length > 0) {
+                content += `<div class="report-section"><h3>Situaciones Ocurridas en el Aula</h3><ul>`;
+                events.forEach((event, index) => {
+                    content += `
+                        <li>
+                            <strong>Evento ${index + 1}:</strong> ${event.text}
+                            <div><small>${event.formattedTime}</small></div>
+                        </li>
+                    `;
+                });
+                content += `</ul></div>`;
+            }
+            
+            if (interpretations.length > 0) {
+                content += `<div class="report-section"><h3>Interpretación de lo Observado</h3><ul>`;
+                interpretations.forEach((interpretation, index) => {
+                    content += `
+                        <li>
+                            <strong>Interpretación ${index + 1}:</strong> ${interpretation.text}
+                            <div><small>${interpretation.formattedTime}</small></div>
+                        </li>
+                    `;
+                });
+                content += `</ul></div>`;
+            }
+            
+            if (participationRecords.length > 0) {
+                content += `
+                    <div class="report-section">
+                        <h3>Registro de Participación y Conducta</h3>
+                        <table style="width: 100%; border-collapse: collapse;">
+                            <tr style="background-color: #2c3e50; color: white;">
+                                <th style="padding: 10px; text-align: left;">Estudiante(s)</th>
+                                <th style="padding: 10px; text-align: left;">Comentario</th>
+                                <th style="padding: 10px; text-align: left;">Hora</th>
+                            </tr>
+                `;
+                participationRecords.forEach((record, index) => {
+                    content += `
+                        <tr style="${index % 2 === 0 ? 'background-color: #f2f2f2;' : ''}">
+                            <td style="padding: 10px; border: 1px solid #ddd;">${record.studentName}</td>
+                            <td style="padding: 10px; border: 1px solid #ddd;">${record.comment}</td>
+                            <td style="padding: 10px; border: 1px solid #ddd;">${record.formattedTime}</td>
+                        </tr>
+                    `;
+                });
+                content += `</table></div>`;
+            }
+            
+            if (inasistenciaReports.length > 0) {
+                content += `<div class="report-section"><h3>Reportes de Inasistencia</h3>`;
+                inasistenciaReports.forEach((report, index) => {
+                    content += `
+                        <p><strong>Reporte ${index + 1}:</strong> ${report.studentName}</p>
+                        <p><strong>Última fecha de asistencia:</strong> ${report.lastAttendanceDate}</p>
+                        <p><strong>Motivo:</strong> ${report.motivo}</p>
+                        <p><strong>Acciones realizadas:</strong> ${report.acciones}</p>
+                        <p><strong>Fecha del reporte:</strong> ${report.reportDate}</p>
+                        <hr>
+                    `;
+                });
+                content += `</div>`;
+            }
+            
+            if (acuerdos.length > 0) {
+                content += `<div class="report-section"><h3>Acuerdos y Compromisos Escolares</h3>`;
+                acuerdos.forEach((acuerdo, index) => {
+                    content += `
+                        <p><strong>Acuerdo ${index + 1}:</strong> ${acuerdo.titulo}</p>
+                        <p><strong>Fecha de creación:</strong> ${acuerdo.fechaCreacion}</p>
+                        <p><strong>Descripción:</strong> ${acuerdo.descripcion}</p>
+                        ${acuerdo.participantes ? `<p><strong>Participantes:</strong> ${acuerdo.participantes}</p>` : ''}
+                        <p><strong>Fecha de compromiso:</strong> ${acuerdo.fechaCompromiso}</p>
+                        <p><strong>Fecha de seguimiento:</strong> ${acuerdo.fechaSeguimiento}</p>
+                        <p><strong>Fecha de entrega:</strong> ${acuerdo.fechaEntrega}</p>
+                        <hr>
+                    `;
+                });
+                content += `</div>`;
+            }
+            
+            if (capturedEvidence.length > 0) {
+                content += `
+                    <div class="report-section">
+                        <h3>Evidencias de Revisión</h3>
+                        <div class="conformity-statement">
+                            <h4>Declaración de Conformidad</h4>
+                            <p>Confirmo que he leído y acepto el contenido de este reporte, comprometiéndome a cumplir los acuerdos establecidos. El profesor certifica que las evidencias en este registro de tareas o disciplinario han sido verificadas y son auténticas, suficientes y pertinentes para los fines académicos.</p>
+                        </div>
+                `;
+                capturedEvidence.forEach((evidence, index) => {
+                    if (evidence.type === "image") {
+                        content += `
+                            <p><strong>Foto de evidencia ${index + 1}</strong> - ${evidence.formattedTime}</p>
+                            <img src="${evidence.data}" style="max-width: 300px; border-radius: 5px; margin: 10px 0;" alt="Evidencia ${index + 1}">
+                        `;
+                    }
+                    if (evidence.observation) {
+                        content += `<p><strong>Observaciones:</strong> ${evidence.observation}</p>`;
+                    }
+                    content += `<hr>`;
+                });
+                content += `</div>`;
+            }
+            
+            if (footerImage) {
+                content += `<div style="text-align: center; margin-top: 30px;">
+                    <img src="${footerImage}" style="max-width: 100%;">
+                </div>`;
+            }
+            
+            document.getElementById("reportPreview").innerHTML = content;
+        }
+
+        async function downloadPDF() {
+            try {
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF();
+                
+                const grade = document.getElementById("grade").value || "Grado";
+                const today = new Date();
+                const day = today.getDate();
+                const monthNames = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
+                const month = monthNames[today.getMonth()];
+                const year = today.getFullYear();
+                const dateString = `${day}-${month}-${year}`;
+                
+                const fileName = `${grade} - ${dateString}.pdf`;
+                const margin = 15;
+                const pdfWidth = doc.internal.pageSize.getWidth() - 2 * margin;
+                
+                const element = document.getElementById('reportPreview');
+                const canvas = await html2canvas(element, { scale: 2 });
+                const imgData = canvas.toDataURL('image/png');
+                const imgWidth = pdfWidth;
+                const imgHeight = (canvas.height * imgWidth) / canvas.width;
+                
+                let heightLeft = imgHeight;
+                let position = 0;
+                
+                doc.addImage(imgData, 'PNG', margin, position, imgWidth, imgHeight);
+                heightLeft -= doc.internal.pageSize.getHeight();
+                
+                while (heightLeft >= 0) {
+                    position = heightLeft - imgHeight;
+                    doc.addPage();
+                    doc.addImage(imgData, 'PNG', margin, position, imgWidth, imgHeight);
+                    heightLeft -= doc.internal.pageSize.getHeight();
+                }
+                
+                doc.save(fileName);
+                showNotification("PDF generado y descargado", "success");
+            } catch (error) {
+                console.error("Error al generar el PDF:", error);
+                showNotification("Error al generar el PDF. Por favor, intente nuevamente.", "error");
+            }
+        }
+
+        // �� GUARDAR REPORTE EN FIRESTORE
+        async function saveReportToFirestore() {
+            if (!currentUser) {
+                showNotification("Debes iniciar sesión primero", "error");
+                return;
+            }
+
+            try {
+                const reportData = {
+                    teacherName: document.getElementById("teacherName").value,
+                    schoolName: document.getElementById("schoolName").value,
+                    grade: document.getElementById("grade").value,
+                    subject: document.getElementById("subject").value,
+                    startTime: startTime ? formatDateTime(startTime) : null,
+                    endTime: endTime ? formatDateTime(endTime) : null,
+                    duration: document.getElementById("classDuration").textContent,
+                    events: events,
+                    interpretations: interpretations,
+                    participationRecords: participationRecords,
+                    inasistenciaReports: inasistenciaReports,
+                    acuerdos: acuerdos,
+                    students: students,
+                    createdAt: new Date().toISOString(),
+                    userId: currentUser.uid
+                };
+
+                const docRef = await db.collection('reportes').add(reportData);
+                showNotification(`Reporte guardado correctamente con ID: ${docRef.id}`, "success");
+            } catch (error) {
+                console.error("Error guardando reporte:", error);
+                showNotification(`Error: ${error.message}`, "error");
+            }
+        }
+
+        function showNotification(message, type) {
+            const toast = document.createElement("div");
+            toast.style.position = "fixed";
+            toast.style.bottom = "70px";
+            toast.style.left = "50%";
+            toast.style.transform = "translateX(-50%)";
+            toast.style.padding = "10px 20px";
+            toast.style.borderRadius = "5px";
+            toast.style.color = "white";
+            toast.style.zIndex = "1000";
+            toast.style.boxShadow = "0 4px 12px rgba(0,0,0,0.15)";
+            
+            if (type === "success") {
+                toast.style.backgroundColor = "#2ecc71";
+            } else if (type === "error") {
+                toast.style.backgroundColor = "#e74c3c";
+            } else if (type === "warning") {
+                toast.style.backgroundColor = "#f39c12";
+            } else {
+                toast.style.backgroundColor = "#3498db";
+            }
+            
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.style.opacity = "0";
+                toast.style.transition = "opacity 0.5s";
+                setTimeout(() => {
+                    document.body.removeChild(toast);
+                }, 500);
+            }, 3000);
+        }
+
+        function formatDate(date) {
+            const options = { day: '2-digit', month: 'short', year: 'numeric' };
+            return date.toLocaleDateString('es-ES', options).toUpperCase();
+        }
+
+        function formatDateTime(date) {
+            const options = { 
+                day: '2-digit', 
+                month: 'short', 
+                year: 'numeric', 
+                hour: '2-digit', 
+                minute: '2-digit' 
+            };
+            return date.toLocaleDateString('es-ES', options).toUpperCase();
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            toggleReportType();
+            const today = new Date();
+            document.getElementById('lastAttendanceDate').valueAsDate = today;
+            document.getElementById('acuerdoFechaCompromiso').valueAsDate = today;
+            
+            const nextWeek = new Date();
+            nextWeek.setDate(today.getDate() + 7);
+            document.getElementById('acuerdoFechaSeguimiento').valueAsDate = nextWeek;
+            document.getElementById('acuerdoFechaEntrega').valueAsDate = nextWeek;
+
+            // Detectar usuario actual
+            firebase.auth().onAuthStateChanged(user => {
+                if (user) {
+                    currentUser = user;
+                    console.log("✅ Usuario autenticado:", user.email);
+                } else {
+                    console.log("❌ No hay usuario autenticado");
+                }
+            });
+
+            // Configurar botón agregar estudiante
+            document.querySelector('.add-student-btn').addEventListener('click', addStudentFormFields);
+        });
+    </script>
+</body>
+</html>
