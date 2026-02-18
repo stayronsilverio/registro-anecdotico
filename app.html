@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Registro Anecdótico</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+    <!-- Botón de Cerrar Sesión -->
+    <button id="logout-btn">
+        <i class="fas fa-sign-out-alt"></i> Cerrar sesión
+    </button>
+
+    <header>
+        <div class="container header-content">
+            <h1 class="app-title"><i class="fas fa-clipboard-list"></i> Sistema de Registro Anecdótico</h1>
+            <div class="header-buttons">
+                <button class="btn btn-success" onclick="navigateToStudentSection()">
+                    <i class="fas fa-user-plus"></i> Agregar Estudiante
+                </button>
+            </div>
+            <div class="copyright">© 2025 Prof. Miguel Silverio</div>
+        </div>
+    </header>
+
+    <!-- Indicador de estudiantes fuera del aula -->
+    <div id="studentOutsideIndicator" style="display: none;">
+        <h3><span class="blinking-light red-light"></span><span class="blinking-light yellow-light"></span> Estudiante(s) Fuera</h3>
+        <div id="outsideStudentsList"></div>
+    </div>
+
+    <div class="container">
+        <div class="tabs">
+            <div class="tab active" onclick="switchTab('class-register')">Registro de Clase</div>
+            <div class="tab" onclick="switchTab('reports')">Reportes</div>
+            <div class="tab" onclick="switchTab('evidence')">Evidencias</div>
+        </div>
+
+        <!-- Registro de Clase -->
+        <div id="class-register" class="tab-content active">
+            <div class="card">
+                <h2 class="card-title"><i class="fas fa-school"></i> Datos de la Clase</h2>
+                <button class="btn btn-primary" onclick="fillDefaultData()">
+                    <i class="fas fa-magic"></i> Autocompletar datos
+                </button>
+                <div class="grid-3">
+                    <div class="form-group">
+                        <label for="schoolName">Nombre del Centro:</label>
+                        <input type="text" id="schoolName" placeholder="Nombre del Centro Educativo">
+                    </div>
+                    <div class="form-group">
+                        <label for="teacherName">Profesor:</label>
+                        <input type="text" id="teacherName" placeholder="Nombre del Profesor" value="Prof. Miguel Silverio">
+                    </div>
+                    <div class="form-group">
+                        <label for="grade">Grado:</label>
+                        <input type="text" id="grade" placeholder="Ej: 4to Contabilidad">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="subject">Materia:</label>
+                    <select id="subject" onchange="toggleOtherSubject()">
+                        <option value="">Seleccione una materia</option>
+                        <option value="Ofimática">Ofimática</option>
+                        <option value="Inglés Técnico">Inglés Técnico</option>
+                        <option value="Inglés Turístico">Inglés Turístico</option>
+                        <option value="Tecnologías Digitales">Tecnologías Digitales</option>
+                        <option value="Lengua Española">Lengua Española</option>
+                        <option value="Otra">Otra</option>
+                    </select>
+                    <input type="text" id="otherSubject" class="hidden" placeholder="Especifique la materia">
+                </div>
+            </div>
+
+            <div class="card">
+                <h2 class="card-title"><i class="fas fa-images"></i> Imágenes del Reporte</h2>
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label>Encabezado:</label>
+                        <button class="btn btn-primary" onclick="document.getElementById('headerImageInput').click()">
+                            <i class="fas fa-upload"></i> Seleccionar Encabezado
+                        </button>
+                        <input type="file" id="headerImageInput" accept="image/*" style="display: none;" onchange="handleHeaderImage(event)">
+                        <img id="headerImagePreview" class="header-image-preview" style="display: none;">
+                    </div>
+                    <div class="form-group">
+                        <label>Pie de página:</label>
+                        <button class="btn btn-primary" onclick="document.getElementById('footerImageInput').click()">
+                            <i class="fas fa-upload"></i> Seleccionar Pie de Página
+                        </button>
+                        <input type="file" id="footerImageInput" accept="image/*" style="display: none;" onchange="handleFooterImage(event)">
+                        <img id="footerImagePreview" class="footer-image-preview" style="display: none;">
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2 class="card-title"><i class="fas fa-clock"></i> Control de Tiempo</h2>
+                <div class="timeline">
+                    <div class="timeline-item">
+                        <strong>Inicio de Clase</strong>
+                        <span id="startTime">No iniciado</span><br>
+                        <input type="time" id="manualStartTime" onchange="updateManualTime('start')">
+                    </div>
+                    <div class="timeline-item">
+                        <strong>Fin de Clase</strong>
+                        <span id="endTime">No finalizado</span><br>
+                        <input type="time" id="manualEndTime" onchange="updateManualTime('end')">
+                    </div>
+                    <div class="timeline-item">
+                        <strong>Duración</strong>
+                        <span id="classDuration">--:--</span>
+                    </div>
+                </div>
+                <button class="btn btn-success" onclick="startClass()"><i class="fas fa-play"></i> Iniciar Clase</button>
+                <button class="btn btn-danger" onclick="endClass()"><i class="fas fa-stop"></i> Finalizar Clase</button>
+            </div>
+
+            <div class="card" id="studentManagementSection">
+                <h2 class="card-title"><i class="fas fa-user-graduate"></i> Gestión de Estudiantes</h2>
+                <button class="btn btn-primary add-student-btn"><i class="fas fa-plus"></i> Agregar Estudiante</button>
+                <div id="studentInputs" class="hidden"></div>
+            </div>
+
+            <div class="card">
+                <h2 class="card-title"><i class="fas fa-calendar-check"></i> Situaciones del Aula</h2>
+                <div class="form-group">
+                    <label for="classEvents">Descripción del evento:</label>
+                    <textarea id="classEvents" placeholder="Describe el evento ocurrido en clase..."></textarea>
+                </div>
+                <button class="btn btn-primary" onclick="addEvent()"><i class="fas fa-plus"></i> Agregar Evento</button>
+                
+                <h3 style="margin-top: 20px;">Eventos Registrados</h3>
+                <ul class="event-list" id="eventsList"></ul>
+            </div>
+
+            <div class="card">
+                <h2 class="card-title"><i class="fas fa-analytics"></i> Interpretación de lo Observado</h2>
+                <div class="form-group">
+                    <textarea id="interpretation" placeholder="Escribe tu interpretación de lo observado..."></textarea>
+                </div>
+                <button class="btn btn-primary" onclick="addInterpretation()"><i class="fas fa-plus"></i> Agregar Interpretación</button>
+                
+                <h3 style="margin-top: 20px;">Interpretaciones Registradas</h3>
+                <ul class="interpretation-list" id="interpretationsList"></ul>
+            </div>
+
+            <!-- Registro diario Conductas y Observaciones -->
+            <div class="card">
+                <h2 class="card-title"><i class="fas fa-chart-line"></i> Registro diario Conductas y Observaciones</h2>
+                
+                <div class="report-type-selector">
+                    <label><input type="radio" name="reportType" value="individual" checked onchange="toggleReportType()"> Reporte Individual</label>
+                    <label><input type="radio" name="reportType" value="multiple" onchange="toggleReportType()"> Reporte Múltiple</label>
+                    <label><input type="radio" name="reportType" value="general" onchange="toggleReportType()"> Reporte General del Curso</label>
+                </div>
+                
+                <div id="individualReportSection">
+                    <div class="form-group">
+                        <label for="studentNameInput">Nombre del Estudiante:</label>
+                        <input type="text" id="studentNameInput" placeholder="Escribe el nombre del estudiante">
+                    </div>
+                </div>
+                
+                <div id="multipleReportSection" style="display: none;">
+                    <div class="form-group">
+                        <label for="multipleStudents">Estudiantes (uno por línea):</label>
+                        <textarea id="multipleStudents" placeholder="Escribe los nombres de los estudiantes, uno por línea"></textarea>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>Seleccionar Emoji:</label>
+                    <div class="emoji-selector" id="emojiSelector">
+                        <!-- Los emojis se cargarán dinámicamente -->
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="participationComment">Comentario (opcional):</label>
+                    <textarea id="participationComment" placeholder="Agrega un comentario sobre la participación/conducta (opcional)..."></textarea>
+                </div>
+                
+                <button class="btn btn-primary" onclick="registerParticipation()"><i class="fas fa-plus"></i> Registrar Participación/Conducta</button>
+                
+                <div class="participation-control">
+                    <h3>Registro diario Conductas y Observaciones</h3>
+                    <table class="participation-table">
+                        <thead>
+                            <tr>
+                                <th>Estudiante(s)</th>
+                                <th>Tipo</th>
+                                <th>Emoji</th>
+                                <th>Comentario</th>
+                                <th>Hora</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="participationList">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Reportes -->
+        <div id="reports" class="tab-content">
+            <div class="card">
+                <h2 class="card-title"><i class="fas fa-file-pdf"></i> Generar Reportes</h2>
+                <button class="btn btn-primary" onclick="generateReport()"><i class="fas fa-file-alt"></i> Generar Reporte</button>
+                <button class="btn btn-success" onclick="downloadPDF()"><i class="fas fa-download"></i> Descargar PDF</button>
+                <button class="btn btn-warning" onclick="showInasistenciaReportForm()"><i class="fas fa-user-times"></i> Reporte de Inasistencia</button>
+                <button class="btn btn-info" onclick="toggleAcuerdosForm()"><i class="fas fa-handshake"></i> Acuerdos Escolares</button>
+            </div>
+
+            <div id="inasistenciaReportForm" style="display: none;">
+                <div class="card">
+                    <h2 class="card-title"><i class="fas fa-exclamation-triangle"></i> Reporte de Inasistencia Consecutiva</h2>
+                    <div class="grid-2">
+                        <div class="form-group">
+                            <label for="studentNameInasistencia">Nombre del Estudiante:</label>
+                            <input type="text" id="studentNameInasistencia" placeholder="Nombre del Estudiante">
+                        </div>
+                        <div class="form-group">
+                            <label for="lastAttendanceDate">Última Fecha de Asistencia:</label>
+                            <input type="date" id="lastAttendanceDate">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="motivoInasistencia">Motivo del Reporte:</label>
+                        <textarea id="motivoInasistencia" placeholder="Escribe el motivo del reporte..."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="accionesRealizadas">Acciones Realizadas:</label>
+                        <textarea id="accionesRealizadas" placeholder="Escribe las acciones realizadas antes del reporte..."></textarea>
+                    </div>
+                    <button class="btn btn-primary" onclick="addInasistenciaReport()"><i class="fas fa-plus"></i> Agregar Reporte</button>
+                </div>
+            </div>
+
+            <!-- Formulario de Acuerdos Escolares -->
+            <div id="acuerdosForm" class="hidden">
+                <div class="card">
+                    <h2 class="card-title"><i class="fas fa-handshake"></i> Acuerdos y Compromisos Escolares</h2>
+                    
+                    <div class="form-group">
+                        <label for="acuerdoTituloSelect">Título del Acuerdo:</label>
+                        <select id="acuerdoTituloSelect" onchange="toggleAcuerdoOtro()">
+                            <option value="">Seleccione un acuerdo</option>
+                            <option value="Compromiso de puntualidad">Compromiso de puntualidad</option>
+                            <option value="Compromiso de entrega de tareas">Compromiso de entrega de tareas</option>
+                            <option value="Compromiso de comportamiento">Compromiso de comportamiento</option>
+                            <option value="Compromiso de participación">Compromiso de participación</option>
+                            <option value="Otro">Otro (especificar)</option>
+                        </select>
+                        <input type="text" id="acuerdoTituloOtro" class="hidden" placeholder="Especifique el acuerdo">
+                    </div>
+                    <div class="form-group">
+                        <label for="acuerdoDescripcion">Descripción:</label>
+                        <textarea id="acuerdoDescripcion" placeholder="Describe el acuerdo o compromiso..."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="compromisosSelect">Compromisos Específicos:</label>
+                        <select id="compromisosSelect" onchange="toggleCompromisoOtro()">
+                            <option value="">Seleccione un compromiso</option>
+                            <option value="Entregar tareas a tiempo">Entregar tareas a tiempo</option>
+                            <option value="Mantener el orden en clase">Mantener el orden en clase</option>
+                            <option value="Participar activamente">Participar activamente</option>
+                            <option value="Respetar a compañeros y profesor">Respetar a compañeros y profesor</option>
+                            <option value="Otro">Otro (especificar)</option>
+                        </select>
+                        <input type="text" id="compromisoOtro" class="hidden" placeholder="Especifique el compromiso">
+                        <textarea id="acuerdoCompromisos" class="hidden" placeholder="Lista de compromisos (uno por línea)..."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="acuerdoParticipantes">Participantes:</label>
+                        <textarea id="acuerdoParticipantes" placeholder="Nombres de los participantes..."></textarea>
+                    </div>
+                    <div class="grid-3">
+                        <div class="form-group">
+                            <label for="acuerdoFechaCompromiso">Fecha de Compromiso:</label>
+                            <input type="date" id="acuerdoFechaCompromiso">
+                        </div>
+                        <div class="form-group">
+                            <label for="acuerdoFechaSeguimiento">Fecha de Seguimiento:</label>
+                            <input type="date" id="acuerdoFechaSeguimiento">
+                        </div>
+                        <div class="form-group">
+                            <label for="acuerdoFechaEntrega">Fecha de Entrega:</label>
+                            <input type="date" id="acuerdoFechaEntrega">
+                        </div>
+                    </div>
+                    <button class="btn btn-primary" onclick="addAcuerdo()"><i class="fas fa-plus"></i> Agregar Acuerdo</button>
+                </div>
+                
+                <div class="card">
+                    <h3 class="card-title">Acuerdos Registrados</h3>
+                    <div id="acuerdosList"></div>
+                </div>
+            </div>
+
+            <div class="report-preview" id="reportPreview">
+                <p class="text-center">Presiona "Generar Reporte" para ver la vista previa</p>
+            </div>
+        </div>
+
+        <!-- Evidencias -->
+        <div id="evidence" class="tab-content">
+            <div class="card">
+                <h2 class="card-title"><i class="fas fa-camera"></i> Capturar Evidencias</h2>
+                <p>Utiliza esta función para capturar evidencia de que los estudiantes han leído tu reporte.</p>
+                
+                <div class="grid-2">
+                    <button class="btn btn-primary" onclick="openCamera()"><i class="fas fa-camera"></i> Tomar Foto</button>
+                    <button class="btn btn-primary" onclick="document.getElementById('uploadFileInput').click()">
+                        <i class="fas fa-upload"></i> Subir Archivo
+                    </button>
+                    <input type="file" id="uploadFileInput" accept="image/*,.pdf,.doc,.docx,.xls,.xlsx" style="display: none;" onchange="handleFileUpload(event)">
+                </div>
+                
+                <div class="evidence-container">
+                    <h3>Evidencias Capturadas</h3>
+                    <div id="evidenceList" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: start;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer navigation -->
+    <div class="footer-nav">
+        <a href="javascript:void(0)" onclick="switchTab('class-register')" class="footer-nav-btn">
+            <i class="fas fa-chalkboard-teacher"></i>
+            <span>Registro</span>
+        </a>
+        <a href="javascript:void(0)" onclick="switchTab('reports')" class="footer-nav-btn">
+            <i class="fas fa-file-pdf"></i>
+            <span>Reportes</span>
+        </a>
+        <a href="javascript:void(0)" onclick="switchTab('evidence')" class="footer-nav-btn">
+            <i class="fas fa-camera"></i>
+            <span>Evidencias</span>
+        </a>
+        <a href="javascript:void(0)" onclick="addStudentForm()" class="footer-nav-btn">
+            <i class="fas fa-user-plus"></i>
+            <span>Agregar Estudiante</span>
+        </a>
+    </div>
+
+    <!-- Modal para la cámara -->
+    <div id="cameraModal" class="modal">
+        <div class="modal-content">
+            <h2><i class="fas fa-camera"></i> Capturar Evidencia</h2>
+            <p>Pide al estudiante que se situé frente a la cámara mientras lee el reporte.</p>
+            
+            <video id="video" class="camera-feed" autoplay></video>
+            <canvas id="canvas" style="display: none;"></canvas>
+            
+            <div>
+                <button class="btn btn-success" onclick="capturePhoto()"><i class="fas fa-camera"></i> Capturar Foto</button>
+                <button class="btn btn-danger" onclick="closeCamera()"><i class="fas fa-times"></i> Cerrar</button>
+            </div>
+            
+            <img id="photoPreview" class="photo-preview" style="display: none;">
+            
+            <div id="captureActions" style="display: none; margin-top: 1rem;">
+                <div class="form-group">
+                    <label for="evidenceObservation">Observaciones:</label>
+                    <textarea id="evidenceObservation" placeholder="Agregar observaciones sobre esta evidencia..."></textarea>
+                </div>
+                <button class="btn btn-primary" onclick="savePhoto()"><i class="fas fa-save"></i> Guardar Evidencia</button>
+                <button class="btn" onclick="retakePhoto()"><i class="fas fa-redo"></i> Volver a Capturar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para editar participación -->
+    <div id="editParticipationModal" class="modal">
+        <div class="edit-modal-content">
+            <h2><i class="fas fa-edit"></i> Editar Participación/Conducta</h2>
+            
+            <div class="form-group">
+                <label for="editStudentName">Nombre del Estudiante:</label>
+                <input type="text" id="editStudentName" placeholder="Nombre del estudiante">
+            </div>
+            
+            <div class="form-group">
+                <label>Seleccionar Emoji:</label>
+                <div class="edit-emoji-selector" id="editEmojiSelector">
+                    <!-- Los emojis se cargarán dinámicamente -->
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="editComment">Comentario:</label>
+                <textarea id="editComment" placeholder="Agrega un comentario sobre la participación/conducta..." rows="4"></textarea>
+                <select id="quickComments" onchange="if(this.value) document.getElementById('editComment').value = this.value;">
+                    <option value="">-- Seleccionar comentario rápido --</option>
+                    <option value="🤷 Ausente: El o La estudiante no asistió a clase, salió con permiso o presentó excusa. Favor verificar el pase de lista en el registro para validar la información.">🤷 Ausente</option>
+                </select>
+            </div>
+            
+            <input type="hidden" id="editIndex">
+            
+            <button class="btn btn-primary" onclick="saveEditedParticipation()"><i class="fas fa-save"></i> Guardar Cambios</button>
+            <button class="btn btn-danger" onclick="closeEditModal()"><i class="fas fa-times"></i> Cancelar</button>
+        </div>
+    </div>
+
+    <!-- Modal para agregar estudiante -->
+    <div class="modal" id="addStudentModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Agregar Estudiante</h2>
+                <span class="close" onclick="closeStudentModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="studentName">Nombre del estudiante</label>
+                    <input type="text" id="modalStudentName" class="form-control" placeholder="Ingrese el nombre del estudiante">
+                </div>
+                <div class="form-group">
+                    <label for="reason">Motivo de salida</label>
+                    <textarea id="modalReason" placeholder="Ingrese el motivo de salida"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-success" onclick="confirmStudentExit()">Confirmar salida</button>
+                <button class="btn btn-secondary" onclick="closeStudentModal()">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+    
+    <script src="js/firebase-config.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
