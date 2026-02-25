@@ -19,6 +19,9 @@
         <div class="container header-content">
             <h1 class="app-title"><i class="fas fa-clipboard-list"></i> Sistema de Registro Anecdótico</h1>
             <div class="header-buttons">
+                <button class="btn btn-warning" onclick="startNewClass()">
+                    <i class="fas fa-eraser"></i> Nueva clase
+                </button>
                 <button class="btn btn-success" onclick="navigateToStudentSection()">
                     <i class="fas fa-user-plus"></i> Agregar Estudiante
                 </button>
@@ -54,7 +57,7 @@
                     </div>
                     <div class="form-group">
                         <label for="teacherName">Profesor:</label>
-                        <input type="text" id="teacherName" placeholder="Nombre del Profesor" value="Prof. Miguel Silverio">
+                        <input type="text" id="teacherName" placeholder="Nombre del Profesor">
                     </div>
                     <div class="form-group">
                         <label for="grade">Grado:</label>
@@ -65,11 +68,29 @@
                     <label for="subject">Materia:</label>
                     <select id="subject" onchange="toggleOtherSubject()">
                         <option value="">Seleccione una materia</option>
-                        <option value="Ofimática">Ofimática</option>
+                        <option value="Matemática">Matemática</option>
+                        <option value="Lengua Española">Lengua Española</option>
+                        <option value="Ciencias Sociales">Ciencias Sociales</option>
+                        <option value="Ciencias de la Naturaleza">Ciencias de la Naturaleza</option>
+                        <option value="Educación Artística">Educación Artística</option>
+                        <option value="Educación Física">Educación Física</option>
+                        <option value="Formación Humana y Religiosa">Formación Humana y Religiosa</option>
+                        <option value="Inglés">Inglés</option>
                         <option value="Inglés Técnico">Inglés Técnico</option>
                         <option value="Inglés Turístico">Inglés Turístico</option>
+                        <option value="Ofimática">Ofimática</option>
+                        <option value="Informática">Informática</option>
                         <option value="Tecnologías Digitales">Tecnologías Digitales</option>
-                        <option value="Lengua Española">Lengua Española</option>
+                        <option value="Contabilidad">Contabilidad</option>
+                        <option value="Emprendimiento">Emprendimiento</option>
+                        <option value="Ética Ciudadana">Ética Ciudadana</option>
+                        <option value="Orientación">Orientación</option>
+                        <option value="Francés">Francés</option>
+                        <option value="Química">Química</option>
+                        <option value="Física">Física</option>
+                        <option value="Biología">Biología</option>
+                        <option value="Geografía">Geografía</option>
+                        <option value="Historia">Historia</option>
                         <option value="Otra">Otra</option>
                     </select>
                     <input type="text" id="otherSubject" class="hidden" placeholder="Especifique la materia">
