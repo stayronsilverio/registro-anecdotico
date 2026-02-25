@@ -741,7 +741,7 @@ function updateEventsList() {
         li.innerHTML = `
             <div style="display:flex; justify-content:space-between; align-items:center; gap:10px;">
                 <div>
-                    <strong>Evento ${index + 1}:</strong> ${event.text}
+                    <strong>Evento ${index + 1}:</strong> ${formatMultilineText(event.text)}
                     <div class="event-time">${event.formattedTime}</div>
                 </div>
                 <div style="display:flex; gap:6px;">
@@ -856,7 +856,7 @@ function addInasistenciaReport() {
         motivo,
         acciones,
         reportDate: formatDate(new Date()),
-        teacherName: document.getElementById("teacherName").value || "Prof. Miguel Silverio",
+        teacherName: document.getElementById("teacherName").value || "No especificado",
         grade: document.getElementById("grade").value,
         subject: document.getElementById("subject").value
     };
@@ -897,7 +897,7 @@ function addAcuerdo() {
         return;
     }
     
-    const teacherName = document.getElementById("teacherName").value || "Prof. Miguel Silverio";
+    const teacherName = document.getElementById("teacherName").value || "No especificado";
     const grade = document.getElementById("grade").value;
     const subjectSelect = document.getElementById("subject");
     const subject = subjectSelect.value === "Otra" ? document.getElementById("otherSubject").value : subjectSelect.value;
@@ -1323,7 +1323,7 @@ function deleteEvidence(index) {
 
 // Generación de reportes
 function generateReport() {
-    const teacherName = document.getElementById("teacherName").value || "Prof. Miguel Silverio";
+    const teacherName = document.getElementById("teacherName").value || "No especificado";
     const grade = document.getElementById("grade").value;
     const subjectSelect = document.getElementById("subject");
     const subject = subjectSelect.value === "Otra" ? document.getElementById("otherSubject").value : subjectSelect.value;
@@ -1385,7 +1385,7 @@ function generateReport() {
         events.forEach((event, index) => {
             content += `
                 <li>
-                    <strong>Evento ${index + 1}:</strong> ${event.text}
+                    <strong>Evento ${index + 1}:</strong> ${formatMultilineText(event.text)}
                     <div><small>${event.formattedTime}</small></div>
                 </li>
             `;
@@ -1570,6 +1570,22 @@ function showNotification(message, type) {
             if (toast.parentNode) toast.parentNode.removeChild(toast);
         }, 500);
     }, 3000);
+}
+
+function formatMultilineText(text) {
+    if (!text) return '';
+    return escapeHtml(text).replace(/\n/g, '<br>');
+}
+
+function escapeHtml(text) {
+    const map = {
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#39;'
+    };
+    return text.replace(/[&<>"']/g, (char) => map[char]);
 }
 
 function formatDate(date) {
