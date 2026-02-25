@@ -17,6 +17,25 @@ let outsideStudents = [];
 let studentFormVisible = false;
 let outsideStudentsInterval = null;
 
+function getCurrentUserId() {
+    const authUser = firebase.auth().currentUser;
+    if (authUser?.uid) return authUser.uid;
+
+    const storedUser = localStorage.getItem('currentUser');
+    if (!storedUser) return 'anonymous';
+
+    try {
+        const parsedUser = JSON.parse(storedUser);
+        return parsedUser.uid || 'anonymous';
+    } catch (error) {
+        return 'anonymous';
+    }
+}
+
+function getStorageKey() {
+    return `registroData_${getCurrentUserId()}`;
+}
+
 // Lista de emojis disponibles
 const emojisList = [
     { emoji: '👍', type: 'positiva', tooltip: 'Positiva - Buen trabajo' },
@@ -169,7 +188,17 @@ function setupEventListeners() {
 
 // Cargar datos guardados en localStorage
 function loadSavedData() {
-    const savedData = localStorage.getItem('registroData');
+    const storageKey = getStorageKey();
+    let savedData = localStorage.getItem(storageKey);
+
+    if (!savedData) {
+        const legacyData = localStorage.getItem('registroData');
+        if (legacyData) {
+            savedData = legacyData;
+            localStorage.setItem(storageKey, legacyData);
+        }
+    }
+
     if (savedData) {
         const data = JSON.parse(savedData);
         if (data.events) events = data.events;
@@ -197,7 +226,7 @@ function saveData() {
         acuerdos,
         capturedEvidence
     };
-    localStorage.setItem('registroData', JSON.stringify(data));
+    localStorage.setItem(getStorageKey(), JSON.stringify(data));
 }
 
 // Funciones de la interfaz
