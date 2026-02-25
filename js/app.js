@@ -17,6 +17,25 @@ let outsideStudents = [];
 let studentFormVisible = false;
 let outsideStudentsInterval = null;
 
+function getCurrentUserId() {
+    const authUser = firebase.auth().currentUser;
+    if (authUser?.uid) return authUser.uid;
+
+    const storedUser = localStorage.getItem('currentUser');
+    if (!storedUser) return 'anonymous';
+
+    try {
+        const parsedUser = JSON.parse(storedUser);
+        return parsedUser.uid || 'anonymous';
+    } catch (error) {
+        return 'anonymous';
+    }
+}
+
+function getStorageKey() {
+    return `registroData_${getCurrentUserId()}`;
+}
+
 // Lista de emojis disponibles
 const emojisList = [
     { emoji: '👍', type: 'positiva', tooltip: 'Positiva - Buen trabajo' },
@@ -169,7 +188,17 @@ function setupEventListeners() {
 
 // Cargar datos guardados en localStorage
 function loadSavedData() {
-    const savedData = localStorage.getItem('registroData');
+    const storageKey = getStorageKey();
+    let savedData = localStorage.getItem(storageKey);
+
+    if (!savedData) {
+        const legacyData = localStorage.getItem('registroData');
+        if (legacyData) {
+            savedData = legacyData;
+            localStorage.setItem(storageKey, legacyData);
+        }
+    }
+
     if (savedData) {
         const data = JSON.parse(savedData);
         if (data.events) events = data.events;
@@ -197,7 +226,7 @@ function saveData() {
         acuerdos,
         capturedEvidence
     };
-    localStorage.setItem('registroData', JSON.stringify(data));
+    localStorage.setItem(getStorageKey(), JSON.stringify(data));
 }
 
 // Funciones de la interfaz
@@ -290,6 +319,117 @@ function fillDefaultData() {
     document.getElementById('subject').value = "Inglés";
     showNotification("Datos autocompletados correctamente", "success");
 }
+
+
+function startNewClass() {
+    const confirmed = confirm('¿Deseas iniciar una nueva clase? Se limpiarán los registros actuales de esta cuenta.');
+    if (!confirmed) return;
+
+    if (classDurationInterval) {
+        clearInterval(classDurationInterval);
+        classDurationInterval = null;
+    }
+
+    students.forEach(student => {
+        if (student?.timerInterval) clearInterval(student.timerInterval);
+    });
+
+    startTime = null;
+    endTime = null;
+    currentStudentIndex = 1;
+    outsideStudents = [];
+    events = [];
+    interpretations = [];
+    participationRecords = [];
+    inasistenciaReports = [];
+    acuerdos = [];
+    capturedEvidence = [];
+    students = [];
+
+    headerImage = null;
+    footerImage = null;
+
+    const setValue = (id, value) => {
+        const element = document.getElementById(id);
+        if (element) element.value = value;
+    };
+
+    const setText = (id, value) => {
+        const element = document.getElementById(id);
+        if (element) element.textContent = value;
+    };
+
+    setText('startTime', 'No iniciado');
+    setText('endTime', 'No finalizado');
+    setText('classDuration', '--:--');
+
+    setValue('manualStartTime', '');
+    setValue('manualEndTime', '');
+    setValue('classEvents', '');
+    setValue('interpretation', '');
+    setValue('participationComment', '');
+    setValue('studentNameInput', '');
+    setValue('multipleStudents', '');
+    const today = new Date();
+    const nextWeek = new Date();
+    nextWeek.setDate(today.getDate() + 7);
+
+    setValue('lastAttendanceDate', formatDateForInput(today));
+    setValue('studentNameInasistencia', '');
+    setValue('motivoInasistencia', '');
+    setValue('otherMotive', '');
+    setValue('accionesRealizadas', '');
+    setValue('acuerdoDescripcion', '');
+    setValue('acuerdoParticipantes', '');
+    setValue('acuerdoCompromisos', '');
+    setValue('acuerdoTituloOtro', '');
+    setValue('compromisoOtro', '');
+    setValue('acuerdoTituloSelect', '');
+    setValue('compromisosSelect', '');
+    setValue('evidenceObservation', '');
+    setValue('acuerdoFechaCompromiso', formatDateForInput(today));
+    setValue('acuerdoFechaSeguimiento', formatDateForInput(nextWeek));
+    setValue('acuerdoFechaEntrega', formatDateForInput(nextWeek));
+
+    const studentInputs = document.getElementById('studentInputs');
+    if (studentInputs) {
+        studentInputs.innerHTML = '';
+        studentInputs.classList.add('hidden');
+    }
+
+    const outsideIndicator = document.getElementById('studentOutsideIndicator');
+    if (outsideIndicator) outsideIndicator.style.display = 'none';
+
+    const outsideList = document.getElementById('outsideStudentsList');
+    if (outsideList) outsideList.innerHTML = '';
+
+    const headerPreview = document.getElementById('headerImagePreview');
+    if (headerPreview) {
+        headerPreview.style.display = 'none';
+        headerPreview.src = '';
+    }
+
+    const footerPreview = document.getElementById('footerImagePreview');
+    if (footerPreview) {
+        footerPreview.style.display = 'none';
+        footerPreview.src = '';
+    }
+
+    const reportTypeIndividual = document.querySelector('input[name="reportType"][value="individual"]');
+    if (reportTypeIndividual) reportTypeIndividual.checked = true;
+    toggleReportType();
+
+    updateEventsList();
+    updateInterpretationsList();
+    updateParticipationList();
+    updateAcuerdosList();
+    updateEvidenceList();
+    updateOutsideStudentsList();
+
+    saveData();
+    showNotification('Nueva clase iniciada. Registros reiniciados para esta cuenta.', 'success');
+}
+
 
 function updateManualTime(type) {
     if (type === 'start') {
@@ -1435,6 +1575,10 @@ function showNotification(message, type) {
 function formatDate(date) {
     const options = { day: '2-digit', month: 'short', year: 'numeric' };
     return date.toLocaleDateString('es-ES', options).toUpperCase();
+}
+
+function formatDateForInput(date) {
+    return date.toISOString().split('T')[0];
 }
 
 function formatDateTime(date) {
