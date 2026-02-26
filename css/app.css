@@ -460,10 +460,32 @@ textarea {
     border-radius: 8px;
 }
 
+
 .evidence-image {
     max-width: 100%;
+    aspect-ratio: 4 / 3;
+    object-fit: cover;
     border-radius: 5px;
     margin-top: 1rem;
+}
+
+.report-evidence-gallery {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    align-items: flex-start;
+}
+
+.report-evidence-item {
+    flex: 1 1 280px;
+    max-width: 320px;
+}
+
+.report-evidence-image {
+    width: 100%;
+    border-radius: 5px;
+    margin-top: 0.5rem;
+    object-fit: cover;
 }
 
 .conformity-statement {
