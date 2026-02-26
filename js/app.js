@@ -17,6 +17,25 @@ let outsideStudents = [];
 let studentFormVisible = false;
 let outsideStudentsInterval = null;
 
+function getCurrentUserId() {
+    const authUser = firebase.auth().currentUser;
+    if (authUser?.uid) return authUser.uid;
+
+    const storedUser = localStorage.getItem('currentUser');
+    if (!storedUser) return 'anonymous';
+
+    try {
+        const parsedUser = JSON.parse(storedUser);
+        return parsedUser.uid || 'anonymous';
+    } catch (error) {
+        return 'anonymous';
+    }
+}
+
+function getStorageKey() {
+    return `registroData_${getCurrentUserId()}`;
+}
+
 // Lista de emojis disponibles
 const emojisList = [
     { emoji: '👍', type: 'positiva', tooltip: 'Positiva - Buen trabajo' },
@@ -169,7 +188,17 @@ function setupEventListeners() {
 
 // Cargar datos guardados en localStorage
 function loadSavedData() {
-    const savedData = localStorage.getItem('registroData');
+    const storageKey = getStorageKey();
+    let savedData = localStorage.getItem(storageKey);
+
+    if (!savedData) {
+        const legacyData = localStorage.getItem('registroData');
+        if (legacyData) {
+            savedData = legacyData;
+            localStorage.setItem(storageKey, legacyData);
+        }
+    }
+
     if (savedData) {
         const data = JSON.parse(savedData);
         if (data.events) events = data.events;
@@ -197,7 +226,7 @@ function saveData() {
         acuerdos,
         capturedEvidence
     };
-    localStorage.setItem('registroData', JSON.stringify(data));
+    localStorage.setItem(getStorageKey(), JSON.stringify(data));
 }
 
 // Funciones de la interfaz
@@ -290,6 +319,119 @@ function fillDefaultData() {
     document.getElementById('subject').value = "Inglés";
     showNotification("Datos autocompletados correctamente", "success");
 }
+
+
+function startNewClass() {
+    const confirmed = confirm('¿Deseas iniciar una nueva clase? Se limpiarán los registros actuales de esta cuenta.');
+    if (!confirmed) return;
+
+    if (classDurationInterval) {
+        clearInterval(classDurationInterval);
+        classDurationInterval = null;
+    }
+
+    students.forEach(student => {
+        if (student?.timerInterval) clearInterval(student.timerInterval);
+    });
+
+    startTime = null;
+    endTime = null;
+    currentStudentIndex = 1;
+    outsideStudents = [];
+    events = [];
+    interpretations = [];
+    participationRecords = [];
+    inasistenciaReports = [];
+    acuerdos = [];
+    capturedEvidence = [];
+    students = [];
+
+    headerImage = null;
+    footerImage = null;
+
+    const setValue = (id, value) => {
+        const element = document.getElementById(id);
+        if (element) element.value = value;
+    };
+
+    const setText = (id, value) => {
+        const element = document.getElementById(id);
+        if (element) element.textContent = value;
+    };
+
+    setText('startTime', 'No iniciado');
+    setText('endTime', 'No finalizado');
+    setText('classDuration', '--:--');
+
+    setValue('manualStartTime', '');
+    setValue('manualEndTime', '');
+    setValue('classEvents', '');
+    setValue('interpretation', '');
+    setValue('participationComment', '');
+    setValue('studentNameInput', '');
+    setValue('multipleStudents', '');
+    setValue('attendanceStatus', 'Presente');
+    setValue('attendanceDetail', '');
+    const today = new Date();
+    const nextWeek = new Date();
+    nextWeek.setDate(today.getDate() + 7);
+
+    setValue('lastAttendanceDate', formatDateForInput(today));
+    setValue('studentNameInasistencia', '');
+    setValue('motivoInasistencia', '');
+    setValue('otherMotive', '');
+    setValue('accionesRealizadas', '');
+    setValue('acuerdoDescripcion', '');
+    setValue('acuerdoParticipantes', '');
+    setValue('acuerdoCompromisos', '');
+    setValue('acuerdoTituloOtro', '');
+    setValue('compromisoOtro', '');
+    setValue('acuerdoTituloSelect', '');
+    setValue('compromisosSelect', '');
+    setValue('evidenceObservation', '');
+    setValue('acuerdoFechaCompromiso', formatDateForInput(today));
+    setValue('acuerdoFechaSeguimiento', formatDateForInput(nextWeek));
+    setValue('acuerdoFechaEntrega', formatDateForInput(nextWeek));
+
+    const studentInputs = document.getElementById('studentInputs');
+    if (studentInputs) {
+        studentInputs.innerHTML = '';
+        studentInputs.classList.add('hidden');
+    }
+
+    const outsideIndicator = document.getElementById('studentOutsideIndicator');
+    if (outsideIndicator) outsideIndicator.style.display = 'none';
+
+    const outsideList = document.getElementById('outsideStudentsList');
+    if (outsideList) outsideList.innerHTML = '';
+
+    const headerPreview = document.getElementById('headerImagePreview');
+    if (headerPreview) {
+        headerPreview.style.display = 'none';
+        headerPreview.src = '';
+    }
+
+    const footerPreview = document.getElementById('footerImagePreview');
+    if (footerPreview) {
+        footerPreview.style.display = 'none';
+        footerPreview.src = '';
+    }
+
+    const reportTypeIndividual = document.querySelector('input[name="reportType"][value="individual"]');
+    if (reportTypeIndividual) reportTypeIndividual.checked = true;
+    toggleReportType();
+
+    updateEventsList();
+    updateInterpretationsList();
+    updateParticipationList();
+    updateAcuerdosList();
+    updateEvidenceList();
+    updateOutsideStudentsList();
+
+    saveData();
+    showNotification('Nueva clase iniciada. Registros reiniciados para esta cuenta.', 'success');
+}
+
 
 function updateManualTime(type) {
     if (type === 'start') {
@@ -601,7 +743,7 @@ function updateEventsList() {
         li.innerHTML = `
             <div style="display:flex; justify-content:space-between; align-items:center; gap:10px;">
                 <div>
-                    <strong>Evento ${index + 1}:</strong> ${event.text}
+                    <strong>Evento ${index + 1}:</strong> ${formatMultilineText(event.text)}
                     <div class="event-time">${event.formattedTime}</div>
                 </div>
                 <div style="display:flex; gap:6px;">
@@ -666,7 +808,7 @@ function updateInterpretationsList() {
         li.innerHTML = `
             <div style="display:flex; justify-content:space-between; align-items:center; gap:10px;">
                 <div>
-                    <strong>Interpretación ${index + 1}:</strong> ${interpretation.text}
+                    <strong>Interpretación ${index + 1}:</strong> ${formatMultilineText(interpretation.text)}
                     <div class="interpretation-time">${interpretation.formattedTime}</div>
                 </div>
                 <div style="display:flex; gap:6px;">
@@ -716,7 +858,7 @@ function addInasistenciaReport() {
         motivo,
         acciones,
         reportDate: formatDate(new Date()),
-        teacherName: document.getElementById("teacherName").value || "Prof. Miguel Silverio",
+        teacherName: document.getElementById("teacherName").value || "No especificado",
         grade: document.getElementById("grade").value,
         subject: document.getElementById("subject").value
     };
@@ -757,7 +899,7 @@ function addAcuerdo() {
         return;
     }
     
-    const teacherName = document.getElementById("teacherName").value || "Prof. Miguel Silverio";
+    const teacherName = document.getElementById("teacherName").value || "No especificado";
     const grade = document.getElementById("grade").value;
     const subjectSelect = document.getElementById("subject");
     const subject = subjectSelect.value === "Otra" ? document.getElementById("otherSubject").value : subjectSelect.value;
@@ -815,9 +957,9 @@ function updateAcuerdosList() {
         acuerdoItem.innerHTML = `
             <h4>${acuerdo.titulo}</h4>
             <p><strong>Fecha de creación:</strong> ${acuerdo.fechaCreacion}</p>
-            <p><strong>Descripción:</strong> ${acuerdo.descripcion}</p>
-            ${acuerdo.compromisos ? `<p><strong>Compromisos:</strong><br>${acuerdo.compromisos.replace(/\n/g, '<br>')}</p>` : ''}
-            ${acuerdo.participantes ? `<p><strong>Participantes:</strong> ${acuerdo.participantes}</p>` : ''}
+            <p><strong>Descripción:</strong> ${formatMultilineText(acuerdo.descripcion)}</p>
+            ${acuerdo.compromisos ? `<p><strong>Compromisos:</strong><br>${formatMultilineText(acuerdo.compromisos)}</p>` : ''}
+            ${acuerdo.participantes ? `<p><strong>Participantes:</strong> ${formatMultilineText(acuerdo.participantes)}</p>` : ''}
             <p><strong>Fecha de compromiso:</strong> ${acuerdo.fechaCompromiso}</p>
             <p><strong>Fecha de seguimiento:</strong> ${acuerdo.fechaSeguimiento}</p>
             <p><strong>Fecha de entrega:</strong> ${acuerdo.fechaEntrega}</p>
@@ -849,6 +991,8 @@ function addEmojiToEdit(emoji, type) {
 function registerParticipation() {
     const reportType = document.querySelector('input[name="reportType"]:checked').value;
     const comment = document.getElementById("participationComment").value;
+    const attendanceStatus = document.getElementById("attendanceStatus").value || 'Presente';
+    const attendanceDetail = document.getElementById("attendanceDetail").value;
     
     let studentsList = [];
     
@@ -880,6 +1024,8 @@ function registerParticipation() {
         const participation = {
             studentName,
             comment,
+            attendanceStatus,
+            attendanceDetail,
             time: new Date(),
             formattedTime: formatDateTime(new Date())
         };
@@ -893,6 +1039,8 @@ function registerParticipation() {
     document.getElementById("participationComment").value = "";
     document.getElementById("studentNameInput").value = "";
     document.getElementById("multipleStudents").value = "";
+    document.getElementById("attendanceStatus").value = 'Presente';
+    document.getElementById("attendanceDetail").value = "";
     
     showNotification("Participación/conducta registrada correctamente", "success");
 }
@@ -902,7 +1050,7 @@ function updateParticipationList() {
     participationList.innerHTML = "";
     
     if (participationRecords.length === 0) {
-        participationList.innerHTML = "<tr><td colspan='6'>No hay registros de participación/conducta aún.</td></tr>";
+        participationList.innerHTML = "<tr><td colspan='8'>No hay registros de participación/conducta aún.</td></tr>";
         return;
     }
     
@@ -927,9 +1075,11 @@ function updateParticipationList() {
         
         row.innerHTML = `
             <td>${record.studentName}</td>
+            <td>${record.attendanceStatus || 'Presente'}</td>
             <td><span class="participation-badge ${badgeClass}">${type}</span></td>
             <td>${emoji}</td>
-            <td>${record.comment}</td>
+            <td>${formatMultilineText(record.attendanceDetail || '')}</td>
+            <td>${formatMultilineText(record.comment)}</td>
             <td>${record.formattedTime}</td>
             <td>
                 <button class="btn btn-sm btn-primary" onclick="editParticipation(${index})"><i class="fas fa-edit"></i></button>
@@ -946,6 +1096,8 @@ function editParticipation(index) {
     
     document.getElementById('editStudentName').value = record.studentName;
     document.getElementById('editComment').value = record.comment;
+    document.getElementById('editAttendanceStatus').value = record.attendanceStatus || 'Presente';
+    document.getElementById('editAttendanceDetail').value = record.attendanceDetail || '';
     document.getElementById('editIndex').value = index;
     
     document.getElementById('editParticipationModal').style.display = 'flex';
@@ -961,6 +1113,8 @@ function saveEditedParticipation() {
     
     const studentName = document.getElementById('editStudentName').value;
     const comment = document.getElementById('editComment').value;
+    const attendanceStatus = document.getElementById('editAttendanceStatus').value;
+    const attendanceDetail = document.getElementById('editAttendanceDetail').value;
     
     if (!studentName) {
         showNotification("El nombre del estudiante es obligatorio", "error");
@@ -969,6 +1123,8 @@ function saveEditedParticipation() {
     
     participationRecords[index].studentName = studentName;
     participationRecords[index].comment = comment;
+    participationRecords[index].attendanceStatus = attendanceStatus;
+    participationRecords[index].attendanceDetail = attendanceDetail;
     
     updateParticipationList();
     saveData();
@@ -1183,7 +1339,7 @@ function deleteEvidence(index) {
 
 // Generación de reportes
 function generateReport() {
-    const teacherName = document.getElementById("teacherName").value || "Prof. Miguel Silverio";
+    const teacherName = document.getElementById("teacherName").value || "No especificado";
     const grade = document.getElementById("grade").value;
     const subjectSelect = document.getElementById("subject");
     const subject = subjectSelect.value === "Otra" ? document.getElementById("otherSubject").value : subjectSelect.value;
@@ -1224,11 +1380,11 @@ function generateReport() {
             if (student.name) {
                 content += `
                     <p><strong>Estudiante ${index + 1}:</strong> ${student.name}</p>
-                    <p><strong>Razón:</strong> ${student.reason}</p>
+                    <p><strong>Razón:</strong> ${formatMultilineText(student.reason)}</p>
                     <p><strong>Hora de salida:</strong> ${student.startTime ? formatDateTime(student.startTime) : "No registrada"}</p>
                     <p><strong>Hora de retorno:</strong> ${student.returnTime ? formatDateTime(student.returnTime) : "No registrada"}</p>
                     <p><strong>Tiempo fuera:</strong> ${student.duration} minutos</p>
-                    <p><strong>Observación:</strong> ${student.comment}</p>
+                    <p><strong>Observación:</strong> ${formatMultilineText(student.comment)}</p>
                     <hr>
                 `;
             }
@@ -1245,7 +1401,7 @@ function generateReport() {
         events.forEach((event, index) => {
             content += `
                 <li>
-                    <strong>Evento ${index + 1}:</strong> ${event.text}
+                    <strong>Evento ${index + 1}:</strong> ${formatMultilineText(event.text)}
                     <div><small>${event.formattedTime}</small></div>
                 </li>
             `;
@@ -1262,7 +1418,7 @@ function generateReport() {
         interpretations.forEach((interpretation, index) => {
             content += `
                 <li>
-                    <strong>Interpretación ${index + 1}:</strong> ${interpretation.text}
+                    <strong>Interpretación ${index + 1}:</strong> ${formatMultilineText(interpretation.text)}
                     <div><small>${interpretation.formattedTime}</small></div>
                 </li>
             `;
@@ -1277,6 +1433,8 @@ function generateReport() {
             <table style="width: 100%; border-collapse: collapse;">
                 <tr style="background-color: #2c3e50; color: white;">
                     <th style="padding: 10px; text-align: left;">Estudiante(s)</th>
+                    <th style="padding: 10px; text-align: left;">Estado</th>
+                    <th style="padding: 10px; text-align: left;">Detalle</th>
                     <th style="padding: 10px; text-align: left;">Comentario</th>
                     <th style="padding: 10px; text-align: left;">Hora</th>
                 </tr>`;
@@ -1285,7 +1443,9 @@ function generateReport() {
             content += `
                 <tr style="${index % 2 === 0 ? 'background-color: #f2f2f2;' : ''}">
                     <td style="padding: 10px; border: 1px solid #ddd;">${record.studentName}</td>
-                    <td style="padding: 10px; border: 1px solid #ddd;">${record.comment}</td>
+                    <td style="padding: 10px; border: 1px solid #ddd;">${record.attendanceStatus || 'Presente'}</td>
+                    <td style="padding: 10px; border: 1px solid #ddd;">${formatMultilineText(record.attendanceDetail || '')}</td>
+                    <td style="padding: 10px; border: 1px solid #ddd;">${formatMultilineText(record.comment)}</td>
                     <td style="padding: 10px; border: 1px solid #ddd;">${record.formattedTime}</td>
                 </tr>
             `;
@@ -1302,8 +1462,8 @@ function generateReport() {
             content += `
                 <p><strong>Reporte ${index + 1}:</strong> ${report.studentName}</p>
                 <p><strong>Última fecha de asistencia:</strong> ${report.lastAttendanceDate}</p>
-                <p><strong>Motivo:</strong> ${report.motivo}</p>
-                <p><strong>Acciones realizadas:</strong> ${report.acciones}</p>
+                <p><strong>Motivo:</strong> ${formatMultilineText(report.motivo)}</p>
+                <p><strong>Acciones realizadas:</strong> ${formatMultilineText(report.acciones)}</p>
                 <p><strong>Fecha del reporte:</strong> ${report.reportDate}</p>
                 <hr>
             `;
@@ -1320,9 +1480,9 @@ function generateReport() {
             content += `
                 <p><strong>Acuerdo ${index + 1}:</strong> ${acuerdo.titulo}</p>
                 <p><strong>Fecha de creación:</strong> ${acuerdo.fechaCreacion}</p>
-                <p><strong>Descripción:</strong> ${acuerdo.descripcion}</p>
-                ${acuerdo.compromisos ? `<p><strong>Compromisos:</strong><br>${acuerdo.compromisos.replace(/\n/g, '<br>')}</p>` : ''}
-                ${acuerdo.participantes ? `<p><strong>Participantes:</strong> ${acuerdo.participantes}</p>` : ''}
+                <p><strong>Descripción:</strong> ${formatMultilineText(acuerdo.descripcion)}</p>
+                ${acuerdo.compromisos ? `<p><strong>Compromisos:</strong><br>${formatMultilineText(acuerdo.compromisos)}</p>` : ''}
+                ${acuerdo.participantes ? `<p><strong>Participantes:</strong> ${formatMultilineText(acuerdo.participantes)}</p>` : ''}
                 <p><strong>Fecha de compromiso:</strong> ${acuerdo.fechaCompromiso}</p>
                 <p><strong>Fecha de seguimiento:</strong> ${acuerdo.fechaSeguimiento}</p>
                 <p><strong>Fecha de entrega:</strong> ${acuerdo.fechaEntrega}</p>
@@ -1352,7 +1512,7 @@ function generateReport() {
             }
             
             if (evidence.observation) {
-                content += `<p><strong>Observaciones:</strong> ${evidence.observation}</p>`;
+                content += `<p><strong>Observaciones:</strong> ${formatMultilineText(evidence.observation)}</p>`;
             }
             
             content += `<hr>`;
@@ -1432,9 +1592,29 @@ function showNotification(message, type) {
     }, 3000);
 }
 
+function formatMultilineText(text) {
+    if (!text) return '';
+    return escapeHtml(text).replace(/\n/g, '<br>');
+}
+
+function escapeHtml(text) {
+    const map = {
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#39;'
+    };
+    return text.replace(/[&<>"']/g, (char) => map[char]);
+}
+
 function formatDate(date) {
     const options = { day: '2-digit', month: 'short', year: 'numeric' };
     return date.toLocaleDateString('es-ES', options).toUpperCase();
+}
+
+function formatDateForInput(date) {
+    return date.toISOString().split('T')[0];
 }
 
 function formatDateTime(date) {
