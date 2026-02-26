@@ -338,9 +338,9 @@
                 <div class="grid-2">
                     <button class="btn btn-primary" onclick="openCamera()"><i class="fas fa-camera"></i> Tomar Foto</button>
                     <button class="btn btn-primary" onclick="document.getElementById('uploadFileInput').click()">
-                        <i class="fas fa-upload"></i> Subir Archivo
+                        <i class="fas fa-upload"></i> Subir Archivo(s)
                     </button>
-                    <input type="file" id="uploadFileInput" accept="image/*,.pdf,.doc,.docx,.xls,.xlsx" style="display: none;" onchange="handleFileUpload(event)">
+                    <input type="file" id="uploadFileInput" accept="image/*,.pdf,.doc,.docx,.xls,.xlsx" multiple style="display: none;" onchange="handleFileUpload(event)">
                 </div>
                 
                 <div class="evidence-container">
