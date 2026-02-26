@@ -806,7 +806,7 @@ function updateInterpretationsList() {
         li.innerHTML = `
             <div style="display:flex; justify-content:space-between; align-items:center; gap:10px;">
                 <div>
-                    <strong>Interpretación ${index + 1}:</strong> ${interpretation.text}
+                    <strong>Interpretación ${index + 1}:</strong> ${formatMultilineText(interpretation.text)}
                     <div class="interpretation-time">${interpretation.formattedTime}</div>
                 </div>
                 <div style="display:flex; gap:6px;">
@@ -955,9 +955,9 @@ function updateAcuerdosList() {
         acuerdoItem.innerHTML = `
             <h4>${acuerdo.titulo}</h4>
             <p><strong>Fecha de creación:</strong> ${acuerdo.fechaCreacion}</p>
-            <p><strong>Descripción:</strong> ${acuerdo.descripcion}</p>
-            ${acuerdo.compromisos ? `<p><strong>Compromisos:</strong><br>${acuerdo.compromisos.replace(/\n/g, '<br>')}</p>` : ''}
-            ${acuerdo.participantes ? `<p><strong>Participantes:</strong> ${acuerdo.participantes}</p>` : ''}
+            <p><strong>Descripción:</strong> ${formatMultilineText(acuerdo.descripcion)}</p>
+            ${acuerdo.compromisos ? `<p><strong>Compromisos:</strong><br>${formatMultilineText(acuerdo.compromisos)}</p>` : ''}
+            ${acuerdo.participantes ? `<p><strong>Participantes:</strong> ${formatMultilineText(acuerdo.participantes)}</p>` : ''}
             <p><strong>Fecha de compromiso:</strong> ${acuerdo.fechaCompromiso}</p>
             <p><strong>Fecha de seguimiento:</strong> ${acuerdo.fechaSeguimiento}</p>
             <p><strong>Fecha de entrega:</strong> ${acuerdo.fechaEntrega}</p>
@@ -1069,7 +1069,7 @@ function updateParticipationList() {
             <td>${record.studentName}</td>
             <td><span class="participation-badge ${badgeClass}">${type}</span></td>
             <td>${emoji}</td>
-            <td>${record.comment}</td>
+            <td>${formatMultilineText(record.comment)}</td>
             <td>${record.formattedTime}</td>
             <td>
                 <button class="btn btn-sm btn-primary" onclick="editParticipation(${index})"><i class="fas fa-edit"></i></button>
@@ -1364,11 +1364,11 @@ function generateReport() {
             if (student.name) {
                 content += `
                     <p><strong>Estudiante ${index + 1}:</strong> ${student.name}</p>
-                    <p><strong>Razón:</strong> ${student.reason}</p>
+                    <p><strong>Razón:</strong> ${formatMultilineText(student.reason)}</p>
                     <p><strong>Hora de salida:</strong> ${student.startTime ? formatDateTime(student.startTime) : "No registrada"}</p>
                     <p><strong>Hora de retorno:</strong> ${student.returnTime ? formatDateTime(student.returnTime) : "No registrada"}</p>
                     <p><strong>Tiempo fuera:</strong> ${student.duration} minutos</p>
-                    <p><strong>Observación:</strong> ${student.comment}</p>
+                    <p><strong>Observación:</strong> ${formatMultilineText(student.comment)}</p>
                     <hr>
                 `;
             }
@@ -1402,7 +1402,7 @@ function generateReport() {
         interpretations.forEach((interpretation, index) => {
             content += `
                 <li>
-                    <strong>Interpretación ${index + 1}:</strong> ${interpretation.text}
+                    <strong>Interpretación ${index + 1}:</strong> ${formatMultilineText(interpretation.text)}
                     <div><small>${interpretation.formattedTime}</small></div>
                 </li>
             `;
@@ -1425,7 +1425,7 @@ function generateReport() {
             content += `
                 <tr style="${index % 2 === 0 ? 'background-color: #f2f2f2;' : ''}">
                     <td style="padding: 10px; border: 1px solid #ddd;">${record.studentName}</td>
-                    <td style="padding: 10px; border: 1px solid #ddd;">${record.comment}</td>
+                    <td style="padding: 10px; border: 1px solid #ddd;">${formatMultilineText(record.comment)}</td>
                     <td style="padding: 10px; border: 1px solid #ddd;">${record.formattedTime}</td>
                 </tr>
             `;
@@ -1442,8 +1442,8 @@ function generateReport() {
             content += `
                 <p><strong>Reporte ${index + 1}:</strong> ${report.studentName}</p>
                 <p><strong>Última fecha de asistencia:</strong> ${report.lastAttendanceDate}</p>
-                <p><strong>Motivo:</strong> ${report.motivo}</p>
-                <p><strong>Acciones realizadas:</strong> ${report.acciones}</p>
+                <p><strong>Motivo:</strong> ${formatMultilineText(report.motivo)}</p>
+                <p><strong>Acciones realizadas:</strong> ${formatMultilineText(report.acciones)}</p>
                 <p><strong>Fecha del reporte:</strong> ${report.reportDate}</p>
                 <hr>
             `;
@@ -1460,9 +1460,9 @@ function generateReport() {
             content += `
                 <p><strong>Acuerdo ${index + 1}:</strong> ${acuerdo.titulo}</p>
                 <p><strong>Fecha de creación:</strong> ${acuerdo.fechaCreacion}</p>
-                <p><strong>Descripción:</strong> ${acuerdo.descripcion}</p>
-                ${acuerdo.compromisos ? `<p><strong>Compromisos:</strong><br>${acuerdo.compromisos.replace(/\n/g, '<br>')}</p>` : ''}
-                ${acuerdo.participantes ? `<p><strong>Participantes:</strong> ${acuerdo.participantes}</p>` : ''}
+                <p><strong>Descripción:</strong> ${formatMultilineText(acuerdo.descripcion)}</p>
+                ${acuerdo.compromisos ? `<p><strong>Compromisos:</strong><br>${formatMultilineText(acuerdo.compromisos)}</p>` : ''}
+                ${acuerdo.participantes ? `<p><strong>Participantes:</strong> ${formatMultilineText(acuerdo.participantes)}</p>` : ''}
                 <p><strong>Fecha de compromiso:</strong> ${acuerdo.fechaCompromiso}</p>
                 <p><strong>Fecha de seguimiento:</strong> ${acuerdo.fechaSeguimiento}</p>
                 <p><strong>Fecha de entrega:</strong> ${acuerdo.fechaEntrega}</p>
@@ -1492,7 +1492,7 @@ function generateReport() {
             }
             
             if (evidence.observation) {
-                content += `<p><strong>Observaciones:</strong> ${evidence.observation}</p>`;
+                content += `<p><strong>Observaciones:</strong> ${formatMultilineText(evidence.observation)}</p>`;
             }
             
             content += `<hr>`;
