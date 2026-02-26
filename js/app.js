@@ -1238,25 +1238,44 @@ function savePhoto() {
     showNotification("Evidencia capturada correctamente", "success");
 }
 
-function handleFileUpload(event) {
-    const file = event.target.files[0];
-    if (file) {
-        const reader = new FileReader();
-        reader.onload = function(e) {
+async function handleFileUpload(event) {
+    const files = Array.from(event.target.files || []);
+    if (files.length === 0) {
+        return;
+    }
+
+    const fileToDataURL = (file) => {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = (e) => resolve(e.target.result);
+            reader.onerror = () => reject(new Error(`No se pudo leer el archivo: ${file.name}`));
+            reader.readAsDataURL(file);
+        });
+    };
+
+    try {
+        const now = new Date();
+        const loadedFiles = await Promise.all(files.map((file) => fileToDataURL(file)));
+
+        loadedFiles.forEach((fileData, index) => {
+            const file = files[index];
             capturedEvidence.push({
                 type: file.type.includes('image') ? "image" : "document",
-                data: e.target.result,
-                timestamp: new Date(),
-                formattedTime: formatDateTime(new Date()),
+                data: fileData,
+                timestamp: now,
+                formattedTime: formatDateTime(now),
                 filename: file.name,
                 observation: ""
             });
-            
-            updateEvidenceList();
-            saveData();
-            showNotification("Archivo subido correctamente", "success");
-        };
-        reader.readAsDataURL(file);
+        });
+
+        updateEvidenceList();
+        saveData();
+        showNotification(`${files.length} archivo(s) subido(s) correctamente`, "success");
+    } catch (error) {
+        showNotification(error.message || "Ocurrió un error al subir archivos", "error");
+    } finally {
+        event.target.value = "";
     }
 }
 
@@ -1287,10 +1306,6 @@ function updateEvidenceList() {
             `;
         }
         
-        if (evidence.observation) {
-            evidenceItem.innerHTML += `<p><strong>Observaciones:</strong> ${evidence.observation}</p>`;
-        }
-        
         evidenceItem.innerHTML += `
             <div class="form-group evidence-observation">
                 <label>Agregar/Editar observaciones:</label>
@@ -1299,6 +1314,7 @@ function updateEvidenceList() {
                     <i class="fas fa-save"></i> Guardar observación
                 </button>
             </div>
+            ${evidence.observation ? `<p class="evidence-observation-text"><strong>Observaciones:</strong> ${evidence.observation}</p>` : ''}
             <button class="btn btn-sm btn-danger" onclick="deleteEvidence(${index})"><i class="fas fa-trash"></i> Eliminar</button>
             <hr>
         `;
@@ -1481,22 +1497,30 @@ function generateReport() {
                 <p>Confirmo que he leído y acepto el contenido de este reporte, comprometiéndome a cumplir los acuerdos establecidos. El profesor certifica que las evidencias en este registro de tareas o disciplinario han sido verificadas y son auténticas, suficientes y pertinentes para los fines académicos.</p>
             </div>`;
         
+        content += `<div class="report-evidence-gallery">`;
+
         capturedEvidence.forEach((evidence, index) => {
             if (evidence.type === "image") {
                 content += `
-                    <p><strong>Foto de evidencia ${index + 1}</strong> - ${evidence.formattedTime}</p>
-                    <img src="${evidence.data}" style="max-width: 300px; border-radius: 5px; margin: 10px 0;" alt="Evidencia ${index + 1}">
+                    <div class="report-evidence-item">
+                        <p><strong>Foto de evidencia ${index + 1}</strong> - ${evidence.formattedTime}</p>
+                        <img src="${evidence.data}" class="report-evidence-image" alt="Evidencia ${index + 1}">
+                        ${evidence.observation ? `<p><strong>Observaciones:</strong> ${formatMultilineText(evidence.observation)}</p>` : ''}
+                        <hr>
+                    </div>
                 `;
             } else if (evidence.type === "document") {
-                content += `<p><strong>Documento ${index + 1}:</strong> ${evidence.filename} - ${evidence.formattedTime}</p>`;
+                content += `
+                    <div class="report-evidence-item">
+                        <p><strong>Documento ${index + 1}:</strong> ${evidence.filename} - ${evidence.formattedTime}</p>
+                        ${evidence.observation ? `<p><strong>Observaciones:</strong> ${formatMultilineText(evidence.observation)}</p>` : ''}
+                        <hr>
+                    </div>
+                `;
             }
-            
-            if (evidence.observation) {
-                content += `<p><strong>Observaciones:</strong> ${formatMultilineText(evidence.observation)}</p>`;
-            }
-            
-            content += `<hr>`;
         });
+
+        content += `</div>`;
         
         content += `</div>`;
     }
