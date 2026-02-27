@@ -104,7 +104,44 @@ const emojisList = [
     { emoji: '🎤', type: 'expuso', tooltip: 'Expuso - Presentación oral' },
     { emoji: '🤓', type: 'interés académico', tooltip: 'Interés académico - Preguntó o investigó' },
     { emoji: '📢', type: 'aportó idea', tooltip: 'Aportó idea - Compartió con la clase' },
-    { emoji: '🧩', type: 'resolución de problema', tooltip: 'Resolución de problema - Ayudó a resolver' }
+    { emoji: '🧩', type: 'resolución de problema', tooltip: 'Resolución de problema - Ayudó a resolver' },
+    { emoji: '⏰', type: 'puntualidad', tooltip: 'Puntualidad - Llegó a tiempo y preparado' },
+    { emoji: '🧹', type: 'orden', tooltip: 'Orden - Mantuvo limpio y ordenado su espacio' },
+    { emoji: '📌', type: 'seguimiento de instrucciones', tooltip: 'Seguimiento de instrucciones - Cumplió las indicaciones dadas' },
+    { emoji: '🤍', type: 'respeto', tooltip: 'Respeto - Trato amable y respetuoso' },
+    { emoji: '🫶', type: 'empatía', tooltip: 'Empatía - Comprendió y apoyó a sus compañeros' },
+    { emoji: '🧘', type: 'autocontrol', tooltip: 'Autocontrol - Reguló emociones y conducta' },
+    { emoji: '🧾', type: 'trabajo completo', tooltip: 'Trabajo completo - Entregó la actividad finalizada' },
+    { emoji: '📅', type: 'cumplimiento', tooltip: 'Cumplimiento - Entregó en la fecha acordada' },
+    { emoji: '🤝🏻', type: 'resolución pacífica', tooltip: 'Resolución pacífica - Solucionó conflictos con diálogo' },
+    { emoji: '🗂️', type: 'organización', tooltip: 'Organización - Administró materiales y tiempos' },
+    { emoji: '🧠', type: 'pensamiento crítico', tooltip: 'Pensamiento crítico - Argumentó y analizó ideas' },
+    { emoji: '🎨', type: 'creatividad', tooltip: 'Creatividad - Propuso ideas originales' },
+    { emoji: '📎', type: 'responsabilidad académica', tooltip: 'Responsabilidad académica - Cumplió tareas y compromisos' },
+    { emoji: '💬', type: 'escucha activa', tooltip: 'Escucha activa - Prestó atención al otro antes de responder' },
+    { emoji: '🧑‍🤝‍🧑', type: 'convivencia', tooltip: 'Convivencia - Interactuó de forma positiva con el grupo' },
+    { emoji: '📉', type: 'baja participación', tooltip: 'Baja participación - Intervino poco en clase' },
+    { emoji: '🚫', type: 'incumplimiento de norma', tooltip: 'Incumplimiento de norma - Rompió acuerdos del aula' },
+    { emoji: '🗣️', type: 'interrumpe', tooltip: 'Interrumpe - Habla fuera de turno con frecuencia' },
+    { emoji: '📵', type: 'distracción', tooltip: 'Distracción - Se distrae con facilidad durante la actividad' },
+    { emoji: '😤', type: 'frustración', tooltip: 'Frustración - Se mostró molesto ante la dificultad' },
+    { emoji: '🤬', type: 'lenguaje inapropiado', tooltip: 'Lenguaje inapropiado - Usó palabras inadecuadas' },
+    { emoji: '🙇', type: 'disculpa y mejora', tooltip: 'Disculpa y mejora - Reconoció el error y mejoró su actitud' }
+];
+
+const stickersList = [
+    { emoji: '🏅', type: 'sticker excelente conducta', tooltip: 'Excelente conducta - Respeta normas y coopera constantemente' },
+    { emoji: '🌟', type: 'sticker destacado del día', tooltip: 'Destacado del día - Sobresale en actitud y participación' },
+    { emoji: '🤝', type: 'sticker compañerismo', tooltip: 'Compañerismo - Apoya, comparte y trabaja bien con otros' },
+    { emoji: '📘', type: 'sticker responsable', tooltip: 'Responsable - Cumple tareas y trae materiales completos' },
+    { emoji: '🎯', type: 'sticker objetivo logrado', tooltip: 'Objetivo logrado - Alcanzó la meta de la clase' },
+    { emoji: '🧠', type: 'sticker esfuerzo intelectual', tooltip: 'Esfuerzo intelectual - Mantiene concentración y razonamiento' },
+    { emoji: '💚', type: 'sticker actitud positiva', tooltip: 'Actitud positiva - Mantiene respeto y buen ánimo' },
+    { emoji: '🚦', type: 'sticker regular conducta', tooltip: 'Regular conducta - Requiere acompañamiento para sostener normas' },
+    { emoji: '⚠️', type: 'sticker llamado de atención', tooltip: 'Llamado de atención - Presentó conductas que deben corregirse' },
+    { emoji: '😠', type: 'sticker enojado', tooltip: 'Enojado - Mostró molestia que afectó su trabajo' },
+    { emoji: '😕', type: 'sticker desmotivado', tooltip: 'Desmotivado - Baja disposición para participar' },
+    { emoji: '🛑', type: 'sticker mala conducta', tooltip: 'Mala conducta - Incumplió normas del aula' }
 ];
 
 // Inicializar la página
@@ -159,23 +196,27 @@ document.addEventListener('DOMContentLoaded', function() {
 function loadEmojis() {
     const emojiSelector = document.getElementById('emojiSelector');
     const editEmojiSelector = document.getElementById('editEmojiSelector');
-    
-    const emojiHTML = emojisList.map(item => `
-        <button class="emoji-btn" onclick="addParticipation('${item.emoji}', '${item.type}')" title="${item.tooltip}">
-            ${item.emoji}
-            <span class="emoji-tooltip">${item.tooltip}</span>
-        </button>
-    `).join('');
-    
-    const editEmojiHTML = emojisList.map(item => `
-        <button class="emoji-btn" onclick="addEmojiToEdit('${item.emoji}', '${item.type}')" title="${item.tooltip}">
-            ${item.emoji}
-            <span class="emoji-tooltip">${item.tooltip}</span>
-        </button>
-    `).join('');
+    const stickerSelector = document.getElementById('stickerSelector');
+    const editStickerSelector = document.getElementById('editStickerSelector');
+
+    const emojiHTML = renderSelectionButtons(emojisList, 'addParticipation');
+    const editEmojiHTML = renderSelectionButtons(emojisList, 'addEmojiToEdit');
+    const stickerHTML = renderSelectionButtons(stickersList, 'addStickerToComment');
+    const editStickerHTML = renderSelectionButtons(stickersList, 'addStickerToEdit');
     
     if (emojiSelector) emojiSelector.innerHTML = emojiHTML;
     if (editEmojiSelector) editEmojiSelector.innerHTML = editEmojiHTML;
+    if (stickerSelector) stickerSelector.innerHTML = stickerHTML;
+    if (editStickerSelector) editStickerSelector.innerHTML = editStickerHTML;
+}
+
+function renderSelectionButtons(list, handlerName) {
+    return list.map(item => `
+        <button class="emoji-btn" onclick="${handlerName}('${item.emoji}', '${item.type}')" title="${item.tooltip}">
+            ${item.emoji}
+            <span class="emoji-tooltip">${item.tooltip}</span>
+        </button>
+    `).join('');
 }
 
 // Configurar event listeners
@@ -986,6 +1027,16 @@ function addEmojiToEdit(emoji, type) {
     commentTextarea.value += ` ${emoji} (${type})`;
 }
 
+function addStickerToComment(sticker, type) {
+    const commentTextarea = document.getElementById('participationComment');
+    commentTextarea.value += ` ${sticker} (${type})`;
+}
+
+function addStickerToEdit(sticker, type) {
+    const commentTextarea = document.getElementById('editComment');
+    commentTextarea.value += ` ${sticker} (${type})`;
+}
+
 function registerParticipation() {
     const reportType = document.querySelector('input[name="reportType"]:checked').value;
     const comment = document.getElementById("participationComment").value;
@@ -1049,7 +1100,7 @@ function updateParticipationList() {
     participationRecords.forEach((record, index) => {
         const row = document.createElement("tr");
         
-        const emojiMatch = record.comment.match(/([\u{1F300}-\u{1F9FF}])/gu);
+        const emojiMatch = record.comment.match(/[\p{Extended_Pictographic}\u2600-\u27BF]/gu);
         const emoji = emojiMatch ? emojiMatch[0] : "📝";
         
         const typeMatch = record.comment.match(/\(([^)]+)\)/);
@@ -1503,26 +1554,24 @@ function generateReport() {
         content += `<div class="report-evidence-gallery">`;
 
         capturedEvidence.forEach((evidence, index) => {
+            content += `<div class="report-evidence-item">`;
+
             if (evidence.type === "image") {
                 content += `
-                    <div class="report-evidence-item">
-                        <p><strong>Foto de evidencia ${index + 1}</strong> - ${evidence.formattedTime}</p>
-                        <img src="${evidence.data}" class="report-evidence-image" alt="Evidencia ${index + 1}">
-                    </div>
+                    <p><strong>Foto de evidencia ${index + 1}</strong> - ${evidence.formattedTime}</p>
+                    <img src="${evidence.data}" class="report-evidence-image" alt="Evidencia ${index + 1}">
                 `;
             } else if (evidence.type === "document") {
                 content += `
-                    <div class="report-evidence-item">
-                        <p><strong>Documento ${index + 1}:</strong> ${evidence.filename} - ${evidence.formattedTime}</p>
-                    </div>
+                    <p><strong>Documento ${index + 1}:</strong> ${evidence.filename} - ${evidence.formattedTime}</p>
                 `;
             }
             
             if (evidence.observation) {
-                content += `<p><strong>Observaciones:</strong> ${formatMultilineText(evidence.observation)}</p>`;
+                content += `<p class="report-evidence-observation"><strong>Observaciones:</strong> ${formatMultilineText(evidence.observation)}</p>`;
             }
             
-            content += `<hr>`;
+            content += `</div>`;
         });
 
         content += `</div>`;
