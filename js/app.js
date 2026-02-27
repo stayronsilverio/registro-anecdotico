@@ -134,11 +134,11 @@ const emojisList = [
     { emoji: '🪴', type: 'cuidado del entorno', tooltip: 'Cuidado del entorno - Protegió materiales y espacios del aula' },
     { emoji: '🛠️', type: 'resuelve con iniciativa', tooltip: 'Resuelve con iniciativa - Buscó soluciones antes de pedir ayuda' },
     { emoji: '🔇', type: 'trabajo en silencio', tooltip: 'Trabajo en silencio - Mantuvo concentración sin interrumpir' },
-    { emoji: '📚', type: 'usa fuentes de apoyo', tooltip: 'Usa fuentes de apoyo - Consultó cuaderno, libro o material de clase' },
+    { emoji: '📔', type: 'usa fuentes de apoyo', tooltip: 'Usa fuentes de apoyo - Consultó cuaderno, libro o material de clase' },
     { emoji: '🔁', type: 'perseverancia', tooltip: 'Perseverancia - Intentó nuevamente hasta lograr la actividad' },
     { emoji: '🧍', type: 'aislamiento', tooltip: 'Aislamiento - Evitó integrarse al trabajo con el grupo' },
-    { emoji: '🗯️', type: 'discusión', tooltip: 'Discusión - Presentó conflictos verbales con compañeros' },
-    { emoji: '📌', type: 'requiere seguimiento', tooltip: 'Requiere seguimiento - Necesita acompañamiento en próximas clases' }
+    { emoji: '💢', type: 'discusión', tooltip: 'Discusión - Presentó conflictos verbales con compañeros' },
+    { emoji: '🧷', type: 'requiere seguimiento', tooltip: 'Requiere seguimiento - Necesita acompañamiento en próximas clases' }
 ];
 
 const stickersList = [
