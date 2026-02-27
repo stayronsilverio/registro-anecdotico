@@ -217,7 +217,7 @@ function loadEmojis() {
     if (stickerSelector) stickerSelector.innerHTML = stickerHTML;
     if (editStickerSelector) editStickerSelector.innerHTML = editStickerHTML;
 
-    ['emojiSelector', 'stickerSelector', 'editEmojiSelector'].forEach(id => {
+    ['emojiSelector', 'stickerSelector', 'editEmojiSelector', 'editStickerSelector'].forEach(id => {
         const container = document.getElementById(id);
         if (container) container.classList.add('collapsed');
     });
