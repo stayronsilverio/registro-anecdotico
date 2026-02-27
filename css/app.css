@@ -481,6 +481,10 @@ textarea {
     max-width: 320px;
 }
 
+.report-evidence-observation {
+    margin-top: 0.75rem;
+}
+
 .report-evidence-image {
     width: 100%;
     border-radius: 5px;

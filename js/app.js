@@ -1503,26 +1503,24 @@ function generateReport() {
         content += `<div class="report-evidence-gallery">`;
 
         capturedEvidence.forEach((evidence, index) => {
+            content += `<div class="report-evidence-item">`;
+
             if (evidence.type === "image") {
                 content += `
-                    <div class="report-evidence-item">
-                        <p><strong>Foto de evidencia ${index + 1}</strong> - ${evidence.formattedTime}</p>
-                        <img src="${evidence.data}" class="report-evidence-image" alt="Evidencia ${index + 1}">
-                    </div>
+                    <p><strong>Foto de evidencia ${index + 1}</strong> - ${evidence.formattedTime}</p>
+                    <img src="${evidence.data}" class="report-evidence-image" alt="Evidencia ${index + 1}">
                 `;
             } else if (evidence.type === "document") {
                 content += `
-                    <div class="report-evidence-item">
-                        <p><strong>Documento ${index + 1}:</strong> ${evidence.filename} - ${evidence.formattedTime}</p>
-                    </div>
+                    <p><strong>Documento ${index + 1}:</strong> ${evidence.filename} - ${evidence.formattedTime}</p>
                 `;
             }
             
             if (evidence.observation) {
-                content += `<p><strong>Observaciones:</strong> ${formatMultilineText(evidence.observation)}</p>`;
+                content += `<p class="report-evidence-observation"><strong>Observaciones:</strong> ${formatMultilineText(evidence.observation)}</p>`;
             }
             
-            content += `<hr>`;
+            content += `</div>`;
         });
 
         content += `</div>`;
