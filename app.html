@@ -196,8 +196,21 @@
                 
                 <div class="form-group">
                     <label>Seleccionar Emoji:</label>
+                    <button type="button" class="btn btn-sm btn-info" id="toggleEmojiBtn" onclick="toggleSelectionPanel('emojiSelector','toggleEmojiBtn','Emojis')">
+                        <i class="fas fa-chevron-down"></i> Mostrar Emojis
+                    </button>
                     <div class="emoji-selector" id="emojiSelector">
                         <!-- Los emojis se cargarán dinámicamente -->
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Seleccionar Sticker de conducta:</label>
+                    <button type="button" class="btn btn-sm btn-info" id="toggleStickerBtn" onclick="toggleSelectionPanel('stickerSelector','toggleStickerBtn','Stickers')">
+                        <i class="fas fa-chevron-down"></i> Mostrar Stickers
+                    </button>
+                    <div class="emoji-selector sticker-selector" id="stickerSelector">
+                        <!-- Los stickers se cargarán dinámicamente -->
                     </div>
                 </div>
                 
@@ -410,8 +423,21 @@
             
             <div class="form-group">
                 <label>Seleccionar Emoji:</label>
+                <button type="button" class="btn btn-sm btn-info" id="toggleEditEmojiBtn" onclick="toggleSelectionPanel('editEmojiSelector','toggleEditEmojiBtn','Emojis')">
+                    <i class="fas fa-chevron-down"></i> Mostrar Emojis
+                </button>
                 <div class="edit-emoji-selector" id="editEmojiSelector">
                     <!-- Los emojis se cargarán dinámicamente -->
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Seleccionar Sticker de conducta:</label>
+                <button type="button" class="btn btn-sm btn-info" id="toggleEditStickerBtn" onclick="toggleSelectionPanel('editStickerSelector','toggleEditStickerBtn','Stickers')">
+                    <i class="fas fa-chevron-down"></i> Mostrar Stickers
+                </button>
+                <div class="edit-emoji-selector sticker-selector" id="editStickerSelector">
+                    <!-- Los stickers se cargarán dinámicamente -->
                 </div>
             </div>
             

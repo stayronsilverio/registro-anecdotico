@@ -481,6 +481,10 @@ textarea {
     max-width: 320px;
 }
 
+.report-evidence-observation {
+    margin-top: 0.75rem;
+}
+
 .report-evidence-image {
     width: 100%;
     border-radius: 5px;
@@ -538,6 +542,15 @@ textarea {
     flex-wrap: wrap;
 }
 
+.emoji-selector.collapsed,
+.edit-emoji-selector.collapsed {
+    display: none;
+}
+
+.form-group .btn.btn-sm {
+    margin: 8px 0;
+}
+
 .emoji-btn {
     font-size: 1.5rem;
     background: none;
@@ -572,6 +585,19 @@ textarea {
 .emoji-btn:hover .emoji-tooltip {
     opacity: 1;
     visibility: visible;
+}
+
+.sticker-selector .emoji-btn {
+    font-size: 1.8rem;
+    background-color: #f5f8ff;
+    border: 1px solid #d6e1ff;
+    border-radius: 8px;
+    padding: 8px;
+}
+
+.sticker-selector .emoji-btn:hover {
+    transform: scale(1.1);
+    background-color: #e9f0ff;
 }
 
 .report-type-selector {
