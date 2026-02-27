@@ -126,19 +126,7 @@ const emojisList = [
     { emoji: '📵', type: 'distracción', tooltip: 'Distracción - Se distrae con facilidad durante la actividad' },
     { emoji: '😤', type: 'frustración', tooltip: 'Frustración - Se mostró molesto ante la dificultad' },
     { emoji: '🤬', type: 'lenguaje inapropiado', tooltip: 'Lenguaje inapropiado - Usó palabras inadecuadas' },
-    { emoji: '🙇', type: 'disculpa y mejora', tooltip: 'Disculpa y mejora - Reconoció el error y mejoró su actitud' },
-    { emoji: '🧪', type: 'aprendizaje práctico', tooltip: 'Aprendizaje práctico - Participó activamente en ejercicios o laboratorio' },
-    { emoji: '🧭', type: 'autonomía', tooltip: 'Autonomía - Trabajó de forma independiente y responsable' },
-    { emoji: '📈', type: 'mejora continua', tooltip: 'Mejora continua - Mostró avance respecto a clases anteriores' },
-    { emoji: '🫡', type: 'actitud respetuosa', tooltip: 'Actitud respetuosa - Mantuvo buen trato con docentes y compañeros' },
-    { emoji: '🪴', type: 'cuidado del entorno', tooltip: 'Cuidado del entorno - Protegió materiales y espacios del aula' },
-    { emoji: '🛠️', type: 'resuelve con iniciativa', tooltip: 'Resuelve con iniciativa - Buscó soluciones antes de pedir ayuda' },
-    { emoji: '🔇', type: 'trabajo en silencio', tooltip: 'Trabajo en silencio - Mantuvo concentración sin interrumpir' },
-    { emoji: '📔', type: 'usa fuentes de apoyo', tooltip: 'Usa fuentes de apoyo - Consultó cuaderno, libro o material de clase' },
-    { emoji: '🔁', type: 'perseverancia', tooltip: 'Perseverancia - Intentó nuevamente hasta lograr la actividad' },
-    { emoji: '🧍', type: 'aislamiento', tooltip: 'Aislamiento - Evitó integrarse al trabajo con el grupo' },
-    { emoji: '💢', type: 'discusión', tooltip: 'Discusión - Presentó conflictos verbales con compañeros' },
-    { emoji: '🧷', type: 'requiere seguimiento', tooltip: 'Requiere seguimiento - Necesita acompañamiento en próximas clases' }
+    { emoji: '🙇', type: 'disculpa y mejora', tooltip: 'Disculpa y mejora - Reconoció el error y mejoró su actitud' }
 ];
 
 const stickersList = [
@@ -229,7 +217,7 @@ function loadEmojis() {
     if (stickerSelector) stickerSelector.innerHTML = stickerHTML;
     if (editStickerSelector) editStickerSelector.innerHTML = editStickerHTML;
 
-    ['emojiSelector', 'stickerSelector', 'editEmojiSelector', 'editStickerSelector'].forEach(id => {
+    ['emojiSelector', 'stickerSelector', 'editEmojiSelector'].forEach(id => {
         const container = document.getElementById(id);
         if (container) container.classList.add('collapsed');
     });
