@@ -48,7 +48,7 @@ function togglePassword(inputId, toggleId) {
 
 // Función para recuperar contraseña
 function forgotPassword() {
-    const email = document.getElementById('usuario').value;
+    const email = document.getElementById('usuario').value.trim().toLowerCase();
     
     if (!email) {
         showAlert('Por favor, ingresa tu correo electrónico primero', 'error');
@@ -128,7 +128,7 @@ async function validateUsersCollection(user) {
     const userDoc = usersQuery.docs[0];
     const userData = userDoc.data() || {};
 
-    const sessionExpiryRaw = userData.sessionIDExpiresAt || userData.sessionExpiresAt || userData.sessionExpires || null;
+    const sessionExpiryRaw = userData.sessionIDExpiresAt || userData.sessionExpiresAt || userData.sessionExpires || userData.expiresAt || null;
     const sessionExpiry = toDate(sessionExpiryRaw);
 
     if (sessionExpiry && sessionExpiry <= new Date()) {
