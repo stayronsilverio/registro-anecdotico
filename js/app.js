@@ -430,6 +430,8 @@ function loadSavedData() {
         
         updateEventsList();
         updateInterpretationsList();
+        updateStudentsManagementList();
+        updateInasistenciaReportsList();
         updateParticipationList();
         updateAcuerdosList();
         updateEvidenceList();
@@ -520,6 +522,7 @@ function toggleCompromisoOtro() {
 function showInasistenciaReportForm() {
     document.getElementById("inasistenciaReportForm").style.display = "block";
     document.getElementById("acuerdosForm").classList.add("hidden");
+    updateInasistenciaReportsList();
 }
 
 function toggleAcuerdosForm() {
@@ -641,6 +644,8 @@ function startNewClass() {
 
     updateEventsList();
     updateInterpretationsList();
+    updateStudentsManagementList();
+    updateInasistenciaReportsList();
     updateParticipationList();
     updateAcuerdosList();
     updateEvidenceList();
@@ -781,6 +786,7 @@ function addStudentFormFields() {
     });
     
     currentStudentIndex++;
+    updateStudentsManagementList();
 }
 
 function startStudentTimer(studentIndex) {
@@ -815,6 +821,7 @@ function startStudentTimer(studentIndex) {
     });
     
     updateOutsideStudentsList();
+    updateStudentsManagementList();
     showNotification(`Salida registrada para ${student.name}`, "success");
 }
 
@@ -852,8 +859,95 @@ function stopStudentTimer(studentIndex) {
     
     outsideStudents = outsideStudents.filter(s => s.id !== studentIndex);
     updateOutsideStudentsList();
+    updateStudentsManagementList();
     
     showNotification(`Retorno registrado para ${student.name}`, "success");
+}
+
+function updateStudentsManagementList() {
+    const studentsRecordsList = document.getElementById('studentsRecordsList');
+    if (!studentsRecordsList) return;
+
+    const validStudents = students
+        .map((student, index) => ({ student, index }))
+        .filter(item => item.student && (item.student.name || item.student.reason || item.student.startTime || item.student.returnTime));
+
+    studentsRecordsList.innerHTML = '';
+
+    if (validStudents.length === 0) {
+        studentsRecordsList.innerHTML = '<p>No hay registros de estudiantes aún.</p>';
+        return;
+    }
+
+    validStudents.forEach(({ student, index }) => {
+        const studentId = index + 1;
+        const status = student.startTime && !student.returnTime ? 'Fuera del aula' : (student.returnTime ? 'Retornó al aula' : 'Pendiente de salida');
+
+        const item = document.createElement('div');
+        item.className = 'acuerdo-item';
+        item.innerHTML = `
+            <h4>Estudiante ${studentId}: ${student.name || 'Sin nombre'}</h4>
+            <p><strong>Razón:</strong> ${formatMultilineText(student.reason || 'No especificada')}</p>
+            <p><strong>Estado:</strong> ${status}</p>
+            <p><strong>Hora de salida:</strong> ${student.startTime ? formatDateTime(student.startTime) : 'No registrada'}</p>
+            <p><strong>Hora de retorno:</strong> ${student.returnTime ? formatDateTime(student.returnTime) : 'No registrada'}</p>
+            <p><strong>Tiempo fuera:</strong> ${typeof student.duration === 'number' ? student.duration : 0} minuto(s)</p>
+            <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                <button class="btn btn-sm btn-primary" onclick="editStudentRecord(${studentId})"><i class="fas fa-edit"></i> Editar</button>
+                <button class="btn btn-sm btn-danger" onclick="deleteStudentRecord(${studentId})"><i class="fas fa-trash"></i> Eliminar</button>
+            </div>
+        `;
+        studentsRecordsList.appendChild(item);
+    });
+}
+
+function editStudentRecord(studentIndex) {
+    const student = students[studentIndex - 1];
+    if (!student) return;
+
+    const newName = prompt('Editar nombre del estudiante:', student.name || '');
+    if (newName === null) return;
+
+    const newReason = prompt('Editar razón de salida:', student.reason || '');
+    if (newReason === null) return;
+
+    student.name = newName.trim();
+    student.reason = newReason.trim();
+
+    const nameInput = document.getElementById(`studentNameInput${studentIndex}`);
+    const reasonInput = document.getElementById(`reason${studentIndex}`);
+    if (nameInput) nameInput.value = student.name;
+    if (reasonInput) reasonInput.value = student.reason;
+
+    const outsideStudent = outsideStudents.find(s => s.id === studentIndex);
+    if (outsideStudent) {
+        outsideStudent.name = student.name;
+        outsideStudent.reason = student.reason;
+    }
+
+    updateOutsideStudentsList();
+    updateStudentsManagementList();
+    saveData();
+    showNotification('Registro de estudiante actualizado', 'success');
+}
+
+function deleteStudentRecord(studentIndex) {
+    const student = students[studentIndex - 1];
+    if (!student) return;
+
+    if (!confirm('¿Eliminar este registro de estudiante?')) return;
+
+    if (student.timerInterval) clearInterval(student.timerInterval);
+    outsideStudents = outsideStudents.filter(s => s.id !== studentIndex);
+
+    const studentNode = document.getElementById(`student${studentIndex}`);
+    if (studentNode) studentNode.remove();
+
+    students[studentIndex - 1] = null;
+    updateOutsideStudentsList();
+    updateStudentsManagementList();
+    saveData();
+    showNotification('Registro de estudiante eliminado', 'info');
 }
 
 function startOutsideStudentsInterval() {
@@ -1083,6 +1177,7 @@ function addInasistenciaReport() {
     
     inasistenciaReports.push(report);
     saveData();
+    updateInasistenciaReportsList();
     
     document.getElementById("studentNameInasistencia").value = "";
     document.getElementById("lastAttendanceDate").value = "";
@@ -1091,6 +1186,73 @@ function addInasistenciaReport() {
     document.getElementById("inasistenciaReportForm").style.display = "none";
     
     showNotification("Reporte de inasistencia agregado correctamente", "success");
+}
+
+function updateInasistenciaReportsList() {
+    const inasistenciaList = document.getElementById('inasistenciaList');
+    if (!inasistenciaList) return;
+
+    inasistenciaList.innerHTML = '';
+
+    if (inasistenciaReports.length === 0) {
+        inasistenciaList.innerHTML = '<p>No hay reportes de inasistencia registrados aún.</p>';
+        return;
+    }
+
+    inasistenciaReports.forEach((report, index) => {
+        const item = document.createElement('div');
+        item.className = 'acuerdo-item';
+        item.innerHTML = `
+            <h4>Reporte ${index + 1}: ${report.studentName}</h4>
+            <p><strong>Última fecha de asistencia:</strong> ${report.lastAttendanceDate}</p>
+            <p><strong>Motivo:</strong> ${formatMultilineText(report.motivo)}</p>
+            <p><strong>Acciones realizadas:</strong> ${formatMultilineText(report.acciones)}</p>
+            <p><strong>Fecha del reporte:</strong> ${report.reportDate}</p>
+            <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                <button class="btn btn-sm btn-primary" onclick="editInasistenciaReport(${index})"><i class="fas fa-edit"></i> Editar</button>
+                <button class="btn btn-sm btn-danger" onclick="deleteInasistenciaReport(${index})"><i class="fas fa-trash"></i> Eliminar</button>
+            </div>
+        `;
+
+        inasistenciaList.appendChild(item);
+    });
+}
+
+function editInasistenciaReport(index) {
+    const report = inasistenciaReports[index];
+    if (!report) return;
+
+    const studentName = prompt('Editar nombre del estudiante:', report.studentName || '');
+    if (studentName === null) return;
+
+    const lastAttendanceDate = prompt('Editar última fecha de asistencia (YYYY-MM-DD):', report.lastAttendanceDate || '');
+    if (lastAttendanceDate === null) return;
+
+    const motivo = prompt('Editar motivo del reporte:', report.motivo || '');
+    if (motivo === null) return;
+
+    const acciones = prompt('Editar acciones realizadas:', report.acciones || '');
+    if (acciones === null) return;
+
+    inasistenciaReports[index] = {
+        ...report,
+        studentName: studentName.trim(),
+        lastAttendanceDate: lastAttendanceDate.trim(),
+        motivo: motivo.trim(),
+        acciones: acciones.trim()
+    };
+
+    updateInasistenciaReportsList();
+    saveData();
+    showNotification('Reporte de inasistencia actualizado', 'success');
+}
+
+function deleteInasistenciaReport(index) {
+    if (!confirm('¿Eliminar este reporte de inasistencia?')) return;
+    inasistenciaReports.splice(index, 1);
+    updateInasistenciaReportsList();
+    saveData();
+    showNotification('Reporte de inasistencia eliminado', 'info');
 }
 
 // Acuerdos
@@ -1181,6 +1343,7 @@ function updateAcuerdosList() {
             <p><strong>Fecha de compromiso:</strong> ${acuerdo.fechaCompromiso}</p>
             <p><strong>Fecha de seguimiento:</strong> ${acuerdo.fechaSeguimiento}</p>
             <p><strong>Fecha de entrega:</strong> ${acuerdo.fechaEntrega}</p>
+            <button class="btn btn-sm btn-primary" onclick="editAcuerdo(${index})"><i class="fas fa-edit"></i> Editar</button>
             <button class="btn btn-sm btn-danger" onclick="deleteAcuerdo(${index})"><i class="fas fa-trash"></i> Eliminar</button>
         `;
         
@@ -1193,6 +1356,35 @@ function deleteAcuerdo(index) {
     updateAcuerdosList();
     saveData();
     showNotification("Acuerdo eliminado", "info");
+}
+
+function editAcuerdo(index) {
+    const acuerdo = acuerdos[index];
+    if (!acuerdo) return;
+
+    const titulo = prompt('Editar título del acuerdo:', acuerdo.titulo || '');
+    if (titulo === null) return;
+
+    const descripcion = prompt('Editar descripción del acuerdo:', acuerdo.descripcion || '');
+    if (descripcion === null) return;
+
+    const compromisos = prompt('Editar compromisos:', acuerdo.compromisos || '');
+    if (compromisos === null) return;
+
+    const participantes = prompt('Editar participantes:', acuerdo.participantes || '');
+    if (participantes === null) return;
+
+    acuerdos[index] = {
+        ...acuerdo,
+        titulo: titulo.trim(),
+        descripcion: descripcion.trim(),
+        compromisos: compromisos.trim(),
+        participantes: participantes.trim()
+    };
+
+    updateAcuerdosList();
+    saveData();
+    showNotification('Acuerdo actualizado', 'success');
 }
 
 // Sistema de participación

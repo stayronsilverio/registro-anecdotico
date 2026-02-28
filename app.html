@@ -145,6 +145,8 @@
                 <h2 class="card-title"><i class="fas fa-user-graduate"></i> Gestión de Estudiantes</h2>
                 <button class="btn btn-primary add-student-btn"><i class="fas fa-plus"></i> Agregar Estudiante</button>
                 <div id="studentInputs" class="hidden"></div>
+                <h3 style="margin-top: 18px;">Registros de Estudiantes</h3>
+                <div id="studentsRecordsList"></div>
             </div>
 
             <div class="card">
@@ -277,6 +279,11 @@
                         <textarea id="accionesRealizadas" placeholder="Escribe las acciones realizadas antes del reporte..."></textarea>
                     </div>
                     <button class="btn btn-primary" onclick="addInasistenciaReport()"><i class="fas fa-plus"></i> Agregar Reporte</button>
+                </div>
+
+                <div class="card">
+                    <h3 class="card-title">Reportes de Inasistencia Registrados</h3>
+                    <div id="inasistenciaList"></div>
                 </div>
             </div>
 
