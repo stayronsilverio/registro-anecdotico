@@ -144,18 +144,69 @@ const stickersList = [
     { emoji: '🛑', type: 'sticker mala conducta', tooltip: 'Mala conducta - Incumplió normas del aula' }
 ];
 
-// Inicializar la página
-document.addEventListener('DOMContentLoaded', function() {
-    // Verificar autenticación
-    firebase.auth().onAuthStateChanged((user) => {
-        if (!user) {
-            // No hay usuario autenticado, redirigir al login
-            window.location.href = 'index.html';
-            return;
-        }
-        console.log("Usuario autenticado:", user.email);
-    });
-    
+function generateSessionID() {
+    if (window.crypto && typeof window.crypto.randomUUID === 'function') {
+        return window.crypto.randomUUID();
+    }
+    return `session_${Date.now()}_${Math.random().toString(36).slice(2, 12)}`;
+}
+
+function showAccessBlockedMessage(message) {
+    document.body.innerHTML = `
+        <div style="min-height:100vh;display:flex;align-items:center;justify-content:center;background:#f4f7f9;padding:24px;"> 
+            <div style="max-width:520px;background:white;border-radius:12px;padding:32px;text-align:center;box-shadow:0 12px 30px rgba(0,0,0,.12);font-family:Arial,sans-serif;"> 
+                <h2 style="margin:0 0 12px;color:#d32f2f;">Acceso bloqueado</h2>
+                <p style="margin:0;color:#333;font-size:18px;line-height:1.5;">${message}</p>
+            </div>
+        </div>
+    `;
+}
+
+async function validateUserSession(user) {
+    const auth = firebase.auth();
+    const firestore = firebase.firestore();
+    const userRef = firestore.collection('users').doc(user.uid);
+    const userDoc = await userRef.get();
+
+    if (!userDoc.exists) {
+        await auth.signOut();
+        localStorage.clear();
+        sessionStorage.clear();
+        return { allowed: false };
+    }
+
+    const userData = userDoc.data() || {};
+    const expiresAt = userData.expiresAt;
+    const expiresAtDate = expiresAt && typeof expiresAt.toDate === 'function' ? expiresAt.toDate() : null;
+
+    if (!expiresAtDate || expiresAtDate <= new Date()) {
+        await auth.signOut();
+        localStorage.clear();
+        sessionStorage.clear();
+        showAccessBlockedMessage('Tu licencia ha expirado. Contacte al administrador.');
+        return { allowed: false };
+    }
+
+    const currentSessionID = sessionStorage.getItem('sessionID') || localStorage.getItem('sessionID') || generateSessionID();
+    const storedSessionID = userData.sessionID || '';
+
+    if (storedSessionID && storedSessionID !== currentSessionID) {
+        await auth.signOut();
+        localStorage.clear();
+        sessionStorage.clear();
+        showAccessBlockedMessage('Ya existe una sesión activa en otra PC.');
+        return { allowed: false };
+    }
+
+    const newSessionID = generateSessionID();
+    await userRef.set({ sessionID: newSessionID }, { merge: true });
+    localStorage.setItem('sessionID', newSessionID);
+    sessionStorage.setItem('sessionID', newSessionID);
+
+    return { allowed: true };
+}
+
+function initializeMainSystem() {
     // Configurar botón de logout
     document.getElementById('logout-btn').addEventListener('click', function() {
         firebase.auth().signOut().then(() => {
@@ -165,31 +216,62 @@ document.addEventListener('DOMContentLoaded', function() {
             showNotification('Error al cerrar sesión', 'error');
         });
     });
-    
+
     // Inicializar el tipo de reporte
     toggleReportType();
-    
+
     // Configurar fechas
     const today = new Date();
     document.getElementById('lastAttendanceDate').valueAsDate = today;
     document.getElementById('acuerdoFechaCompromiso').valueAsDate = today;
-    
+
     const nextWeek = new Date();
     nextWeek.setDate(today.getDate() + 7);
     document.getElementById('acuerdoFechaSeguimiento').valueAsDate = nextWeek;
     document.getElementById('acuerdoFechaEntrega').valueAsDate = nextWeek;
-    
+
     // Iniciar intervalo para actualizar el tiempo de estudiantes fuera
     startOutsideStudentsInterval();
-    
+
     // Cargar emojis
     loadEmojis();
-    
+
     // Configurar event listeners
     setupEventListeners();
-    
+
     // Cargar datos guardados
     loadSavedData();
+}
+
+// Inicializar la página
+document.addEventListener('DOMContentLoaded', function() {
+    let isSystemInitialized = false;
+
+    // Verificar autenticación
+    firebase.auth().onAuthStateChanged(async (user) => {
+        if (!user) {
+            // No hay usuario autenticado, redirigir al login
+            window.location.href = 'index.html';
+            return;
+        }
+
+        try {
+            const validationResult = await validateUserSession(user);
+            if (!validationResult.allowed || isSystemInitialized) {
+                return;
+            }
+
+            isSystemInitialized = true;
+            console.log('Usuario autenticado:', user.email);
+            initializeMainSystem();
+        } catch (error) {
+            console.error('Error validando sesión:', error);
+            await firebase.auth().signOut();
+            localStorage.clear();
+            sessionStorage.clear();
+            showAccessBlockedMessage('No fue posible validar tu acceso. Contacte al administrador.');
+        }
+    });
 });
 
 // Cargar emojis en los selectores
