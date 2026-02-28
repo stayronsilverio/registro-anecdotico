@@ -146,16 +146,120 @@ const stickersList = [
 
 // Inicializar la página
 document.addEventListener('DOMContentLoaded', function() {
-    // Verificar autenticación
-    firebase.auth().onAuthStateChanged((user) => {
+    // Verificar autenticación y validar licencia/sesión antes de cargar el sistema
+    firebase.auth().onAuthStateChanged(async (user) => {
         if (!user) {
             // No hay usuario autenticado, redirigir al login
             window.location.href = 'index.html';
             return;
         }
+
+        const isSessionValid = await validateUserAccess(user);
+        if (!isSessionValid) {
+            return;
+        }
+
         console.log("Usuario autenticado:", user.email);
+        initializeAppSystem();
     });
-    
+});
+
+async function validateUserAccess(user) {
+    const db = firebase.firestore();
+    const userRef = db.collection('users').doc(user.uid);
+
+    try {
+        const userDoc = await userRef.get();
+
+        if (!userDoc.exists) {
+            await forceLogout();
+            return false;
+        }
+
+        const userData = userDoc.data() || {};
+        const expiresAt = userData.expiresAt?.toDate ? userData.expiresAt.toDate() : null;
+        const now = new Date();
+
+        if (!expiresAt || expiresAt <= now) {
+            await forceLogout('Tu licencia ha expirado. Contacte al administrador.');
+            return false;
+        }
+
+        const currentSessionID = getOrCreateSessionID();
+        const savedSessionID = userData.sessionID || '';
+
+        if (savedSessionID && savedSessionID !== currentSessionID) {
+            await forceLogout('Ya existe una sesión activa en otra PC.');
+            return false;
+        }
+
+        const newSessionID = createSessionID();
+        await userRef.set({ sessionID: newSessionID }, { merge: true });
+        sessionStorage.setItem('currentSessionID', newSessionID);
+
+        return true;
+    } catch (error) {
+        console.error('Error validando acceso del usuario:', error);
+        await forceLogout('No se pudo validar la sesión. Intenta iniciar sesión nuevamente.');
+        return false;
+    }
+}
+
+function getOrCreateSessionID() {
+    const existingSessionID = sessionStorage.getItem('currentSessionID');
+    if (existingSessionID) return existingSessionID;
+
+    const newSessionID = createSessionID();
+    sessionStorage.setItem('currentSessionID', newSessionID);
+    return newSessionID;
+}
+
+function createSessionID() {
+    if (window.crypto?.randomUUID) {
+        return window.crypto.randomUUID();
+    }
+    return `${Date.now()}_${Math.random().toString(36).slice(2, 12)}`;
+}
+
+async function forceLogout(message = '') {
+    try {
+        await firebase.auth().signOut();
+    } catch (error) {
+        console.error('Error al cerrar sesión forzadamente:', error);
+    }
+
+    localStorage.clear();
+    sessionStorage.clear();
+
+    if (message) {
+        showBlockingMessage(message);
+    } else {
+        window.location.href = 'index.html';
+    }
+}
+
+function showBlockingMessage(message) {
+    document.body.innerHTML = `
+        <div style="
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 24px;
+            font-family: Arial, sans-serif;
+            background: #f8f9fa;
+            color: #212529;
+        ">
+            <div>
+                <h2 style="margin-bottom: 12px;">Acceso bloqueado</h2>
+                <p style="font-size: 1.1rem; margin: 0;">${message}</p>
+            </div>
+        </div>
+    `;
+}
+
+function initializeAppSystem() {
     // Configurar botón de logout
     document.getElementById('logout-btn').addEventListener('click', function() {
         firebase.auth().signOut().then(() => {
@@ -190,7 +294,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Cargar datos guardados
     loadSavedData();
-});
+}
 
 // Cargar emojis en los selectores
 function loadEmojis() {
