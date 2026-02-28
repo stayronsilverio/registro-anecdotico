@@ -2,7 +2,7 @@
 let failedAttempts = 0;
 let isBlocked = false;
 let blockUntil = 0;
-const db = firebase.firestore();
+const db = firebase.firestore ? firebase.firestore() : null;
 
 // Mostrar alerta personalizada
 function showAlert(message, type = "success") {
@@ -91,6 +91,78 @@ function blockAccess() {
     updateBlockedMessage();
 }
 
+
+function toDate(value) {
+    if (!value) return null;
+    if (typeof value.toDate === 'function') return value.toDate();
+    if (value instanceof Date) return value;
+    if (typeof value === 'number') {
+        const d = new Date(value);
+        return Number.isNaN(d.getTime()) ? null : d;
+    }
+    if (typeof value === 'string') {
+        const d = new Date(value);
+        return Number.isNaN(d.getTime()) ? null : d;
+    }
+    return null;
+}
+
+function generateSessionId() {
+    return `${Date.now()}_${Math.random().toString(36).slice(2, 12)}`;
+}
+
+async function validateUsersCollection(user) {
+    if (!db) {
+        throw new Error('No se pudo validar el usuario porque Firestore no está disponible.');
+    }
+
+    const usersQuery = await db.collection('users')
+        .where('correo', '==', user.email)
+        .limit(1)
+        .get();
+
+    if (usersQuery.empty) {
+        return { found: false };
+    }
+
+    const userDoc = usersQuery.docs[0];
+    const userData = userDoc.data() || {};
+
+    const sessionExpiryRaw = userData.sessionIDExpiresAt || userData.sessionExpiresAt || userData.sessionExpires || null;
+    const sessionExpiry = toDate(sessionExpiryRaw);
+
+    if (sessionExpiry && sessionExpiry <= new Date()) {
+        throw new Error('Tu sessionID está expirado. Contacta al administrador.');
+    }
+
+    const currentDeviceSession = sessionStorage.getItem('sessionID') || localStorage.getItem('sessionID') || '';
+    const storedSessionID = userData.sessionID || '';
+
+    if (storedSessionID && currentDeviceSession && storedSessionID !== currentDeviceSession) {
+        throw new Error('Ya existe una sesión activa en otra PC con este usuario.');
+    }
+
+    const newSessionID = currentDeviceSession || generateSessionId();
+    await userDoc.ref.update({ sessionID: newSessionID, correo: user.email });
+    sessionStorage.setItem('sessionID', newSessionID);
+    localStorage.setItem('sessionID', newSessionID);
+
+    return { found: true };
+}
+
+async function validateAdminsCollection(user) {
+    if (!db) {
+        throw new Error('No se pudo validar el usuario porque Firestore no está disponible.');
+    }
+
+    const adminQuery = await db.collection('usuarios')
+        .where('correo', '==', user.email)
+        .limit(1)
+        .get();
+
+    return { found: !adminQuery.empty };
+}
+
 // Función de login con Firebase
 async function validarLogin() {
     if (isBlocked) {
@@ -98,7 +170,7 @@ async function validarLogin() {
         return;
     }
 
-    const email = document.getElementById('usuario').value;
+    const email = document.getElementById('usuario').value.trim().toLowerCase();
     const password = document.getElementById('password').value;
     const errorMsg = document.getElementById('error-msg');
     const errorText = document.getElementById('error-text');
@@ -108,39 +180,65 @@ async function validarLogin() {
     successMsg.style.display = 'none';
     document.getElementById('blocked-msg').style.display = 'none';
 
-    // Validaciones básicas
     if (!email || !password) {
-        errorText.textContent = "Por favor, completa todos los campos";
-        errorMsg.style.display = "block";
+        errorText.textContent = 'Por favor, completa todos los campos';
+        errorMsg.style.display = 'block';
+        return;
+    }
+
+    let user;
+
+    try {
+        const userCredential = await firebase.auth().signInWithEmailAndPassword(email, password);
+        user = userCredential.user;
+    } catch (authError) {
+        failedAttempts++;
+
+        let errorMessage = 'Correo o contraseña incorrectos';
+        switch (authError.code) {
+            case 'auth/user-not-found':
+                errorMessage = 'Usuario no encontrado';
+                break;
+            case 'auth/wrong-password':
+                errorMessage = 'Contraseña incorrecta';
+                break;
+            case 'auth/invalid-email':
+                errorMessage = 'Correo electrónico inválido';
+                break;
+            case 'auth/user-disabled':
+                errorMessage = 'Usuario desactivado';
+                break;
+            case 'auth/too-many-requests':
+                errorMessage = 'Demasiados intentos. Intenta más tarde';
+                break;
+        }
+
+        errorText.textContent = errorMessage;
+        errorMsg.style.display = 'block';
+
+        if (failedAttempts >= 3) {
+            blockAccess();
+        }
+
         return;
     }
 
     try {
-        // Login con Firebase Auth
-        const userCredential = await firebase.auth().signInWithEmailAndPassword(email, password);
-        const user = userCredential.user;
+        const [userValidation, adminValidation] = await Promise.all([
+            validateUsersCollection(user),
+            validateAdminsCollection(user)
+        ]);
 
-        const adminQuery = await db.collection('usuarios')
-            .where('correo', '==', user.email)
-            .limit(1)
-            .get();
-
-        if (!adminQuery.empty) {
-            const adminData = adminQuery.docs[0].data() || {};
-
-            if (adminData.activo !== true) {
-                await firebase.auth().signOut();
-                errorText.textContent = 'Tu usuario administrador está inactivo.';
-                errorMsg.style.display = 'block';
-                return;
-            }
+        if (!userValidation.found && !adminValidation.found) {
+            await firebase.auth().signOut();
+            errorText.textContent = 'Tu correo no existe en users ni en usuarios.';
+            errorMsg.style.display = 'block';
+            return;
         }
 
-        // Login exitoso
         failedAttempts = 0;
-        successMsg.style.display = "block";
+        successMsg.style.display = 'block';
 
-        // Guardar información del usuario en localStorage para la app
         localStorage.setItem('currentUser', JSON.stringify({
             email: user.email,
             uid: user.uid,
@@ -148,41 +246,14 @@ async function validarLogin() {
             loginTime: new Date().toISOString()
         }));
 
-        setTimeout(function() {
-            showAlert("Redirigiendo al sistema principal...", "success");
-            window.location.href = "app.html";
+        setTimeout(() => {
+            showAlert('Redirigiendo al sistema principal...', 'success');
+            window.location.href = 'app.html';
         }, 1500);
-
-    } catch (error) {
-        failedAttempts++;
-        
-        let errorMessage = "Correo o contraseña incorrectos";
-        
-        // Manejar errores específicos de Firebase
-        switch(error.code) {
-            case 'auth/user-not-found':
-                errorMessage = "Usuario no encontrado";
-                break;
-            case 'auth/wrong-password':
-                errorMessage = "Contraseña incorrecta";
-                break;
-            case 'auth/invalid-email':
-                errorMessage = "Correo electrónico inválido";
-                break;
-            case 'auth/user-disabled':
-                errorMessage = "Usuario desactivado";
-                break;
-            case 'auth/too-many-requests':
-                errorMessage = "Demasiados intentos. Intenta más tarde";
-                break;
-        }
-        
-        errorText.textContent = errorMessage;
-        errorMsg.style.display = "block";
-
-        if (failedAttempts >= 3) {
-            blockAccess();
-        }
+    } catch (validationError) {
+        await firebase.auth().signOut();
+        errorText.textContent = validationError.message || 'No se pudo validar el acceso en Firestore';
+        errorMsg.style.display = 'block';
     }
 }
 

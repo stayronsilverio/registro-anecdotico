@@ -67,6 +67,21 @@ async function forceLogout(message) {
     }
 }
 
+function toDate(value) {
+    if (!value) return null;
+    if (typeof value.toDate === 'function') return value.toDate();
+    if (value instanceof Date) return value;
+    if (typeof value === 'number') {
+        const parsed = new Date(value);
+        return Number.isNaN(parsed.getTime()) ? null : parsed;
+    }
+    if (typeof value === 'string') {
+        const parsed = new Date(value);
+        return Number.isNaN(parsed.getTime()) ? null : parsed;
+    }
+    return null;
+}
+
 async function validateAuthenticatedUser(user) {
     const adminQuery = await db.collection('usuarios')
         .where('correo', '==', user.email)
@@ -74,30 +89,26 @@ async function validateAuthenticatedUser(user) {
         .get();
 
     if (!adminQuery.empty) {
-        const adminData = adminQuery.docs[0].data() || {};
+        return true;
+    }
 
-        if (adminData.activo === true) {
-            return true;
-        }
+    const usersQuery = await db.collection('users')
+        .where('correo', '==', user.email)
+        .limit(1)
+        .get();
 
-        await forceLogout('Tu usuario administrador está inactivo. Contacta al responsable.');
+    if (usersQuery.empty) {
+        await forceLogout('Tu correo no está registrado para acceder al sistema.');
         return false;
     }
 
-    const userDocRef = db.collection('users').doc(user.uid);
-    const userDoc = await userDocRef.get();
-
-    if (!userDoc.exists) {
-        await forceLogout();
-        return false;
-    }
-
+    const userDoc = usersQuery.docs[0];
     const userData = userDoc.data() || {};
-    const expiresAt = userData.expiresAt;
-    const now = new Date();
+    const sessionExpiryRaw = userData.sessionIDExpiresAt || userData.sessionExpiresAt || userData.sessionExpires || userData.expiresAt || null;
+    const sessionExpiry = toDate(sessionExpiryRaw);
 
-    if (!expiresAt || !expiresAt.toDate || expiresAt.toDate() <= now) {
-        await forceLogout('Tu licencia ha expirado. Contacte al administrador.');
+    if (sessionExpiry && sessionExpiry <= new Date()) {
+        await forceLogout('Tu sessionID está expirado. Contacta al administrador.');
         return false;
     }
 
@@ -109,10 +120,9 @@ async function validateAuthenticatedUser(user) {
         return false;
     }
 
-    const newSessionId = generateSessionId();
-    await userDocRef.update({ sessionID: newSessionId });
-    sessionStorage.setItem('sessionID', newSessionId);
-    localStorage.setItem('sessionID', newSessionId);
+    await userDoc.ref.update({ sessionID: currentSessionId, correo: user.email });
+    sessionStorage.setItem('sessionID', currentSessionId);
+    localStorage.setItem('sessionID', currentSessionId);
 
     return true;
 }
