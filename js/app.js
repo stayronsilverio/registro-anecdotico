@@ -21,22 +21,47 @@ let appInitialized = false;
 const db = firebase.firestore();
 
 function generateSessionId() {
+    if (window.crypto?.randomUUID) {
+        return window.crypto.randomUUID();
+    }
+
     return `${Date.now()}_${Math.random().toString(36).slice(2, 12)}`;
 }
 
 function getCurrentSessionId() {
-    const storedSessionId = sessionStorage.getItem('sessionID') || localStorage.getItem('sessionID');
+    const storedSessionId = sessionStorage.getItem('sessionId') || localStorage.getItem('sessionId');
 
     if (storedSessionId) {
-        sessionStorage.setItem('sessionID', storedSessionId);
-        localStorage.setItem('sessionID', storedSessionId);
+        sessionStorage.setItem('sessionId', storedSessionId);
+        localStorage.setItem('sessionId', storedSessionId);
         return storedSessionId;
     }
 
     const newSessionId = generateSessionId();
-    sessionStorage.setItem('sessionID', newSessionId);
-    localStorage.setItem('sessionID', newSessionId);
+    sessionStorage.setItem('sessionId', newSessionId);
+    localStorage.setItem('sessionId', newSessionId);
     return newSessionId;
+}
+
+async function getUserDocumentReference(user) {
+    const directRef = db.collection('users').doc(user.uid);
+    const directDoc = await directRef.get();
+
+    if (directDoc.exists) {
+        return { ref: directRef, data: directDoc.data() || {} };
+    }
+
+    const byEmail = await db.collection('users')
+        .where('email', '==', user.email)
+        .limit(1)
+        .get();
+
+    if (!byEmail.empty) {
+        const doc = byEmail.docs[0];
+        return { ref: doc.ref, data: doc.data() || {} };
+    }
+
+    return null;
 }
 
 function showAccessBlockedMessage(message) {
@@ -68,53 +93,74 @@ async function forceLogout(message) {
 }
 
 async function validateAuthenticatedUser(user) {
-    const adminQuery = await db.collection('usuarios')
-        .where('correo', '==', user.email)
-        .limit(1)
-        .get();
-
-    if (!adminQuery.empty) {
-        const adminData = adminQuery.docs[0].data() || {};
-
-        if (adminData.activo === true) {
-            return true;
-        }
-
-        await forceLogout('Tu usuario administrador está inactivo. Contacta al responsable.');
-        return false;
-    }
-
-    const userDocRef = db.collection('users').doc(user.uid);
-    const userDoc = await userDocRef.get();
-
-    if (!userDoc.exists) {
+    const userRecord = await getUserDocumentReference(user);
+    if (!userRecord) {
         await forceLogout();
         return false;
     }
 
-    const userData = userDoc.data() || {};
-    const expiresAt = userData.expiresAt;
-    const now = new Date();
+    const { data: userData } = userRecord;
+    const role = userData.rol;
 
-    if (!expiresAt || !expiresAt.toDate || expiresAt.toDate() <= now) {
-        await forceLogout('Tu licencia ha expirado. Contacte al administrador.');
+    if (role === 'admin') {
+        return true;
+    }
+
+    if (role !== 'user') {
+        await forceLogout('Tu cuenta no tiene un rol válido para acceder.');
         return false;
     }
 
     const currentSessionId = getCurrentSessionId();
-    const storedSessionId = userData.sessionID || '';
+    const storedSessionId = userData.sessionId || '';
+    const sessionActive = userData.sessionActive === true;
 
-    if (storedSessionId && storedSessionId !== currentSessionId) {
-        await forceLogout('Ya existe una sesión activa en otra PC.');
+    if (!sessionActive) {
+        await forceLogout('Tu sesión no está activa. Inicia sesión nuevamente.');
         return false;
     }
 
-    const newSessionId = generateSessionId();
-    await userDocRef.update({ sessionID: newSessionId });
-    sessionStorage.setItem('sessionID', newSessionId);
-    localStorage.setItem('sessionID', newSessionId);
+    if (storedSessionId !== currentSessionId) {
+        await forceLogout('Este usuario ya tiene una sesión activa en otro dispositivo.');
+        return false;
+    }
 
     return true;
+}
+
+async function closeUserSessionInFirestore() {
+    const authUser = firebase.auth().currentUser;
+    if (!authUser) return;
+
+    const userRecord = await getUserDocumentReference(authUser);
+    if (!userRecord) return;
+
+    const { ref: userDocRef, data: userData } = userRecord;
+    if (userData.rol !== 'user') return;
+
+    await userDocRef.update({
+        sessionActive: false,
+        sessionId: null
+    });
+}
+
+async function handleLogout() {
+    try {
+        await closeUserSessionInFirestore();
+    } catch (error) {
+        console.warn('No se pudo cerrar la sesión en Firestore:', error);
+    }
+
+    try {
+        await firebase.auth().signOut();
+    } catch (error) {
+        showNotification('Error al cerrar sesión', 'error');
+    }
+
+    localStorage.removeItem('currentUser');
+    localStorage.removeItem('sessionId');
+    sessionStorage.removeItem('sessionId');
+    window.location.href = 'index.html';
 }
 
 function getCurrentUserId() {
@@ -251,14 +297,7 @@ function initializeSystem() {
 
     // Configurar botón de logout
     document.getElementById('logout-btn').addEventListener('click', function() {
-        firebase.auth().signOut().then(() => {
-            localStorage.removeItem('currentUser');
-            localStorage.removeItem('sessionID');
-            sessionStorage.removeItem('sessionID');
-            window.location.href = 'index.html';
-        }).catch((error) => {
-            showNotification('Error al cerrar sesión', 'error');
-        });
+        handleLogout();
     });
     
     // Inicializar el tipo de reporte
