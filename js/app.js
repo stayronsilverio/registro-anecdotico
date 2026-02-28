@@ -276,18 +276,28 @@ const emojisList = [
 ];
 
 const stickersList = [
-    { emoji: '🏅', type: 'sticker excelente conducta', tooltip: 'Excelente conducta - Respeta normas y coopera constantemente' },
-    { emoji: '🌟', type: 'sticker destacado del día', tooltip: 'Destacado del día - Sobresale en actitud y participación' },
-    { emoji: '🤝', type: 'sticker compañerismo', tooltip: 'Compañerismo - Apoya, comparte y trabaja bien con otros' },
-    { emoji: '📘', type: 'sticker responsable', tooltip: 'Responsable - Cumple tareas y trae materiales completos' },
-    { emoji: '🎯', type: 'sticker objetivo logrado', tooltip: 'Objetivo logrado - Alcanzó la meta de la clase' },
-    { emoji: '🧠', type: 'sticker esfuerzo intelectual', tooltip: 'Esfuerzo intelectual - Mantiene concentración y razonamiento' },
-    { emoji: '💚', type: 'sticker actitud positiva', tooltip: 'Actitud positiva - Mantiene respeto y buen ánimo' },
-    { emoji: '🚦', type: 'sticker regular conducta', tooltip: 'Regular conducta - Requiere acompañamiento para sostener normas' },
-    { emoji: '⚠️', type: 'sticker llamado de atención', tooltip: 'Llamado de atención - Presentó conductas que deben corregirse' },
-    { emoji: '😠', type: 'sticker enojado', tooltip: 'Enojado - Mostró molestia que afectó su trabajo' },
-    { emoji: '😕', type: 'sticker desmotivado', tooltip: 'Desmotivado - Baja disposición para participar' },
-    { emoji: '🛑', type: 'sticker mala conducta', tooltip: 'Mala conducta - Incumplió normas del aula' }
+    { emoji: '🏅', type: 'excelente conducta', tooltip: 'Excelente conducta - Respeta normas y coopera constantemente' },
+    { emoji: '🌟', type: 'destacado del día', tooltip: 'Destacado del día - Sobresale en actitud y participación' },
+    { emoji: '🤝', type: 'compañerismo', tooltip: 'Compañerismo - Apoya, comparte y trabaja bien con otros' },
+    { emoji: '📘', type: 'responsable', tooltip: 'Responsable - Cumple tareas y trae materiales completos' },
+    { emoji: '🎯', type: 'objetivo logrado', tooltip: 'Objetivo logrado - Alcanzó la meta de la clase' },
+    { emoji: '🧠', type: 'esfuerzo intelectual', tooltip: 'Esfuerzo intelectual - Mantiene concentración y razonamiento' },
+    { emoji: '💚', type: 'actitud positiva', tooltip: 'Actitud positiva - Mantiene respeto y buen ánimo' },
+    { emoji: '🚦', type: 'regular conducta', tooltip: 'Regular conducta - Requiere acompañamiento para sostener normas' },
+    { emoji: '⚠️', type: 'llamado de atención', tooltip: 'Llamado de atención - Presentó conductas que deben corregirse' },
+    { emoji: '😠', type: 'enojado', tooltip: 'Enojado - Mostró molestia que afectó su trabajo' },
+    { emoji: '😕', type: 'desmotivado', tooltip: 'Desmotivado - Baja disposición para participar' },
+    { emoji: '🛑', type: 'mala conducta', tooltip: 'Mala conducta - Incumplió normas del aula' },
+    { emoji: '📈', type: 'progreso constante', tooltip: 'Progreso constante - Mejora sostenida durante la clase' },
+    { emoji: '🧪', type: 'aprendizaje práctico', tooltip: 'Aprendizaje práctico - Aplicó lo aprendido en ejercicios' },
+    { emoji: '🔎', type: 'atención al detalle', tooltip: 'Atención al detalle - Revisa y corrige con cuidado' },
+    { emoji: '🧑‍🏫', type: 'liderazgo positivo', tooltip: 'Liderazgo positivo - Guió al equipo con respeto' },
+    { emoji: '🎧', type: 'escucha respetuosa', tooltip: 'Escucha respetuosa - Escuchó instrucciones y opiniones' },
+    { emoji: '📬', type: 'entrega puntual', tooltip: 'Entrega puntual - Entregó actividades en el tiempo esperado' },
+    { emoji: '🧭', type: 'autonomía', tooltip: 'Autonomía - Trabajó con independencia y responsabilidad' },
+    { emoji: '🔁', type: 'persistencia', tooltip: 'Persistencia - Intentó nuevamente hasta resolver' },
+    { emoji: '🫱🏻‍🫲🏽', type: 'mediación positiva', tooltip: 'Mediación positiva - Ayudó a resolver conflictos del grupo' },
+    { emoji: '🗣️', type: 'participación oral', tooltip: 'Participación oral - Expresó ideas con claridad' }
 ];
 
 // Inicializar la página
@@ -368,11 +378,24 @@ function loadEmojis() {
 
 function renderSelectionButtons(list, handlerName) {
     return list.map(item => `
-        <button class="emoji-btn" onclick="${handlerName}('${item.emoji}', '${item.type}')" title="${item.tooltip}">
+        <button class="emoji-btn" onclick="${handlerName}('${item.emoji}', '${item.type}', '${item.tooltip}')" title="${item.tooltip}">
             ${item.emoji}
             <span class="emoji-tooltip">${item.tooltip}</span>
         </button>
     `).join('');
+}
+
+function toggleEmojiCatalog(panelId, triggerButton) {
+    const panel = document.getElementById(panelId);
+    if (!panel) return;
+
+    const isOpen = panel.classList.toggle('open');
+    if (!triggerButton) return;
+
+    const isStickerPanel = panelId.toLowerCase().includes('sticker');
+    triggerButton.innerHTML = isOpen
+        ? `<i class="fas fa-chevron-up"></i> Ocultar catálogo de ${isStickerPanel ? 'stickers' : 'emojis'}`
+        : `<i class="fas fa-${isStickerPanel ? 'icons' : 'face-smile'}"></i> Mostrar catálogo de ${isStickerPanel ? 'stickers' : 'emojis'}`;
 }
 
 // Configurar event listeners
@@ -407,6 +430,8 @@ function loadSavedData() {
         
         updateEventsList();
         updateInterpretationsList();
+        updateStudentsManagementList();
+        updateInasistenciaReportsList();
         updateParticipationList();
         updateAcuerdosList();
         updateEvidenceList();
@@ -497,6 +522,7 @@ function toggleCompromisoOtro() {
 function showInasistenciaReportForm() {
     document.getElementById("inasistenciaReportForm").style.display = "block";
     document.getElementById("acuerdosForm").classList.add("hidden");
+    updateInasistenciaReportsList();
 }
 
 function toggleAcuerdosForm() {
@@ -618,6 +644,8 @@ function startNewClass() {
 
     updateEventsList();
     updateInterpretationsList();
+    updateStudentsManagementList();
+    updateInasistenciaReportsList();
     updateParticipationList();
     updateAcuerdosList();
     updateEvidenceList();
@@ -758,6 +786,7 @@ function addStudentFormFields() {
     });
     
     currentStudentIndex++;
+    updateStudentsManagementList();
 }
 
 function startStudentTimer(studentIndex) {
@@ -792,6 +821,7 @@ function startStudentTimer(studentIndex) {
     });
     
     updateOutsideStudentsList();
+    updateStudentsManagementList();
     showNotification(`Salida registrada para ${student.name}`, "success");
 }
 
@@ -829,8 +859,95 @@ function stopStudentTimer(studentIndex) {
     
     outsideStudents = outsideStudents.filter(s => s.id !== studentIndex);
     updateOutsideStudentsList();
+    updateStudentsManagementList();
     
     showNotification(`Retorno registrado para ${student.name}`, "success");
+}
+
+function updateStudentsManagementList() {
+    const studentsRecordsList = document.getElementById('studentsRecordsList');
+    if (!studentsRecordsList) return;
+
+    const validStudents = students
+        .map((student, index) => ({ student, index }))
+        .filter(item => item.student && (item.student.name || item.student.reason || item.student.startTime || item.student.returnTime));
+
+    studentsRecordsList.innerHTML = '';
+
+    if (validStudents.length === 0) {
+        studentsRecordsList.innerHTML = '<p>No hay registros de estudiantes aún.</p>';
+        return;
+    }
+
+    validStudents.forEach(({ student, index }) => {
+        const studentId = index + 1;
+        const status = student.startTime && !student.returnTime ? 'Fuera del aula' : (student.returnTime ? 'Retornó al aula' : 'Pendiente de salida');
+
+        const item = document.createElement('div');
+        item.className = 'acuerdo-item';
+        item.innerHTML = `
+            <h4>Estudiante ${studentId}: ${student.name || 'Sin nombre'}</h4>
+            <p><strong>Razón:</strong> ${formatMultilineText(student.reason || 'No especificada')}</p>
+            <p><strong>Estado:</strong> ${status}</p>
+            <p><strong>Hora de salida:</strong> ${student.startTime ? formatDateTime(student.startTime) : 'No registrada'}</p>
+            <p><strong>Hora de retorno:</strong> ${student.returnTime ? formatDateTime(student.returnTime) : 'No registrada'}</p>
+            <p><strong>Tiempo fuera:</strong> ${typeof student.duration === 'number' ? student.duration : 0} minuto(s)</p>
+            <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                <button class="btn btn-sm btn-primary" onclick="editStudentRecord(${studentId})"><i class="fas fa-edit"></i> Editar</button>
+                <button class="btn btn-sm btn-danger" onclick="deleteStudentRecord(${studentId})"><i class="fas fa-trash"></i> Eliminar</button>
+            </div>
+        `;
+        studentsRecordsList.appendChild(item);
+    });
+}
+
+function editStudentRecord(studentIndex) {
+    const student = students[studentIndex - 1];
+    if (!student) return;
+
+    const newName = prompt('Editar nombre del estudiante:', student.name || '');
+    if (newName === null) return;
+
+    const newReason = prompt('Editar razón de salida:', student.reason || '');
+    if (newReason === null) return;
+
+    student.name = newName.trim();
+    student.reason = newReason.trim();
+
+    const nameInput = document.getElementById(`studentNameInput${studentIndex}`);
+    const reasonInput = document.getElementById(`reason${studentIndex}`);
+    if (nameInput) nameInput.value = student.name;
+    if (reasonInput) reasonInput.value = student.reason;
+
+    const outsideStudent = outsideStudents.find(s => s.id === studentIndex);
+    if (outsideStudent) {
+        outsideStudent.name = student.name;
+        outsideStudent.reason = student.reason;
+    }
+
+    updateOutsideStudentsList();
+    updateStudentsManagementList();
+    saveData();
+    showNotification('Registro de estudiante actualizado', 'success');
+}
+
+function deleteStudentRecord(studentIndex) {
+    const student = students[studentIndex - 1];
+    if (!student) return;
+
+    if (!confirm('¿Eliminar este registro de estudiante?')) return;
+
+    if (student.timerInterval) clearInterval(student.timerInterval);
+    outsideStudents = outsideStudents.filter(s => s.id !== studentIndex);
+
+    const studentNode = document.getElementById(`student${studentIndex}`);
+    if (studentNode) studentNode.remove();
+
+    students[studentIndex - 1] = null;
+    updateOutsideStudentsList();
+    updateStudentsManagementList();
+    saveData();
+    showNotification('Registro de estudiante eliminado', 'info');
 }
 
 function startOutsideStudentsInterval() {
@@ -1060,6 +1177,7 @@ function addInasistenciaReport() {
     
     inasistenciaReports.push(report);
     saveData();
+    updateInasistenciaReportsList();
     
     document.getElementById("studentNameInasistencia").value = "";
     document.getElementById("lastAttendanceDate").value = "";
@@ -1068,6 +1186,73 @@ function addInasistenciaReport() {
     document.getElementById("inasistenciaReportForm").style.display = "none";
     
     showNotification("Reporte de inasistencia agregado correctamente", "success");
+}
+
+function updateInasistenciaReportsList() {
+    const inasistenciaList = document.getElementById('inasistenciaList');
+    if (!inasistenciaList) return;
+
+    inasistenciaList.innerHTML = '';
+
+    if (inasistenciaReports.length === 0) {
+        inasistenciaList.innerHTML = '<p>No hay reportes de inasistencia registrados aún.</p>';
+        return;
+    }
+
+    inasistenciaReports.forEach((report, index) => {
+        const item = document.createElement('div');
+        item.className = 'acuerdo-item';
+        item.innerHTML = `
+            <h4>Reporte ${index + 1}: ${report.studentName}</h4>
+            <p><strong>Última fecha de asistencia:</strong> ${report.lastAttendanceDate}</p>
+            <p><strong>Motivo:</strong> ${formatMultilineText(report.motivo)}</p>
+            <p><strong>Acciones realizadas:</strong> ${formatMultilineText(report.acciones)}</p>
+            <p><strong>Fecha del reporte:</strong> ${report.reportDate}</p>
+            <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                <button class="btn btn-sm btn-primary" onclick="editInasistenciaReport(${index})"><i class="fas fa-edit"></i> Editar</button>
+                <button class="btn btn-sm btn-danger" onclick="deleteInasistenciaReport(${index})"><i class="fas fa-trash"></i> Eliminar</button>
+            </div>
+        `;
+
+        inasistenciaList.appendChild(item);
+    });
+}
+
+function editInasistenciaReport(index) {
+    const report = inasistenciaReports[index];
+    if (!report) return;
+
+    const studentName = prompt('Editar nombre del estudiante:', report.studentName || '');
+    if (studentName === null) return;
+
+    const lastAttendanceDate = prompt('Editar última fecha de asistencia (YYYY-MM-DD):', report.lastAttendanceDate || '');
+    if (lastAttendanceDate === null) return;
+
+    const motivo = prompt('Editar motivo del reporte:', report.motivo || '');
+    if (motivo === null) return;
+
+    const acciones = prompt('Editar acciones realizadas:', report.acciones || '');
+    if (acciones === null) return;
+
+    inasistenciaReports[index] = {
+        ...report,
+        studentName: studentName.trim(),
+        lastAttendanceDate: lastAttendanceDate.trim(),
+        motivo: motivo.trim(),
+        acciones: acciones.trim()
+    };
+
+    updateInasistenciaReportsList();
+    saveData();
+    showNotification('Reporte de inasistencia actualizado', 'success');
+}
+
+function deleteInasistenciaReport(index) {
+    if (!confirm('¿Eliminar este reporte de inasistencia?')) return;
+    inasistenciaReports.splice(index, 1);
+    updateInasistenciaReportsList();
+    saveData();
+    showNotification('Reporte de inasistencia eliminado', 'info');
 }
 
 // Acuerdos
@@ -1158,6 +1343,7 @@ function updateAcuerdosList() {
             <p><strong>Fecha de compromiso:</strong> ${acuerdo.fechaCompromiso}</p>
             <p><strong>Fecha de seguimiento:</strong> ${acuerdo.fechaSeguimiento}</p>
             <p><strong>Fecha de entrega:</strong> ${acuerdo.fechaEntrega}</p>
+            <button class="btn btn-sm btn-primary" onclick="editAcuerdo(${index})"><i class="fas fa-edit"></i> Editar</button>
             <button class="btn btn-sm btn-danger" onclick="deleteAcuerdo(${index})"><i class="fas fa-trash"></i> Eliminar</button>
         `;
         
@@ -1172,25 +1358,71 @@ function deleteAcuerdo(index) {
     showNotification("Acuerdo eliminado", "info");
 }
 
+function editAcuerdo(index) {
+    const acuerdo = acuerdos[index];
+    if (!acuerdo) return;
+
+    const titulo = prompt('Editar título del acuerdo:', acuerdo.titulo || '');
+    if (titulo === null) return;
+
+    const descripcion = prompt('Editar descripción del acuerdo:', acuerdo.descripcion || '');
+    if (descripcion === null) return;
+
+    const compromisos = prompt('Editar compromisos:', acuerdo.compromisos || '');
+    if (compromisos === null) return;
+
+    const participantes = prompt('Editar participantes:', acuerdo.participantes || '');
+    if (participantes === null) return;
+
+    acuerdos[index] = {
+        ...acuerdo,
+        titulo: titulo.trim(),
+        descripcion: descripcion.trim(),
+        compromisos: compromisos.trim(),
+        participantes: participantes.trim()
+    };
+
+    updateAcuerdosList();
+    saveData();
+    showNotification('Acuerdo actualizado', 'success');
+}
+
 // Sistema de participación
-function addParticipation(emoji, type) {
-    const commentTextarea = document.getElementById("participationComment");
-    commentTextarea.value += ` ${emoji} (${type})`;
+function addSelectionToComment(targetId, emoji, description) {
+    const commentTextarea = document.getElementById(targetId);
+    if (!commentTextarea) return;
+
+    const label = description || '';
+    const suffix = label ? ` ${emoji} (${label})` : ` ${emoji}`;
+    commentTextarea.value += suffix;
 }
 
-function addEmojiToEdit(emoji, type) {
-    const commentTextarea = document.getElementById('editComment');
-    commentTextarea.value += ` ${emoji} (${type})`;
+function addParticipation(emoji, type, tooltip) {
+    const description = tooltip || type;
+    addSelectionToComment('participationComment', emoji, description);
 }
 
-function addStickerToComment(sticker, type) {
-    const commentTextarea = document.getElementById('participationComment');
-    commentTextarea.value += ` ${sticker} (${type})`;
+function addEmojiToEdit(emoji, type, tooltip) {
+    const description = tooltip || type;
+    addSelectionToComment('editComment', emoji, description);
 }
 
-function addStickerToEdit(sticker, type) {
-    const commentTextarea = document.getElementById('editComment');
-    commentTextarea.value += ` ${sticker} (${type})`;
+function addStickerToComment(sticker, type, tooltip) {
+    const description = tooltip || type;
+    addSelectionToComment('participationComment', sticker, description);
+}
+
+function addStickerToEdit(sticker, type, tooltip) {
+    const description = tooltip || type;
+    addSelectionToComment('editComment', sticker, description);
+}
+
+function extractParticipationMeta(comment = '') {
+    const emojiMatch = comment.match(/[\p{Extended_Pictographic}\u2600-\u27BF]/gu);
+    const emoji = emojiMatch ? emojiMatch[0] : '📝';
+    const typeMatch = comment.match(/\(([^)]+)\)/);
+    const type = typeMatch ? typeMatch[1] : 'comentario';
+    return { emoji, type };
 }
 
 function registerParticipation() {
@@ -1230,6 +1462,10 @@ function registerParticipation() {
             time: new Date(),
             formattedTime: formatDateTime(new Date())
         };
+
+        const meta = extractParticipationMeta(comment);
+        participation.emoji = meta.emoji;
+        participation.type = meta.type;
         
         participationRecords.push(participation);
     });
@@ -1256,11 +1492,9 @@ function updateParticipationList() {
     participationRecords.forEach((record, index) => {
         const row = document.createElement("tr");
         
-        const emojiMatch = record.comment.match(/[\p{Extended_Pictographic}\u2600-\u27BF]/gu);
-        const emoji = emojiMatch ? emojiMatch[0] : "📝";
-        
-        const typeMatch = record.comment.match(/\(([^)]+)\)/);
-        const type = typeMatch ? typeMatch[1] : "comentario";
+        const meta = record.type && record.emoji ? { type: record.type, emoji: record.emoji } : extractParticipationMeta(record.comment);
+        const emoji = meta.emoji;
+        const type = meta.type;
         
         let badgeClass = "badge-neutral";
         const positiveTypes = ["positiva", "buena", "participación", "ayuda", "excelente", "objetivo", "destacado", "colaboración", "acuerdo", "estudio", "celebración", "esfuerzo", "inteligencia", "brillantez", "triunfo", "investigación", "comunicación", "compartir", "crecimiento", "inspiración"];
@@ -1316,6 +1550,9 @@ function saveEditedParticipation() {
     
     participationRecords[index].studentName = studentName;
     participationRecords[index].comment = comment;
+    const meta = extractParticipationMeta(comment);
+    participationRecords[index].emoji = meta.emoji;
+    participationRecords[index].type = meta.type;
     
     updateParticipationList();
     saveData();
@@ -1643,14 +1880,19 @@ function generateReport() {
             <table style="width: 100%; border-collapse: collapse;">
                 <tr style="background-color: #2c3e50; color: white;">
                     <th style="padding: 10px; text-align: left;">Estudiante(s)</th>
+                    <th style="padding: 10px; text-align: left;">Tipo</th>
+                    <th style="padding: 10px; text-align: left;">Emoji</th>
                     <th style="padding: 10px; text-align: left;">Comentario</th>
                     <th style="padding: 10px; text-align: left;">Hora</th>
                 </tr>`;
         
         participationRecords.forEach((record, index) => {
+            const meta = record.type && record.emoji ? { type: record.type, emoji: record.emoji } : extractParticipationMeta(record.comment);
             content += `
                 <tr style="${index % 2 === 0 ? 'background-color: #f2f2f2;' : ''}">
                     <td style="padding: 10px; border: 1px solid #ddd;">${record.studentName}</td>
+                    <td style="padding: 10px; border: 1px solid #ddd;">${meta.type}</td>
+                    <td style="padding: 10px; border: 1px solid #ddd;">${meta.emoji}</td>
                     <td style="padding: 10px; border: 1px solid #ddd;">${formatMultilineText(record.comment)}</td>
                     <td style="padding: 10px; border: 1px solid #ddd;">${record.formattedTime}</td>
                 </tr>
