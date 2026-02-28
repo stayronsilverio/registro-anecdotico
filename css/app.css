@@ -542,6 +542,25 @@ textarea {
     flex-wrap: wrap;
 }
 
+.emoji-catalog-toggle {
+    margin-top: 8px;
+}
+
+.emoji-catalog-panel {
+    display: none;
+    margin-top: 8px;
+    max-height: 240px;
+    overflow-y: auto;
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid #dce6ff;
+    background-color: #f8faff;
+}
+
+.emoji-catalog-panel.open {
+    display: block;
+}
+
 .emoji-btn {
     font-size: 1.5rem;
     background: none;

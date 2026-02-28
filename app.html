@@ -196,15 +196,25 @@
                 
                 <div class="form-group">
                     <label>Seleccionar Emoji:</label>
-                    <div class="emoji-selector" id="emojiSelector">
-                        <!-- Los emojis se cargarán dinámicamente -->
+                    <button type="button" class="btn btn-info emoji-catalog-toggle" onclick="toggleEmojiCatalog('emojiCatalogPanel', this)">
+                        <i class="fas fa-face-smile"></i> Mostrar catálogo de emojis
+                    </button>
+                    <div id="emojiCatalogPanel" class="emoji-catalog-panel">
+                        <div class="emoji-selector" id="emojiSelector">
+                            <!-- Los emojis se cargarán dinámicamente -->
+                        </div>
                     </div>
                 </div>
 
                 <div class="form-group">
                     <label>Seleccionar Sticker de conducta:</label>
-                    <div class="emoji-selector sticker-selector" id="stickerSelector">
-                        <!-- Los stickers se cargarán dinámicamente -->
+                    <button type="button" class="btn btn-info emoji-catalog-toggle" onclick="toggleEmojiCatalog('stickerCatalogPanel', this)">
+                        <i class="fas fa-icons"></i> Mostrar catálogo de stickers
+                    </button>
+                    <div id="stickerCatalogPanel" class="emoji-catalog-panel">
+                        <div class="emoji-selector sticker-selector" id="stickerSelector">
+                            <!-- Los stickers se cargarán dinámicamente -->
+                        </div>
                     </div>
                 </div>
                 
