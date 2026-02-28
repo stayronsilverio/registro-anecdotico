@@ -71,21 +71,41 @@ async function validateAuthenticatedUser(user) {
     const rawEmail = (user.email || '').trim();
     const normalizedEmail = rawEmail.toLowerCase();
 
-    let adminQuery = await db.collection('usuarios')
-        .where('correo', '==', rawEmail)
-        .limit(1)
-        .get();
+    const adminDocByUid = await db.collection('usuarios').doc(user.uid).get();
+    let adminData = null;
 
-    if (adminQuery.empty && normalizedEmail && normalizedEmail !== rawEmail) {
-        adminQuery = await db.collection('usuarios')
+    if (adminDocByUid.exists) {
+        const data = adminDocByUid.data() || {};
+        const adminEmail = String(data.correo || '').trim().toLowerCase();
+
+        if (adminEmail && adminEmail === normalizedEmail) {
+            adminData = data;
+        }
+    }
+
+    if (!adminData && normalizedEmail) {
+        const adminQuery = await db.collection('usuarios')
             .where('correo', '==', normalizedEmail)
             .limit(1)
             .get();
+
+        if (!adminQuery.empty) {
+            adminData = adminQuery.docs[0].data() || {};
+        }
     }
 
-    if (!adminQuery.empty) {
-        const adminData = adminQuery.docs[0].data() || {};
+    if (!adminData && rawEmail && rawEmail !== normalizedEmail) {
+        const adminQueryRaw = await db.collection('usuarios')
+            .where('correo', '==', rawEmail)
+            .limit(1)
+            .get();
 
+        if (!adminQueryRaw.empty) {
+            adminData = adminQueryRaw.docs[0].data() || {};
+        }
+    }
+
+    if (adminData) {
         if (adminData.activo !== true) {
             await forceLogout('Tu cuenta está inactiva. Contacte al administrador.');
             return false;
