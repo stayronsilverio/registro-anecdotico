@@ -4,6 +4,101 @@ let isBlocked = false;
 let blockUntil = 0;
 const db = firebase.firestore ? firebase.firestore() : null;
 
+function generateSessionId() {
+    if (window.crypto?.randomUUID) {
+        return window.crypto.randomUUID();
+    }
+
+    return `${Date.now()}_${Math.random().toString(36).slice(2, 12)}`;
+}
+
+function getCurrentSessionId() {
+    const storedSessionId = sessionStorage.getItem('sessionId') || localStorage.getItem('sessionId');
+
+    if (storedSessionId) {
+        sessionStorage.setItem('sessionId', storedSessionId);
+        localStorage.setItem('sessionId', storedSessionId);
+        return storedSessionId;
+    }
+
+    const newSessionId = generateSessionId();
+    sessionStorage.setItem('sessionId', newSessionId);
+    localStorage.setItem('sessionId', newSessionId);
+    return newSessionId;
+}
+
+async function getUserDocumentReference(user) {
+    const directRef = db.collection('users').doc(user.uid);
+    const directDoc = await directRef.get();
+
+    if (directDoc.exists) {
+        return { ref: directRef, data: directDoc.data() || {} };
+    }
+
+    const byEmail = await db.collection('users')
+        .where('email', '==', user.email)
+        .limit(1)
+        .get();
+
+    if (!byEmail.empty) {
+        const doc = byEmail.docs[0];
+        return { ref: doc.ref, data: doc.data() || {} };
+    }
+
+    return null;
+}
+
+
+function normalizeUserRole(rawRole) {
+    if (typeof rawRole !== 'string') return '';
+
+    const normalized = rawRole.trim().toLowerCase();
+    if (normalized === 'admin' || normalized === 'administrador') return 'admin';
+    if (normalized === 'user' || normalized === 'usuario') return 'user';
+    return '';
+}
+
+async function validateUserSessionAccess(user) {
+    if (!db) {
+        throw new Error('Firestore no está disponible.');
+    }
+
+    const userRecord = await getUserDocumentReference(user);
+    if (!userRecord) {
+        return { allowed: false, message: 'No se encontró tu usuario en la base de datos.' };
+    }
+
+    const { ref: userDocRef, data: userData } = userRecord;
+    const role = normalizeUserRole(userData.rol || userData.role);
+
+    if (role === 'admin') {
+        return { allowed: true, role };
+    }
+
+    if (role !== 'user') {
+        return { allowed: false, message: 'Tu cuenta no tiene rol configurado. Contacta al administrador.' };
+    }
+
+    const currentSessionId = getCurrentSessionId();
+    const storedSessionId = userData.sessionId || '';
+    const sessionActive = userData.sessionActive === true;
+
+    if (!sessionActive) {
+        await userDocRef.update({
+            sessionActive: true,
+            sessionId: currentSessionId
+        });
+
+        return { allowed: true, role };
+    }
+
+    if (storedSessionId === currentSessionId) {
+        return { allowed: true, role };
+    }
+
+    return { allowed: false, message: 'Este usuario ya tiene una sesión activa en otro dispositivo.' };
+}
+
 // Mostrar alerta personalizada
 function showAlert(message, type = "success") {
     const alert = document.getElementById("custom-alert");
@@ -120,29 +215,13 @@ async function validarLogin() {
         const userCredential = await firebase.auth().signInWithEmailAndPassword(email, password);
         const user = userCredential.user;
 
-        if (db) {
-            try {
-                const adminQuery = await db.collection('usuarios')
-                    .where('correo', '==', user.email)
-                    .limit(1)
-                    .get();
+        const sessionValidation = await validateUserSessionAccess(user);
 
-                if (!adminQuery.empty) {
-                    const adminData = adminQuery.docs[0].data() || {};
-
-                    if (adminData.activo !== true) {
-                        await firebase.auth().signOut();
-                        errorText.textContent = 'Tu usuario administrador está inactivo.';
-                        errorMsg.style.display = 'block';
-                        return;
-                    }
-                }
-            } catch (firestoreError) {
-                console.warn('⚠️ No se pudo validar el estado del usuario en Firestore:', firestoreError);
-            }
-        } else {
-            console.warn('⚠️ Firestore no está disponible en la pantalla de login.');
-            showAlert('No se pudo validar el usuario en Firestore. Se continuará con Firebase Auth.', 'error');
+        if (!sessionValidation.allowed) {
+            await firebase.auth().signOut();
+            errorText.textContent = sessionValidation.message;
+            errorMsg.style.display = 'block';
+            return;
         }
 
         // Login exitoso
@@ -154,7 +233,9 @@ async function validarLogin() {
             email: user.email,
             uid: user.uid,
             displayName: user.displayName || email.split('@')[0],
-            loginTime: new Date().toISOString()
+            loginTime: new Date().toISOString(),
+            sessionId: getCurrentSessionId(),
+            rol: sessionValidation.role || null
         }));
 
         setTimeout(function() {
