@@ -2,6 +2,7 @@
 let failedAttempts = 0;
 let isBlocked = false;
 let blockUntil = 0;
+const db = firebase.firestore();
 
 // Mostrar alerta personalizada
 function showAlert(message, type = "success") {
@@ -118,6 +119,22 @@ async function validarLogin() {
         // Login con Firebase Auth
         const userCredential = await firebase.auth().signInWithEmailAndPassword(email, password);
         const user = userCredential.user;
+
+        const adminQuery = await db.collection('usuarios')
+            .where('correo', '==', user.email)
+            .limit(1)
+            .get();
+
+        if (!adminQuery.empty) {
+            const adminData = adminQuery.docs[0].data() || {};
+
+            if (adminData.activo !== true) {
+                await firebase.auth().signOut();
+                errorText.textContent = 'Tu usuario administrador está inactivo.';
+                errorMsg.style.display = 'block';
+                return;
+            }
+        }
 
         // Login exitoso
         failedAttempts = 0;
