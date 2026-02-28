@@ -68,6 +68,22 @@ async function forceLogout(message) {
 }
 
 async function validateAuthenticatedUser(user) {
+    const adminQuery = await db.collection('usuarios')
+        .where('correo', '==', user.email)
+        .limit(1)
+        .get();
+
+    if (!adminQuery.empty) {
+        const adminData = adminQuery.docs[0].data() || {};
+
+        if (adminData.activo === true) {
+            return true;
+        }
+
+        await forceLogout('Tu usuario administrador está inactivo. Contacta al responsable.');
+        return false;
+    }
+
     const userDocRef = db.collection('users').doc(user.uid);
     const userDoc = await userDocRef.get();
 

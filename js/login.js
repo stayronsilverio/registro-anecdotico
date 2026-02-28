@@ -3,6 +3,16 @@ let failedAttempts = 0;
 let isBlocked = false;
 let blockUntil = 0;
 
+
+function getFirestoreDb() {
+    if (firebase?.firestore && typeof firebase.firestore === 'function') {
+        return firebase.firestore();
+    }
+
+    console.warn('Firestore no está disponible en esta página.');
+    return null;
+}
+
 // Mostrar alerta personalizada
 function showAlert(message, type = "success") {
     const alert = document.getElementById("custom-alert");
@@ -118,6 +128,26 @@ async function validarLogin() {
         // Login con Firebase Auth
         const userCredential = await firebase.auth().signInWithEmailAndPassword(email, password);
         const user = userCredential.user;
+
+        const firestoreDb = getFirestoreDb();
+
+        if (firestoreDb) {
+            const adminQuery = await firestoreDb.collection('usuarios')
+                .where('correo', '==', user.email)
+                .limit(1)
+                .get();
+
+            if (!adminQuery.empty) {
+                const adminData = adminQuery.docs[0].data() || {};
+
+                if (adminData.activo !== true) {
+                    await firebase.auth().signOut();
+                    errorText.textContent = 'Tu usuario administrador está inactivo.';
+                    errorMsg.style.display = 'block';
+                    return;
+                }
+            }
+        }
 
         // Login exitoso
         failedAttempts = 0;
