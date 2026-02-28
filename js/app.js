@@ -1183,9 +1183,7 @@ function addInasistenciaReport() {
     document.getElementById("lastAttendanceDate").value = "";
     document.getElementById("motivoInasistencia").value = "";
     document.getElementById("accionesRealizadas").value = "";
-    document.getElementById("inasistenciaReportForm").style.display = "none";
-    
-    showNotification("Reporte de inasistencia agregado correctamente", "success");
+    showNotification("Reporte de inasistencia agregado correctamente. Puedes editarlo o eliminarlo desde la lista.", "success");
 }
 
 function updateInasistenciaReportsList() {
@@ -1314,11 +1312,9 @@ function addAcuerdo() {
     document.getElementById("acuerdoCompromisos").classList.add("hidden");
     document.getElementById("acuerdoParticipantes").value = "";
     
-    document.getElementById("acuerdosForm").classList.add("hidden");
-    
     updateAcuerdosList();
     
-    showNotification("Acuerdo escolar agregado correctamente", "success");
+    showNotification("Acuerdo escolar agregado correctamente. Puedes editarlo o eliminarlo desde la lista.", "success");
 }
 
 function updateAcuerdosList() {
