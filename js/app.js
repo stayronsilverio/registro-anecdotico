@@ -1183,9 +1183,7 @@ function addInasistenciaReport() {
     document.getElementById("lastAttendanceDate").value = "";
     document.getElementById("motivoInasistencia").value = "";
     document.getElementById("accionesRealizadas").value = "";
-    document.getElementById("inasistenciaReportForm").style.display = "none";
-    
-    showNotification("Reporte de inasistencia agregado correctamente", "success");
+    showNotification("Reporte de inasistencia agregado correctamente. Puedes editarlo o eliminarlo desde la lista.", "success");
 }
 
 function updateInasistenciaReportsList() {
@@ -1314,11 +1312,9 @@ function addAcuerdo() {
     document.getElementById("acuerdoCompromisos").classList.add("hidden");
     document.getElementById("acuerdoParticipantes").value = "";
     
-    document.getElementById("acuerdosForm").classList.add("hidden");
-    
     updateAcuerdosList();
     
-    showNotification("Acuerdo escolar agregado correctamente", "success");
+    showNotification("Acuerdo escolar agregado correctamente. Puedes editarlo o eliminarlo desde la lista.", "success");
 }
 
 function updateAcuerdosList() {
@@ -1425,6 +1421,48 @@ function extractParticipationMeta(comment = '') {
     return { emoji, type };
 }
 
+
+function normalizeText(value = '') {
+    return value
+        .toString()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .toLowerCase();
+}
+
+function getParticipationBadgeConfig(rawType = '') {
+    const type = (rawType || 'comentario').trim() || 'comentario';
+    const normalizedType = normalizeText(type);
+
+    const positiveTypes = ["positiva", "buena", "participacion", "ayuda", "excelente", "objetivo", "destacado", "colaboracion", "acuerdo", "estudio", "celebracion", "esfuerzo", "inteligencia", "brillantez", "triunfo", "investigacion", "comunicacion", "compartir", "crecimiento", "inspiracion", "cumplido", "puntualidad", "respeto", "empatia", "autocontrol", "orden"];
+    const negativeTypes = ["negativa", "mala", "atencion", "mejorar", "falta", "incumplimiento", "deshonestidad", "enojo", "ansiedad", "estres", "lesion", "enfermedad", "travesura", "indiferencia", "confusion"];
+
+    if (positiveTypes.some((term) => normalizedType.includes(term))) {
+        return {
+            type,
+            className: 'badge-positive',
+            backgroundColor: '#16a34a',
+            textColor: '#ffffff'
+        };
+    }
+
+    if (negativeTypes.some((term) => normalizedType.includes(term))) {
+        return {
+            type,
+            className: 'badge-negative',
+            backgroundColor: '#dc2626',
+            textColor: '#ffffff'
+        };
+    }
+
+    return {
+        type,
+        className: 'badge-neutral',
+        backgroundColor: '#f59e0b',
+        textColor: '#ffffff'
+    };
+}
+
 function registerParticipation() {
     const reportType = document.querySelector('input[name="reportType"]:checked').value;
     const comment = document.getElementById("participationComment").value;
@@ -1494,21 +1532,11 @@ function updateParticipationList() {
         
         const meta = record.type && record.emoji ? { type: record.type, emoji: record.emoji } : extractParticipationMeta(record.comment);
         const emoji = meta.emoji;
-        const type = meta.type;
-        
-        let badgeClass = "badge-neutral";
-        const positiveTypes = ["positiva", "buena", "participación", "ayuda", "excelente", "objetivo", "destacado", "colaboración", "acuerdo", "estudio", "celebración", "esfuerzo", "inteligencia", "brillantez", "triunfo", "investigación", "comunicación", "compartir", "crecimiento", "inspiración"];
-        const negativeTypes = ["negativa", "mala", "atención", "mejorar", "falta"];
-        
-        if (positiveTypes.some(t => type.includes(t))) {
-            badgeClass = "badge-positive";
-        } else if (negativeTypes.some(t => type.includes(t))) {
-            badgeClass = "badge-negative";
-        }
+        const badge = getParticipationBadgeConfig(meta.type);
         
         row.innerHTML = `
             <td>${record.studentName}</td>
-            <td><span class="participation-badge ${badgeClass}">${type}</span></td>
+            <td><span class="participation-badge ${badge.className}">${badge.type}</span></td>
             <td>${emoji}</td>
             <td>${formatMultilineText(record.comment)}</td>
             <td>${record.formattedTime}</td>
@@ -1888,10 +1916,11 @@ function generateReport() {
         
         participationRecords.forEach((record, index) => {
             const meta = record.type && record.emoji ? { type: record.type, emoji: record.emoji } : extractParticipationMeta(record.comment);
+            const badge = getParticipationBadgeConfig(meta.type);
             content += `
                 <tr style="${index % 2 === 0 ? 'background-color: #f2f2f2;' : ''}">
                     <td style="padding: 10px; border: 1px solid #ddd;">${record.studentName}</td>
-                    <td style="padding: 10px; border: 1px solid #ddd;">${meta.type}</td>
+                    <td style="padding: 10px; border: 1px solid #ddd;"><span style="display: inline-block; padding: 3px 8px; border-radius: 20px; font-size: 0.8rem; background-color: ${badge.backgroundColor}; color: ${badge.textColor};">${badge.type}</span></td>
                     <td style="padding: 10px; border: 1px solid #ddd;">${meta.emoji}</td>
                     <td style="padding: 10px; border: 1px solid #ddd;">${formatMultilineText(record.comment)}</td>
                     <td style="padding: 10px; border: 1px solid #ddd;">${record.formattedTime}</td>
