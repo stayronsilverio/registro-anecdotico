@@ -276,18 +276,28 @@ const emojisList = [
 ];
 
 const stickersList = [
-    { emoji: '🏅', type: 'sticker excelente conducta', tooltip: 'Excelente conducta - Respeta normas y coopera constantemente' },
-    { emoji: '🌟', type: 'sticker destacado del día', tooltip: 'Destacado del día - Sobresale en actitud y participación' },
-    { emoji: '🤝', type: 'sticker compañerismo', tooltip: 'Compañerismo - Apoya, comparte y trabaja bien con otros' },
-    { emoji: '📘', type: 'sticker responsable', tooltip: 'Responsable - Cumple tareas y trae materiales completos' },
-    { emoji: '🎯', type: 'sticker objetivo logrado', tooltip: 'Objetivo logrado - Alcanzó la meta de la clase' },
-    { emoji: '🧠', type: 'sticker esfuerzo intelectual', tooltip: 'Esfuerzo intelectual - Mantiene concentración y razonamiento' },
-    { emoji: '💚', type: 'sticker actitud positiva', tooltip: 'Actitud positiva - Mantiene respeto y buen ánimo' },
-    { emoji: '🚦', type: 'sticker regular conducta', tooltip: 'Regular conducta - Requiere acompañamiento para sostener normas' },
-    { emoji: '⚠️', type: 'sticker llamado de atención', tooltip: 'Llamado de atención - Presentó conductas que deben corregirse' },
-    { emoji: '😠', type: 'sticker enojado', tooltip: 'Enojado - Mostró molestia que afectó su trabajo' },
-    { emoji: '😕', type: 'sticker desmotivado', tooltip: 'Desmotivado - Baja disposición para participar' },
-    { emoji: '🛑', type: 'sticker mala conducta', tooltip: 'Mala conducta - Incumplió normas del aula' }
+    { emoji: '🏅', type: 'excelente conducta', tooltip: 'Excelente conducta - Respeta normas y coopera constantemente' },
+    { emoji: '🌟', type: 'destacado del día', tooltip: 'Destacado del día - Sobresale en actitud y participación' },
+    { emoji: '🤝', type: 'compañerismo', tooltip: 'Compañerismo - Apoya, comparte y trabaja bien con otros' },
+    { emoji: '📘', type: 'responsable', tooltip: 'Responsable - Cumple tareas y trae materiales completos' },
+    { emoji: '🎯', type: 'objetivo logrado', tooltip: 'Objetivo logrado - Alcanzó la meta de la clase' },
+    { emoji: '🧠', type: 'esfuerzo intelectual', tooltip: 'Esfuerzo intelectual - Mantiene concentración y razonamiento' },
+    { emoji: '💚', type: 'actitud positiva', tooltip: 'Actitud positiva - Mantiene respeto y buen ánimo' },
+    { emoji: '🚦', type: 'regular conducta', tooltip: 'Regular conducta - Requiere acompañamiento para sostener normas' },
+    { emoji: '⚠️', type: 'llamado de atención', tooltip: 'Llamado de atención - Presentó conductas que deben corregirse' },
+    { emoji: '😠', type: 'enojado', tooltip: 'Enojado - Mostró molestia que afectó su trabajo' },
+    { emoji: '😕', type: 'desmotivado', tooltip: 'Desmotivado - Baja disposición para participar' },
+    { emoji: '🛑', type: 'mala conducta', tooltip: 'Mala conducta - Incumplió normas del aula' },
+    { emoji: '📈', type: 'progreso constante', tooltip: 'Progreso constante - Mejora sostenida durante la clase' },
+    { emoji: '🧪', type: 'aprendizaje práctico', tooltip: 'Aprendizaje práctico - Aplicó lo aprendido en ejercicios' },
+    { emoji: '🔎', type: 'atención al detalle', tooltip: 'Atención al detalle - Revisa y corrige con cuidado' },
+    { emoji: '🧑‍🏫', type: 'liderazgo positivo', tooltip: 'Liderazgo positivo - Guió al equipo con respeto' },
+    { emoji: '🎧', type: 'escucha respetuosa', tooltip: 'Escucha respetuosa - Escuchó instrucciones y opiniones' },
+    { emoji: '📬', type: 'entrega puntual', tooltip: 'Entrega puntual - Entregó actividades en el tiempo esperado' },
+    { emoji: '🧭', type: 'autonomía', tooltip: 'Autonomía - Trabajó con independencia y responsabilidad' },
+    { emoji: '🔁', type: 'persistencia', tooltip: 'Persistencia - Intentó nuevamente hasta resolver' },
+    { emoji: '🫱🏻‍🫲🏽', type: 'mediación positiva', tooltip: 'Mediación positiva - Ayudó a resolver conflictos del grupo' },
+    { emoji: '🗣️', type: 'participación oral', tooltip: 'Participación oral - Expresó ideas con claridad' }
 ];
 
 // Inicializar la página
@@ -368,11 +378,24 @@ function loadEmojis() {
 
 function renderSelectionButtons(list, handlerName) {
     return list.map(item => `
-        <button class="emoji-btn" onclick="${handlerName}('${item.emoji}', '${item.type}')" title="${item.tooltip}">
+        <button class="emoji-btn" onclick="${handlerName}('${item.emoji}', '${item.type}', '${item.tooltip}')" title="${item.tooltip}">
             ${item.emoji}
             <span class="emoji-tooltip">${item.tooltip}</span>
         </button>
     `).join('');
+}
+
+function toggleEmojiCatalog(panelId, triggerButton) {
+    const panel = document.getElementById(panelId);
+    if (!panel) return;
+
+    const isOpen = panel.classList.toggle('open');
+    if (!triggerButton) return;
+
+    const isStickerPanel = panelId.toLowerCase().includes('sticker');
+    triggerButton.innerHTML = isOpen
+        ? `<i class="fas fa-chevron-up"></i> Ocultar catálogo de ${isStickerPanel ? 'stickers' : 'emojis'}`
+        : `<i class="fas fa-${isStickerPanel ? 'icons' : 'face-smile'}"></i> Mostrar catálogo de ${isStickerPanel ? 'stickers' : 'emojis'}`;
 }
 
 // Configurar event listeners
@@ -1173,24 +1196,41 @@ function deleteAcuerdo(index) {
 }
 
 // Sistema de participación
-function addParticipation(emoji, type) {
-    const commentTextarea = document.getElementById("participationComment");
-    commentTextarea.value += ` ${emoji} (${type})`;
+function addSelectionToComment(targetId, emoji, description) {
+    const commentTextarea = document.getElementById(targetId);
+    if (!commentTextarea) return;
+
+    const label = description || '';
+    const suffix = label ? ` ${emoji} (${label})` : ` ${emoji}`;
+    commentTextarea.value += suffix;
 }
 
-function addEmojiToEdit(emoji, type) {
-    const commentTextarea = document.getElementById('editComment');
-    commentTextarea.value += ` ${emoji} (${type})`;
+function addParticipation(emoji, type, tooltip) {
+    const description = tooltip || type;
+    addSelectionToComment('participationComment', emoji, description);
 }
 
-function addStickerToComment(sticker, type) {
-    const commentTextarea = document.getElementById('participationComment');
-    commentTextarea.value += ` ${sticker} (${type})`;
+function addEmojiToEdit(emoji, type, tooltip) {
+    const description = tooltip || type;
+    addSelectionToComment('editComment', emoji, description);
 }
 
-function addStickerToEdit(sticker, type) {
-    const commentTextarea = document.getElementById('editComment');
-    commentTextarea.value += ` ${sticker} (${type})`;
+function addStickerToComment(sticker, type, tooltip) {
+    const description = tooltip || type;
+    addSelectionToComment('participationComment', sticker, description);
+}
+
+function addStickerToEdit(sticker, type, tooltip) {
+    const description = tooltip || type;
+    addSelectionToComment('editComment', sticker, description);
+}
+
+function extractParticipationMeta(comment = '') {
+    const emojiMatch = comment.match(/[\p{Extended_Pictographic}\u2600-\u27BF]/gu);
+    const emoji = emojiMatch ? emojiMatch[0] : '📝';
+    const typeMatch = comment.match(/\(([^)]+)\)/);
+    const type = typeMatch ? typeMatch[1] : 'comentario';
+    return { emoji, type };
 }
 
 function registerParticipation() {
@@ -1230,6 +1270,10 @@ function registerParticipation() {
             time: new Date(),
             formattedTime: formatDateTime(new Date())
         };
+
+        const meta = extractParticipationMeta(comment);
+        participation.emoji = meta.emoji;
+        participation.type = meta.type;
         
         participationRecords.push(participation);
     });
@@ -1256,11 +1300,9 @@ function updateParticipationList() {
     participationRecords.forEach((record, index) => {
         const row = document.createElement("tr");
         
-        const emojiMatch = record.comment.match(/[\p{Extended_Pictographic}\u2600-\u27BF]/gu);
-        const emoji = emojiMatch ? emojiMatch[0] : "📝";
-        
-        const typeMatch = record.comment.match(/\(([^)]+)\)/);
-        const type = typeMatch ? typeMatch[1] : "comentario";
+        const meta = record.type && record.emoji ? { type: record.type, emoji: record.emoji } : extractParticipationMeta(record.comment);
+        const emoji = meta.emoji;
+        const type = meta.type;
         
         let badgeClass = "badge-neutral";
         const positiveTypes = ["positiva", "buena", "participación", "ayuda", "excelente", "objetivo", "destacado", "colaboración", "acuerdo", "estudio", "celebración", "esfuerzo", "inteligencia", "brillantez", "triunfo", "investigación", "comunicación", "compartir", "crecimiento", "inspiración"];
@@ -1316,6 +1358,9 @@ function saveEditedParticipation() {
     
     participationRecords[index].studentName = studentName;
     participationRecords[index].comment = comment;
+    const meta = extractParticipationMeta(comment);
+    participationRecords[index].emoji = meta.emoji;
+    participationRecords[index].type = meta.type;
     
     updateParticipationList();
     saveData();
@@ -1643,14 +1688,19 @@ function generateReport() {
             <table style="width: 100%; border-collapse: collapse;">
                 <tr style="background-color: #2c3e50; color: white;">
                     <th style="padding: 10px; text-align: left;">Estudiante(s)</th>
+                    <th style="padding: 10px; text-align: left;">Tipo</th>
+                    <th style="padding: 10px; text-align: left;">Emoji</th>
                     <th style="padding: 10px; text-align: left;">Comentario</th>
                     <th style="padding: 10px; text-align: left;">Hora</th>
                 </tr>`;
         
         participationRecords.forEach((record, index) => {
+            const meta = record.type && record.emoji ? { type: record.type, emoji: record.emoji } : extractParticipationMeta(record.comment);
             content += `
                 <tr style="${index % 2 === 0 ? 'background-color: #f2f2f2;' : ''}">
                     <td style="padding: 10px; border: 1px solid #ddd;">${record.studentName}</td>
+                    <td style="padding: 10px; border: 1px solid #ddd;">${meta.type}</td>
+                    <td style="padding: 10px; border: 1px solid #ddd;">${meta.emoji}</td>
                     <td style="padding: 10px; border: 1px solid #ddd;">${formatMultilineText(record.comment)}</td>
                     <td style="padding: 10px; border: 1px solid #ddd;">${record.formattedTime}</td>
                 </tr>
