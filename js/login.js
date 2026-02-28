@@ -2,7 +2,7 @@
 let failedAttempts = 0;
 let isBlocked = false;
 let blockUntil = 0;
-const db = firebase.firestore();
+const db = firebase.firestore ? firebase.firestore() : null;
 
 // Mostrar alerta personalizada
 function showAlert(message, type = "success") {
@@ -120,20 +120,29 @@ async function validarLogin() {
         const userCredential = await firebase.auth().signInWithEmailAndPassword(email, password);
         const user = userCredential.user;
 
-        const adminQuery = await db.collection('usuarios')
-            .where('correo', '==', user.email)
-            .limit(1)
-            .get();
+        if (db) {
+            try {
+                const adminQuery = await db.collection('usuarios')
+                    .where('correo', '==', user.email)
+                    .limit(1)
+                    .get();
 
-        if (!adminQuery.empty) {
-            const adminData = adminQuery.docs[0].data() || {};
+                if (!adminQuery.empty) {
+                    const adminData = adminQuery.docs[0].data() || {};
 
-            if (adminData.activo !== true) {
-                await firebase.auth().signOut();
-                errorText.textContent = 'Tu usuario administrador está inactivo.';
-                errorMsg.style.display = 'block';
-                return;
+                    if (adminData.activo !== true) {
+                        await firebase.auth().signOut();
+                        errorText.textContent = 'Tu usuario administrador está inactivo.';
+                        errorMsg.style.display = 'block';
+                        return;
+                    }
+                }
+            } catch (firestoreError) {
+                console.warn('⚠️ No se pudo validar el estado del usuario en Firestore:', firestoreError);
             }
+        } else {
+            console.warn('⚠️ Firestore no está disponible en la pantalla de login.');
+            showAlert('No se pudo validar el usuario en Firestore. Se continuará con Firebase Auth.', 'error');
         }
 
         // Login exitoso
